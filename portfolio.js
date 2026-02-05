@@ -89,7 +89,7 @@ const currTime = document.getElementById('current-time');
 const durTime = document.getElementById('duration');
 
 // Your Song URL (Hosted on GitHub)
-const songUrl = "https://raw.githubusercontent.com/reseekesh821/music/main/Nachahe%20ko%20Hoina%20-%20The%20Edge%20Band%20I%20Jeewan%20Gurung.mp3"; 
+const songUrl = "https://raw.githubusercontent.com/reseekesh821/music/main/Timi%20Ra%20Ma%20Lyrics%20Video%20Dixita%20Karki.mp3"; 
 
 const audio = new Audio(songUrl);
 let isPlaying = false;
