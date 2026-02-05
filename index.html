@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rishikesh Bastakoti - Portfolio</title>
+    <link rel="stylesheet" href="portfolio.css">
+</head>
+<body>
+
+<div class="container">
+  <div class="cover">
+    <div class="profile-pic">
+      <img src="https://avatars.githubusercontent.com/u/140906117?v=4" alt="Rishikesh Bastakoti">
+    </div>
+  </div>
+  
+  <div class="text-center">
+    <h1>Rishikesh Bastakoti</h1>
+    <p class="subtitle">Computer Science Student | Aspiring Software Developer</p>
+  </div>
+  
+  <div class="main">
+    <ul class="tabs">
+      <li data-target="intro" class="active">Intro</li>
+      <li data-target="projects">Projects</li>
+      <li data-target="education">Education</li>
+      <li data-target="hometown">Hometown</li>
+      <li data-target="favorites">Favorites</li>
+      <li data-target="contact">Contact</li>
+    </ul>
+    
+    <div id="intro" class="tab-content active">
+      <p style="font-size: 16px; margin-top: 15px;">
+        Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the USA pursuing my undergraduate degree in Computer Science at Caldwell University. I am currently in my sophomore year and aim to pursue a career as a software developer. So far, I have completed several projects based on Python, HTML, CSS, and JavaScript, and I am eager to learn more about full-stack development.
+      </p>
+    </div>
+
+    <div id="projects" class="tab-content">
+      <h3>💻 Featured Projects</h3>
+      <p>Here are some of the projects I've been working on:</p>
+
+      <div class="project-grid">
+        <div class="project-card">
+          <div class="card-header">
+            <span class="folder-icon">📂</span>
+            <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" style="text-decoration: none;">
+              <button style="background-color: #00d2ff; color: #0f0c29; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                View Code
+              </button>
+            </a>
+          </div>
+          <h4>QuickLoan App</h4>
+          <p>A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.</p>
+          <div class="tech-stack">
+            <span>React</span>
+            <span>Python (FastAPI)</span>
+            <span>SQLAlchemy</span>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="card-header">
+            <span class="folder-icon">📂</span>
+            <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" style="text-decoration: none;">
+              <button style="background-color: #00d2ff; color: #0f0c29; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                View Code
+              </button>
+            </a>
+          </div>
+          <h4>BudgetTracker</h4>
+          <p>A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.</p>
+          <div class="tech-stack">
+            <span>Python</span>
+            <span>Data Structures</span>
+            <span>File I/O</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="education" class="tab-content">
+      <div class="info-block">
+        <h3>🎓 University</h3>
+        <p><strong>Caldwell University</strong><br>
+        Caldwell, NJ, USA<br>
+        <span>2024 - 2028 (Bachelor's in CS)</span></p>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+      <div class="info-block">
+        <h3>🏫 High School</h3>
+        <p><strong>National School of Sciences</strong><br>
+        Kathmandu, Nepal<br>
+        <span>2021 - 2023 (High School Diploma)</span></p>
+      </div>
+    </div>
+
+    <div id="hometown" class="tab-content">
+      <div class="info-block">
+        <h3>📍 Kathmandu, Nepal (Hometown)</h3>
+        
+        <img src="https://i.guim.co.uk/img/media/f399717f6fb80a54f8c8e8191e5ae94c8f2c80fc/0_100_3487_2092/master/3487.jpg?width=465&dpr=1&s=none&crop=none" alt="Kathmandu" style="width: 100%; border-radius: 8px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);">
+        
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1);">
+          <p style="margin-bottom: 5px;"><strong>🕒 Kathmandu Time:</strong></p>
+          <div id="nepal-clock" style="font-size: 18px; font-weight: bold; color: #00d2ff;">Loading...</div>
+          <div id="nepal-date" style="font-size: 14px; color: #bbb; margin-top: 2px;">Loading Date...</div>
+          
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+          
+          <p style="margin-bottom: 5px;"><strong>🌤️ Weather:</strong></p>
+          <div id="nepal-weather" style="font-size: 18px; font-weight: bold; color: #fad648;">Loading...</div>
+        </div>
+
+        <div class="map-container">
+          <p style="margin: 15px 0 5px 0;"><strong>🗺️ Location:</strong></p>
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56516.31576360696!2d85.29111319024043!3d27.70895594440733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb198a307baabf%3A0xb5137c1bf18db1ea!2sKathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1707050000000!5m2!1sen!2sus" 
+            width="100%" 
+            height="250" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </div>
+
+    <div id="favorites" class="tab-content">
+      <div class="info-block">
+        <h3>🎵 Favorite Music</h3>
+        
+        <div class="spotify-player">
+          <div class="album-art">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSLTJMTPPI9oHmTPXLYsxYBJKsZZgBwhMrnA&s" alt="Album Art">
+          </div>
+
+          <div class="track-info">
+            <div class="track-title">Nachaheko Hoina</div>
+            <div class="artist-name">The Edge Band</div>
+          </div>
+
+          <div class="progress-container" id="progress-container">
+            <div class="progress" id="progress"></div>
+          </div>
+          
+          <div class="time-stamps">
+            <span id="current-time">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+
+          <div class="controls">
+            <button class="control-btn" id="prev-btn">⏮</button>
+            <button class="play-btn" id="play-btn">
+              <span id="play-icon">▶</span>
+            </button>
+            <button class="control-btn" id="next-btn">⏭</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <h3>🏔️ Favorite City</h3>
+        <p>Pokhara, Nepal</p>
+        <img src="https://admin.buddhaair.com/upload/blog/thumbnail/1717482117_TMVrf_phewa-lake.webp" alt="Pokhara" style="width: 100%; border-radius: 8px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);">
+      </div>
+
+      <div class="info-block">
+        <h3>🎬 Favorite Movie</h3>
+        <p>Unko Sweater (Full Movie)</p>
+        
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+          <iframe 
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+            src="https://www.youtube.com/embed/lCgtmgiII7M" 
+            title="Unko Sweater Full Movie" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </div>
+
+    <div id="contact" class="tab-content">
+      <h3>Contact & Portfolio</h3>
+      <p>Feel free to reach out or check my projects via the links below:</p>
+      <div class="social-links" style="margin-top: 20px; display: flex; flex-direction: column; gap: 15px;">
+        
+        <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume%20-%20Rishikesh%20Bastakoti.pdf" target="_blank" style="text-decoration: none;">
+          <button style="background-color: #ff5722; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px;">
+            📄 View Resume
+          </button>
+        </a>
+
+        <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" style="text-decoration: none;">
+          <button style="background-color: #0077b5; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px;">
+            LinkedIn 
+          </button>
+        </a>
+        <a href="https://github.com/reseekesh821" target="_blank" style="text-decoration: none;">
+          <button style="background-color: #24292e; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px;">
+            GitHub
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="chat-widget">
+  <button id="chat-toggle-btn" class="chat-toggle-btn">💬</button>
+  <div class="chat-box" id="chat-box">
+    <div class="chat-header">
+      <span>Rishi's Assistant</span>
+      <button id="close-chat">✖</button>
+    </div>
+    
+    <div class="chat-messages" id="chat-messages">
+      <div class="message bot-message">
+        Hi! I'm Rishi's virtual assistant. How can I help you?
+      </div>
+      <div class="quick-replies" id="quick-replies">
+        <button class="chip" onclick="handleQuickReply('Projects')">Projects</button>
+        <button class="chip" onclick="handleQuickReply('Skills')">Skills</button>
+        <button class="chip" onclick="handleQuickReply('Contact')">Contact</button>
+      </div>
+    </div>
+    
+    <div class="typing-indicator" id="typing-indicator">
+      Assistant is typing<span>.</span><span>.</span><span>.</span>
+    </div>
+    
+    <div class="chat-input-area">
+      <input type="text" id="user-input" placeholder="Type a message...">
+      <button id="send-btn">➤</button>
+    </div>
+  </div>
+  
+</div>
+
+<script src="portfolio.js"></script>
+</body>
+</html>
