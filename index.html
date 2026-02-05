@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rishikesh Bastakoti - Portfolio</title>
     <link rel="stylesheet" href="portfolio.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -22,12 +23,12 @@
   
   <div class="main">
     <ul class="tabs">
-      <li data-target="intro" class="active">Intro</li>
-      <li data-target="projects">Projects</li>
-      <li data-target="education">Education</li>
-      <li data-target="hometown">Hometown</li>
-      <li data-target="favorites">Favorites</li>
-      <li data-target="contact">Contact</li>
+      <li data-target="intro" class="active"><i class="fa-solid fa-user"></i> Intro</li>
+      <li data-target="projects"><i class="fa-solid fa-code"></i> Projects</li>
+      <li data-target="education"><i class="fa-solid fa-graduation-cap"></i> Education</li>
+      <li data-target="hometown"><i class="fa-solid fa-map-location-dot"></i> Hometown</li>
+      <li data-target="favorites"><i class="fa-solid fa-heart"></i> Favorites</li>
+      <li data-target="contact"><i class="fa-solid fa-address-book"></i> Contact</li>
     </ul>
     
     <div id="intro" class="tab-content active">
@@ -37,43 +38,47 @@
     </div>
 
     <div id="projects" class="tab-content">
-      <h3>💻 Featured Projects</h3>
+      <h3><i class="fa-solid fa-laptop-code"></i> Featured Projects</h3>
       <p>Here are some of the projects I've been working on:</p>
 
       <div class="project-grid">
         <div class="project-card">
-          <div class="card-header">
-            <span class="folder-icon">📂</span>
-            <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" style="text-decoration: none;">
-              <button style="background-color: #00d2ff; color: #0f0c29; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                View Code
-              </button>
+          <div class="card-top">
+            <div class="icon-box">
+              <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" class="code-btn">
+              View Code <i class="fa-brands fa-github"></i>
             </a>
           </div>
-          <h4>QuickLoan App</h4>
-          <p>A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.</p>
-          <div class="tech-stack">
-            <span>React</span>
-            <span>Python (FastAPI)</span>
-            <span>SQLAlchemy</span>
+          <div class="card-content">
+            <h4>QuickLoan App</h4>
+            <p>A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.</p>
+            <div class="tech-stack">
+              <span>React</span>
+              <span>Python (FastAPI)</span>
+              <span>SQLAlchemy</span>
+            </div>
           </div>
         </div>
 
         <div class="project-card">
-          <div class="card-header">
-            <span class="folder-icon">📂</span>
-            <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" style="text-decoration: none;">
-              <button style="background-color: #00d2ff; color: #0f0c29; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                View Code
-              </button>
+          <div class="card-top">
+            <div class="icon-box">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" class="code-btn">
+              View Code <i class="fa-brands fa-github"></i>
             </a>
           </div>
-          <h4>BudgetTracker</h4>
-          <p>A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.</p>
-          <div class="tech-stack">
-            <span>Python</span>
-            <span>Data Structures</span>
-            <span>File I/O</span>
+          <div class="card-content">
+            <h4>BudgetTracker</h4>
+            <p>A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.</p>
+            <div class="tech-stack">
+              <span>Python</span>
+              <span>Data Structures</span>
+              <span>File I/O</span>
+            </div>
           </div>
         </div>
       </div>
@@ -81,14 +86,14 @@
 
     <div id="education" class="tab-content">
       <div class="info-block">
-        <h3>🎓 University</h3>
+        <h3><i class="fa-solid fa-building-columns"></i> University</h3>
         <p><strong>Caldwell University</strong><br>
         Caldwell, NJ, USA<br>
         <span>2024 - 2028 (Bachelor's in CS)</span></p>
       </div>
-      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
       <div class="info-block">
-        <h3>🏫 High School</h3>
+        <h3><i class="fa-solid fa-school"></i> High School</h3>
         <p><strong>National School of Sciences</strong><br>
         Kathmandu, Nepal<br>
         <span>2021 - 2023 (High School Diploma)</span></p>
@@ -97,23 +102,23 @@
 
     <div id="hometown" class="tab-content">
       <div class="info-block">
-        <h3>📍 Kathmandu, Nepal (Hometown)</h3>
+        <h3><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal </h3>
         
         <img src="https://raw.githubusercontent.com/reseekesh821/music/main/kathmandu.png" alt="Kathmandu" style="width: 100%; border-radius: 8px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);">
         
         <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1);">
-          <p style="margin-bottom: 5px;"><strong>🕒 Kathmandu Time:</strong></p>
+          <p style="margin-bottom: 5px;"><strong><i class="fa-solid fa-clock"></i> Kathmandu Time:</strong></p>
           <div id="nepal-clock" style="font-size: 18px; font-weight: bold; color: #00d2ff;">Loading...</div>
           <div id="nepal-date" style="font-size: 14px; color: #bbb; margin-top: 2px;">Loading Date...</div>
           
           <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
           
-          <p style="margin-bottom: 5px;"><strong>🌤️ Weather:</strong></p>
+          <p style="margin-bottom: 5px;"><strong><i class="fa-solid fa-cloud-sun"></i> Weather:</strong></p>
           <div id="nepal-weather" style="font-size: 18px; font-weight: bold; color: #fad648;">Loading...</div>
         </div>
 
         <div class="map-container">
-          <p style="margin: 15px 0 5px 0;"><strong>🗺️ Location:</strong></p>
+          <p style="margin: 15px 0 5px 0;"><strong><i class="fa-solid fa-map"></i> Location:</strong></p>
           <iframe 
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56516.31576360696!2d85.29111319024043!3d27.70895594440733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb198a307baabf%3A0xb5137c1bf18db1ea!2sKathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1707050000000!5m2!1sen!2sus" 
             width="100%" 
@@ -129,7 +134,7 @@
 
     <div id="favorites" class="tab-content">
       <div class="info-block">
-        <h3>🎵 Favorite Music</h3>
+        <h3><i class="fa-solid fa-music"></i> Favorite Music</h3>
         
         <div class="spotify-player">
           <div class="album-art">
@@ -151,23 +156,23 @@
           </div>
 
           <div class="controls">
-            <button class="control-btn" id="prev-btn">⏮</button>
+            <button class="control-btn" id="prev-btn"><i class="fa-solid fa-backward-step"></i></button>
             <button class="play-btn" id="play-btn">
-              <span id="play-icon">▶</span>
+              <span id="play-icon"><i class="fa-solid fa-play"></i></span>
             </button>
-            <button class="control-btn" id="next-btn">⏭</button>
+            <button class="control-btn" id="next-btn"><i class="fa-solid fa-forward-step"></i></button>
           </div>
         </div>
       </div>
 
-      <div class="info-block">
-        <h3>🏔️ Favorite City</h3>
+      <div id = "favcity" class="info-block">
+        <h3><i class="fa-solid fa-mountain-sun"></i> Favorite City</h3>
         <p>Pokhara, Nepal</p>
         <img src="https://raw.githubusercontent.com/reseekesh821/music/main/pokhara.jpg" alt="Pokhara" style="width: 100%; border-radius: 8px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);">
       </div>
 
       <div class="info-block">
-        <h3>🎬 Favorite Movie</h3>
+        <h3><i class="fa-solid fa-film"></i> Favorite Movie</h3>
         <p>Interstellar</p>
         
         <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
@@ -184,37 +189,69 @@
     </div>
 
     <div id="contact" class="tab-content">
-      <h3>Contact & Portfolio</h3>
-      <p>Feel free to reach out or check my projects via the links below:</p>
-      <div class="social-links" style="margin-top: 20px; display: flex; flex-direction: column; gap: 15px;">
-        
-        <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume%20-%20Rishikesh%20Bastakoti.pdf" target="_blank" style="text-decoration: none;">
-          <button style="background-color: #ff5722; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px;">
-            📄 View Resume
-          </button>
-        </a>
-
-        <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" style="text-decoration: none;">
-          <button style="background-color: #0077b5; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px;">
-            LinkedIn 
-          </button>
-        </a>
-        <a href="https://github.com/reseekesh821" target="_blank" style="text-decoration: none;">
-          <button style="background-color: #24292e; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px;">
-            GitHub
-          </button>
-        </a>
+  <h3><i class="fa-solid fa-address-book"></i> Contact & Portfolio</h3>
+  <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
+  
+  <div class="contact-grid">
+    <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume%20-%20Rishikesh%20Bastakoti.pdf" target="_blank" class="social-btn resume-btn">
+      <div class="btn-icon">
+        <i class="fa-solid fa-file-pdf"></i>
       </div>
+      <span>View Resume</span>
+      <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+    </a>
+
+    <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" class="social-btn linkedin-btn">
+      <div class="btn-icon">
+        <i class="fa-brands fa-linkedin-in"></i>
+      </div>
+      <span>LinkedIn</span>
+      <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+    </a>
+
+    <a href="https://github.com/reseekesh821" target="_blank" class="social-btn github-btn">
+      <div class="btn-icon">
+        <i class="fa-brands fa-github"></i>
+      </div>
+      <span>GitHub</span>
+      <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+    </a>
+  </div>
+  <div class="form-container">
+  <h3><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
+  
+  <form action="https://formspree.io/f/xpqjaove" method="POST" class="contact-form">
+    
+    <div class="input-group">
+      <input type="text" name="name" required placeholder=" ">
+      <label>Name</label>
     </div>
+
+    <div class="input-group">
+      <input type="email" name="email" required placeholder=" ">
+      <label>Email Address</label>
+    </div>
+
+    <div class="input-group">
+      <textarea name="message" rows="5" required placeholder=" "></textarea>
+      <label>Your Message</label>
+    </div>
+
+    <button type="submit" class="send-btn">
+      Send Message <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </form>
+</div>
+</div>
   </div>
 </div>
 
 <div class="chat-widget">
-  <button id="chat-toggle-btn" class="chat-toggle-btn">💬</button>
+  <button id="chat-toggle-btn" class="chat-toggle-btn"><i class="fa-solid fa-comment-dots"></i></button>
   <div class="chat-box" id="chat-box">
     <div class="chat-header">
-      <span>Rishi's Assistant</span>
-      <button id="close-chat">✖</button>
+      <span><i class="fa-solid fa-robot"></i> Rishi's Assistant</span>
+      <button id="close-chat"><i class="fa-solid fa-xmark"></i></button>
     </div>
     
     <div class="chat-messages" id="chat-messages">
@@ -234,10 +271,9 @@
     
     <div class="chat-input-area">
       <input type="text" id="user-input" placeholder="Type a message...">
-      <button id="send-btn">➤</button>
+      <button id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
   </div>
-  
 </div>
 
 <script src="portfolio.js"></script>
