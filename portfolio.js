@@ -116,18 +116,8 @@ audio.addEventListener('ended', () => {
 });
 
 // 5. AI Chatbot Logic (Powered by Gemini)
-const chatToggle = document.getElementById('chat-toggle-btn');
-const chatBox = document.getElementById('chat-box');
-const closeChat = document.getElementById('close-chat');
-const sendBtn = document.getElementById('send-btn');
-const userInput = document.getElementById('user-input');
-const chatMessages = document.getElementById('chat-messages');
-const typingIndicator = document.getElementById('typing-indicator');
-const quickRepliesContainer = document.getElementById('quick-replies');
-
-// --- CONFIGURATION ---
 const GEMINI_API_KEY = "AIzaSyCrbkf7JFPWx6HwHTj1Kr2deJZnbM40GfI"; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT = `
 You are the AI portfolio assistant for Rishikesh Bastakoti.
@@ -149,7 +139,7 @@ if(closeChat) {
   closeChat.addEventListener('click', () => chatBox.classList.remove('open'));
 }
 
-// 1. The AI Fetch Function
+// 1. The AI Fetch Function (FIXED & ROBUST)
 async function getAIResponse(userMessage) {
   const requestBody = {
     contents: [
@@ -170,13 +160,19 @@ async function getAIResponse(userMessage) {
 
     const data = await response.json();
 
-    // Check if the API returned an error (likely due to restriction on localhost)
+    // ERROR HANDLER 1: API Level Errors
     if (data.error) {
       console.error("AI Error:", data.error);
-      return "I can't answer right now. (Note: The AI key is restricted to the live GitHub website, so it may not work on localhost.)";
+      return "I can't answer right now. (API Error: " + data.error.message + ")";
     }
 
-    // Extract the text response
+    // ERROR HANDLER 2: Safety Blocks / Empty Responses
+    // This prevents the code from crashing if the AI refuses to answer
+    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+      return "I can't answer that specifically, but I can tell you about Rishi's projects!";
+    }
+
+    // SUCCESS
     return data.candidates[0].content.parts[0].text;
 
   } catch (error) {
@@ -184,74 +180,3 @@ async function getAIResponse(userMessage) {
     return "I'm having trouble connecting to the internet right now.";
   }
 }
-
-// 2. Send Message Logic
-async function sendMessage() {
-  const text = userInput.value.trim();
-  if (text === "") return;
-
-  // Add user message
-  addMessage(text, 'user-message');
-  userInput.value = '';
-  
-  // Hide quick replies
-  if(quickRepliesContainer) quickRepliesContainer.style.display = 'none';
-  
-  // Show typing indicator
-  showTyping();
-  
-  // Get AI Response
-  const botReply = await getAIResponse(text); 
-  
-  // Hide typing indicator
-  hideTyping();
-
-  // Add bot message
-  addMessage(botReply, 'bot-message');
-  
-  // Show quick replies again
-  if(quickRepliesContainer) {
-    quickRepliesContainer.style.display = 'flex';
-    chatMessages.appendChild(quickRepliesContainer);
-  }
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Helper: Add Message to UI
-function addMessage(text, className) {
-  const div = document.createElement('div');
-  div.classList.add('message', className);
-  // Allow HTML in bot messages (for links/bold text)
-  div.innerHTML = text; 
-  
-  if (quickRepliesContainer && chatMessages.contains(quickRepliesContainer)) {
-    chatMessages.insertBefore(div, quickRepliesContainer);
-  } else {
-    chatMessages.appendChild(div);
-  }
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Helper: Typing Indicator
-function showTyping() {
-  if(typingIndicator) {
-    typingIndicator.style.display = 'block';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-}
-
-function hideTyping() {
-  if(typingIndicator) typingIndicator.style.display = 'none';
-}
-
-// Helper: Quick Replies
-window.handleQuickReply = function(text) {
-  userInput.value = text;
-  sendMessage();
-}
-
-// Event Listeners
-if(sendBtn) sendBtn.addEventListener('click', sendMessage);
-if(userInput) userInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendMessage();
-});
