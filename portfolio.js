@@ -127,7 +127,7 @@ const quickRepliesContainer = document.getElementById('quick-replies');
 
 // --- CONFIGURATION ---
 const GEMINI_API_KEY = "AIzaSyCustmea_tQ_mwxijrRd78YT_IAjpRPYPU"; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 
 const SYSTEM_PROMPT = `
