@@ -129,7 +129,6 @@ const quickRepliesContainer = document.getElementById('quick-replies');
 const GEMINI_API_KEY = "AIzaSyCustmea_tQ_mwxijrRd78YT_IAjpRPYPU"; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-
 const SYSTEM_PROMPT = `
 You are the AI portfolio assistant for Rishikesh Bastakoti.
 Here are the facts you must know and use:
@@ -141,6 +140,9 @@ Here are the facts you must know and use:
 - If asked about contact, direct them to the Contact tab or LinkedIn.
 - Keep answers short, friendly, and under 3 sentences.
 `;
+
+// SAFETY LOCK VARIABLE (PREVENTS SPAMMING) 
+let isCoolingDown = false; 
 
 // Toggle Chatbox Visibility
 if(chatToggle) {
@@ -169,15 +171,18 @@ async function getAIResponse(userMessage) {
       body: JSON.stringify(requestBody)
     });
 
-    const data = await response.json();
-
-    // Check if the API returned an error (likely due to restriction on localhost)
-    if (data.error) {
-      console.error("AI Error:", data.error);
-      return "I can't answer right now. (Note: The AI key is restricted to the live GitHub website, so it may not work on localhost.)";
+    // HANDLE RATE LIMIT (429) 
+    if (response.status === 429) {
+        return "I am receiving too many requests right now. Please wait 2 minutes and try again.";
     }
 
-    // Extract the text response
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("AI Error:", data.error);
+      return "I can't answer right now. (API Error)";
+    }
+
     return data.candidates[0].content.parts[0].text;
 
   } catch (error) {
@@ -188,8 +193,18 @@ async function getAIResponse(userMessage) {
 
 // 2. Send Message Logic
 async function sendMessage() {
+  // SAFETY CHECK: STOP IF COOLING DOWN 
+  if (isCoolingDown) {
+      console.warn("⚠️ Spam protection: Please wait.");
+      return; 
+  }
+
   const text = userInput.value.trim();
   if (text === "") return;
+
+  // LOCK THE INTERFACE FOR 5 SECONDS
+  isCoolingDown = true;
+  setTimeout(() => { isCoolingDown = false; }, 5000); // Unlocks after 5 seconds
 
   // Add user message
   addMessage(text, 'user-message');
@@ -222,7 +237,6 @@ async function sendMessage() {
 function addMessage(text, className) {
   const div = document.createElement('div');
   div.classList.add('message', className);
-  // Allow HTML in bot messages (for links/bold text)
   div.innerHTML = text; 
   
   if (quickRepliesContainer && chatMessages.contains(quickRepliesContainer)) {
@@ -247,6 +261,8 @@ function hideTyping() {
 
 // Helper: Quick Replies
 window.handleQuickReply = function(text) {
+  // Check cooldown here too so buttons don't spam
+  if (isCoolingDown) return; 
   userInput.value = text;
   sendMessage();
 }
