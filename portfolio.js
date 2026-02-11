@@ -126,7 +126,7 @@ const typingIndicator = document.getElementById('typing-indicator');
 const quickRepliesContainer = document.getElementById('quick-replies');
 
 // --- CONFIGURATION ---
-const GEMINI_API_KEY = "AIzaSyDb2_OCgj0kpNslvEiEh4zRzTrOohdds84"; 
+const GEMINI_API_KEY = "AIzaSyCustmea_tQ_mwxijrRd78YT_IAjpRPYPU"; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT = `
