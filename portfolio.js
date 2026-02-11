@@ -115,7 +115,8 @@ audio.addEventListener('ended', () => {
   progress.style.width = "0%";
 });
 
-// 5. AI Chatbot Logic (Powered by Gemini)
+// 5. AI Chatbot Logic (Powered by Groq)
+// --- 1. UI ELEMENTS ---
 const chatToggle = document.getElementById('chat-toggle-btn');
 const chatBox = document.getElementById('chat-box');
 const closeChat = document.getElementById('close-chat');
@@ -125,107 +126,74 @@ const chatMessages = document.getElementById('chat-messages');
 const typingIndicator = document.getElementById('typing-indicator');
 const quickRepliesContainer = document.getElementById('quick-replies');
 
-// --- CONFIGURATION ---
-const GEMINI_API_KEY = "AIzaSyCustmea_tQ_mwxijrRd78YT_IAjpRPYPU"; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+// --- 2. CONFIGURATION ---
+// No API Key here. Your /api/chat.js file handles the secret key on the server.
+const API_URL = "/api/chat"; 
 
 const SYSTEM_PROMPT = `
 You are the AI portfolio assistant for Rishikesh Bastakoti.
-Here are the facts you must know and use:
-- Rishikesh is a Computer Science student at Caldwell University (Class of 2028).
-- He is from Kathmandu, Nepal.
-- He built "QuickLoan" (React/FastAPI) and "BudgetTracker" (Python).
-- His favorite movie is Interstellar and he loves the song "Timi Ra Ma".
-- He is skilled in Python, JavaScript, React, and SQL.
-- If asked about contact, direct them to the Contact tab or LinkedIn.
+Facts to use:
+- Computer Science student at Caldwell University (Class of 2028).
+- From Kathmandu, Nepal.
+- Projects: "QuickLoan" (React/FastAPI) and "BudgetTracker" (Python).
+- Skills: Python, JavaScript, React, SQL.
+- Favorite movie: Interstellar. Favorite song: "Timi Ra Ma".
+- Direct contact questions to the Contact tab or LinkedIn.
 - Keep answers short, friendly, and under 3 sentences.
 `;
 
-// SAFETY LOCK VARIABLE (PREVENTS SPAMMING) 
 let isCoolingDown = false; 
 
-// Toggle Chatbox Visibility
-if(chatToggle) {
-  chatToggle.addEventListener('click', () => chatBox.classList.toggle('open'));
-}
-if(closeChat) {
-  closeChat.addEventListener('click', () => chatBox.classList.remove('open'));
-}
+// --- 3. UI CONTROLS ---
+if(chatToggle) chatToggle.addEventListener('click', () => chatBox.classList.toggle('open'));
+if(closeChat) closeChat.addEventListener('click', () => chatBox.classList.remove('open'));
 
-// 1. The AI Fetch Function
+// --- 4. THE AI CORE ---
 async function getAIResponse(userMessage) {
-  const requestBody = {
-    contents: [
-      {
-        parts: [
-          { text: SYSTEM_PROMPT + "\n\nUser Question: " + userMessage }
-        ]
-      }
-    ]
-  };
-
   try {
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({ 
+        message: userMessage, 
+        systemPrompt: SYSTEM_PROMPT 
+      })
     });
 
-    // HANDLE RATE LIMIT (429) 
-    if (response.status === 429) {
-        return "I am receiving too many requests right now. Please wait 2 minutes and try again.";
-    }
+    if (response.status === 429) return "I'm a bit busy. Try again in a minute!";
 
     const data = await response.json();
-
-    if (data.error) {
-      console.error("AI Error:", data.error);
-      return "I can't answer right now. (API Error)";
-    }
-
-    return data.candidates[0].content.parts[0].text;
+    
+    // The data comes back through your Vercel proxy
+    return data.choices[0].message.content;
 
   } catch (error) {
-    console.error("Network Error:", error);
-    return "I'm having trouble connecting to the internet right now.";
+    console.error("Fetch Error:", error);
+    return "I'm having trouble connecting to the assistant right now.";
   }
 }
 
-// 2. Send Message Logic
+// --- 5. CHAT ENGINE ---
 async function sendMessage() {
-  // SAFETY CHECK: STOP IF COOLING DOWN 
-  if (isCoolingDown) {
-      console.warn("⚠️ Spam protection: Please wait.");
-      return; 
-  }
+  if (isCoolingDown) return; 
 
   const text = userInput.value.trim();
   if (text === "") return;
 
-  // LOCK THE INTERFACE FOR 5 SECONDS
   isCoolingDown = true;
-  setTimeout(() => { isCoolingDown = false; }, 5000); // Unlocks after 5 seconds
+  setTimeout(() => { isCoolingDown = false; }, 5000); 
 
-  // Add user message
   addMessage(text, 'user-message');
   userInput.value = '';
   
-  // Hide quick replies
   if(quickRepliesContainer) quickRepliesContainer.style.display = 'none';
-  
-  // Show typing indicator
   showTyping();
   
-  // Get AI Response
   const botReply = await getAIResponse(text); 
   
-  // Hide typing indicator
   hideTyping();
-
-  // Add bot message
   addMessage(botReply, 'bot-message');
   
-  // Show quick replies again
   if(quickRepliesContainer) {
     quickRepliesContainer.style.display = 'flex';
     chatMessages.appendChild(quickRepliesContainer);
@@ -233,7 +201,7 @@ async function sendMessage() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Helper: Add Message to UI
+// --- 6. HELPERS ---
 function addMessage(text, className) {
   const div = document.createElement('div');
   div.classList.add('message', className);
@@ -247,7 +215,6 @@ function addMessage(text, className) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Helper: Typing Indicator
 function showTyping() {
   if(typingIndicator) {
     typingIndicator.style.display = 'block';
@@ -259,15 +226,13 @@ function hideTyping() {
   if(typingIndicator) typingIndicator.style.display = 'none';
 }
 
-// Helper: Quick Replies
 window.handleQuickReply = function(text) {
-  // Check cooldown here too so buttons don't spam
   if (isCoolingDown) return; 
   userInput.value = text;
   sendMessage();
 }
 
-// Event Listeners
+// --- 7. EVENT LISTENERS ---
 if(sendBtn) sendBtn.addEventListener('click', sendMessage);
 if(userInput) userInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMessage();
