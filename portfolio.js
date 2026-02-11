@@ -115,7 +115,9 @@ audio.addEventListener('ended', () => {
   progress.style.width = "0%";
 });
 
-// 5. AI Chatbot Logic (Powered by Groq)
+
+// AI CHATBOT LOGIC (Groq Powered)
+
 // --- 1. UI ELEMENTS ---
 const chatToggle = document.getElementById('chat-toggle-btn');
 const chatBox = document.getElementById('chat-box');
@@ -127,130 +129,196 @@ const typingIndicator = document.getElementById('typing-indicator');
 const quickRepliesContainer = document.getElementById('quick-replies');
 
 // --- 2. CONFIGURATION ---
-// No API Key here. Your /api/chat.js file handles the secret key on the server.
-const API_URL = "/api/chat"; 
+const API_URL = "/api/chat";
 
 const SYSTEM_PROMPT = `
-# ROLE
-You are the professional, adaptive, and highly informed digital assistant for Rishikesh Bastakoti.
+You represent Rishikesh Bastakoti as a professional and natural digital assistant.
 
-# THE BIG DATA POOL
-- IDENTITY: Rishikesh Bastakoti. Originally from Kathmandu, Nepal. Currently residing in the USA.
-- CURRENT STATUS: Sophomore Computer Science student at Caldwell University, NJ. Expected Graduation: 2028.
-- EDUCATION HISTORY: 
-    * University: Caldwell University (2024 - 2028), Bachelor's in Computer Science.
-    * High School: National School of Sciences, Kathmandu, Nepal (2021 - 2023), High School Diploma.
-- TECHNICAL SKILLS: Python, JavaScript (ES6+), HTML5, CSS3, React, FastAPI, SQLAlchemy, SQL, Data Structures, File I/O, and Visual Studio Code.
-- CORE PROJECTS:
-    * QuickLoan App: A full-stack loan application system. Tech: React (Frontend), Python/FastAPI (Backend), and SQLAlchemy (Database).
-    * BudgetTracker: A personal finance tool. Tech: Python, Data Structures, and File I/O for expense visualization and budgeting.
-- PERSONAL CONTEXT:
-    * Favorite Music: "Timi Ra Ma" by Dixita Karki.
-    * Favorite Movie: Interstellar.
-    * Favorite City: Pokhara, Nepal.
-    * Location/Time: Currently based in Caldwell, NJ. Native home is Kathmandu.
-- CONTACT: LinkedIn (rbastakoti1) and GitHub (reseekesh821).
+Core Information:
+- Originally from Kathmandu, Nepal
+- Based in Caldwell, NJ, USA
+- Sophomore Computer Science student at Caldwell University (2024–2028)
+- High School: National School of Sciences, Kathmandu
+- Technical Skills: Python, JavaScript (ES6+), HTML5, CSS3, React, FastAPI, SQLAlchemy, SQL, Data Structures, File I/O, VS Code
+- Projects:
+   - QuickLoan App (React + FastAPI + SQLAlchemy)
+   - BudgetTracker (Python + Data Structures + File I/O)
+- LinkedIn: rbastakoti1
+- GitHub: reseekesh821
+- Favorite Music: "Timi Ra Ma" by Dixita Karki
+- Favorite Movie: Interstellar
+- Favorite City: Pokhara, Nepal
 
-# RESPONSE RULES (STRICT)
-1. GREETING RULE: If the user says "Hi" or "Hello," respond ONLY with: "Hello! I'm Rishikesh's assistant. How can I help you today?".
-2. GENERAL "ABOUT" QUESTIONS: For "Who is he?" or "Tell me about Rishikesh," provide a professional 2-3 sentence summary and end with: "Would you like to hear more about his specific technical skills or his favorite personal interests?".
-3. SPECIFIC FACTUAL QUESTIONS: For specific queries (e.g., "What's his high school?" or "Favorite music?"), provide the direct answer in one sentence and STOP. No follow-up.
-4. NO METAPHORS: Never use space, orbit, or Interstellar analogies. Keep it professional and literal.
-5. NO AI MENTION: Speak as his representative. Do not mention being an AI.
+Guidelines:
+- Speak as his representative.
+- Do not mention being an AI.
+- Keep tone professional and conversational.
+- Adapt to user intent.
+- Avoid repetition.
+- Be concise unless more detail is requested.
 `;
 
-let isCoolingDown = false; 
+// --- 3. MEMORY ---
+let conversationHistory = [
+  { role: "system", content: SYSTEM_PROMPT }
+];
 
-// --- 3. UI CONTROLS ---
-if(chatToggle) chatToggle.addEventListener('click', () => chatBox.classList.toggle('open'));
-if(closeChat) closeChat.addEventListener('click', () => chatBox.classList.remove('open'));
+const MAX_HISTORY = 18;
+let isCoolingDown = false;
 
-// --- 4. THE AI CORE ---
+// --- 4. UI CONTROLS ---
+if (chatToggle) {
+  chatToggle.addEventListener('click', () => {
+    chatBox.classList.toggle('open');
+  });
+}
+
+if (closeChat) {
+  closeChat.addEventListener('click', () => {
+    chatBox.classList.remove('open');
+  });
+}
+
+// --- 5. API CALL ---
 async function getAIResponse(userMessage) {
   try {
+    // Add user message
+    conversationHistory.push({
+      role: "user",
+      content: userMessage
+    });
+
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        message: userMessage, 
-        systemPrompt: SYSTEM_PROMPT 
+      body: JSON.stringify({
+        messages: conversationHistory
       })
     });
 
-    if (response.status === 429) return "I'm a bit busy. Try again in a minute!";
+    if (!response.ok) {
+      return "I'm having trouble responding right now. Please try again.";
+    }
 
     const data = await response.json();
-    
-    // The data comes back through your Vercel proxy
-    return data.choices[0].message.content;
+
+    const botReply =
+      data?.choices?.[0]?.message?.content ||
+      "Something went wrong. Please try again.";
+
+    // Save assistant reply
+    conversationHistory.push({
+      role: "assistant",
+      content: botReply
+    });
+
+    // Trim history (keep system prompt)
+    if (conversationHistory.length > MAX_HISTORY + 1) {
+      conversationHistory = [
+        conversationHistory[0],
+        ...conversationHistory.slice(-MAX_HISTORY)
+      ];
+    }
+
+    return botReply;
 
   } catch (error) {
-    console.error("Fetch Error:", error);
-    return "I'm having trouble connecting to the assistant right now.";
+    console.error("Chatbot Error:", error);
+    return "I'm having trouble connecting right now.";
   }
 }
 
-// --- 5. CHAT ENGINE ---
+// --- 6. CHAT ENGINE ---
 async function sendMessage() {
-  if (isCoolingDown) return; 
+  if (isCoolingDown) return;
 
   const text = userInput.value.trim();
-  if (text === "") return;
+  if (!text) return;
 
   isCoolingDown = true;
-  setTimeout(() => { isCoolingDown = false; }, 5000); 
+  sendBtn.disabled = true;
+
+  setTimeout(() => {
+    isCoolingDown = false;
+    sendBtn.disabled = false;
+  }, 1200);
 
   addMessage(text, 'user-message');
   userInput.value = '';
-  
-  if(quickRepliesContainer) quickRepliesContainer.style.display = 'none';
+
+  if (quickRepliesContainer) {
+    quickRepliesContainer.style.display = 'none';
+  }
+
   showTyping();
-  
-  const botReply = await getAIResponse(text); 
-  
+
+  const botReply = await getAIResponse(text);
+
   hideTyping();
   addMessage(botReply, 'bot-message');
-  
-  if(quickRepliesContainer) {
+
+  if (quickRepliesContainer) {
     quickRepliesContainer.style.display = 'flex';
     chatMessages.appendChild(quickRepliesContainer);
   }
+
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// --- 6. HELPERS ---
+// --- 7. HELPERS ---
 function addMessage(text, className) {
   const div = document.createElement('div');
   div.classList.add('message', className);
-  div.innerHTML = text; 
-  
+
+  // Safe rendering
+  div.textContent = text;
+
   if (quickRepliesContainer && chatMessages.contains(quickRepliesContainer)) {
     chatMessages.insertBefore(div, quickRepliesContainer);
   } else {
     chatMessages.appendChild(div);
   }
+
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function showTyping() {
-  if(typingIndicator) {
+  if (typingIndicator) {
     typingIndicator.style.display = 'block';
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 }
 
 function hideTyping() {
-  if(typingIndicator) typingIndicator.style.display = 'none';
+  if (typingIndicator) {
+    typingIndicator.style.display = 'none';
+  }
 }
 
+// --- 8. QUICK REPLIES ---
 window.handleQuickReply = function(text) {
-  if (isCoolingDown) return; 
+  if (isCoolingDown) return;
   userInput.value = text;
   sendMessage();
+};
+
+// --- 9. EVENT LISTENERS ---
+if (sendBtn) {
+  sendBtn.addEventListener('click', sendMessage);
 }
 
-// --- 7. EVENT LISTENERS ---
-if(sendBtn) sendBtn.addEventListener('click', sendMessage);
-if(userInput) userInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendMessage();
-});
+if (userInput) {
+  userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+}
+
+// --- 10. OPTIONAL RESET ---
+function resetConversation() {
+  conversationHistory = [
+    { role: "system", content: SYSTEM_PROMPT }
+  ];
+}
+
