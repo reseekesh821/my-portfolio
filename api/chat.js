@@ -1,4 +1,4 @@
-// api/chat.js
+
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -27,9 +27,9 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: messages,
-          temperature: 0.6,
-          top_p: 0.9,
-          max_tokens: 500
+          temperature: 0.25,
+          top_p: 0.7,
+          max_tokens: 300
         })
       }
     );
