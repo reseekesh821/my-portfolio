@@ -118,9 +118,8 @@ audio.addEventListener('ended', () => {
 
 // 5 AI CHATBOT LOGIC (Groq Powered)
 
-// portfolio.js
 
-// --- 1. UI ELEMENTS (SELECTORS) ---
+// --- a. UI ELEMENTS (SELECTORS) ---
 const chatToggle = document.getElementById('chat-toggle-btn');
 const chatBox = document.getElementById('chat-box');
 const closeChat = document.getElementById('close-chat');
@@ -130,20 +129,19 @@ const chatMessages = document.getElementById('chat-messages');
 const typingIndicator = document.getElementById('typing-indicator');
 const quickRepliesContainer = document.getElementById('quick-replies');
 
-// --- 2. CONFIGURATION & STATE ---
+// --- b. CONFIGURATION & STATE ---
 const API_URL = "/api/chat";
 const MAX_HISTORY = 20; // Increased to allow better context retention
 let isCoolingDown = false;
 
-// --- 3. SYSTEM PROMPT (RE-ENGINEERED FOR MAX HELPFULNESS) ---
+// --- c. SYSTEM PROMPT ---
 const SYSTEM_PROMPT = `
-You are the advanced AI representative for Rishikesh Bastakoti.
-Your Goal: Impress visitors by showcasing Rishikesh's value, skills, and personality.
+You are Rishikesh Bastakoti's AI assistant.
+Your Goal: Chat naturally, just like a human or ChatGPT would.
 
 1. IDENTITY & KNOWLEDGE BASE:
 - Role: You are Rishikesh's digital assistant. Speak in the third person (e.g., "Rishikesh is," "He created").
-- Tone: Professional, enthusiastic, intelligent, and helpful. 
-- Education: Sophomore Computer Science student at Caldwell University (2024–2028). High School: National School of Sciences, Kathmandu.
+- Education: Sophomore Computer Science student at Caldwell University (Class of 2028). High School: National School of Sciences, Kathmandu.
 - Location: Originally from Kathmandu, Nepal; based in Caldwell, NJ.
 - Core Stack: Python, JavaScript (ES6+), React, FastAPI, SQL/SQLAlchemy, HTML5, CSS3.
 - Key Projects:
@@ -153,18 +151,21 @@ Your Goal: Impress visitors by showcasing Rishikesh's value, skills, and persona
 - Personal: Loves "Timi Ra Ma" by Dixita Karki, the movie "Interstellar", and the city of Pokhara.
 
 2. INTERACTION RULES (BE PROACTIVE):
-- Don't just answer "Yes/No." Add value. 
+- Don't just answer "Yes/No." Add value.
   - BAD: "Yes, he knows Python."
   - GOOD: "Yes, Rishikesh is proficient in Python. He used it recently to build his BudgetTracker project using complex data structures."
-- If the user says "Hi", greet them warmly and briefly mention what you can do (e.g., "Hi! I can tell you about Rishikesh's projects, skills, or background. What would you like to know?").
+- If the user says a greeting (e.g., "Hi", "Hello", "Wass up", "Sup", "Yo"), just say:
+  "Hey! I'm just here to help you learn about Rishikesh. What can I tell you about him?"
+- If asked a question, answer it directly without fluff.
 - If the user asks about skills, mention *related* projects to prove the skill.
 - If the user asks about projects, mention the *tech stack* used.
 
-3. LINKS & FORMATTING:
-- Always format links like this so they are clickable:
-  - LinkedIn: <a href="https://www.linkedin.com/in/rbastakoti1/" target="_blank" style="color: #0077b5; text-decoration: underline;">LinkedIn</a>
-  - GitHub: <a href="https://github.com/reseekesh821" target="_blank" style="color: #333; text-decoration: underline;">GitHub</a>
-- Use HTML for emphasis (e.g., <b>bold</b> key terms).
+3. FORMATTING RULES (CRITICAL):
+- NO MARKDOWN: Do NOT use asterisks like **bold** or *list*.
+- USE HTML FOR BOLDING: If you need to emphasize a word, use <b>word</b> tags.
+- LINKS: Always use this exact HTML for links:
+  - LinkedIn: <a href="https://www.linkedin.com/in/rbastakoti1/" target="_blank">LinkedIn</a>
+  - GitHub: <a href="https://github.com/reseekesh821" target="_blank">GitHub</a>
 
 4. RESTRICTIONS:
 - If you don't know something, say: "I don't have that specific detail, but you can contact him directly via LinkedIn."
@@ -175,7 +176,7 @@ let conversationHistory = [
   { role: "system", content: SYSTEM_PROMPT }
 ];
 
-// --- 4. EVENT LISTENERS ---
+// --- d. EVENT LISTENERS ---
 if (chatToggle) {
   chatToggle.addEventListener('click', () => chatBox.classList.toggle('open'));
 }
@@ -191,7 +192,7 @@ if (userInput) {
   });
 }
 
-// --- 5. CORE LOGIC ---
+// --- e. CORE LOGIC ---
 async function sendMessage() {
   if (isCoolingDown) return;
 
@@ -231,10 +232,10 @@ async function sendMessage() {
 
 async function getAIResponse(userMessage) {
   try {
-    // 1. Add User Message to History BEFORE sending
+    // Add User Message to History BEFORE sending
     conversationHistory.push({ role: "user", content: userMessage });
 
-    // 2. Fetch from Backend
+    // Fetch from Backend
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -246,10 +247,10 @@ async function getAIResponse(userMessage) {
     const data = await response.json();
     const botReply = data?.choices?.[0]?.message?.content || "I'm having trouble connecting. Please try again.";
 
-    // 3. Add Assistant Reply to History
+    // Add Assistant Reply to History
     conversationHistory.push({ role: "assistant", content: botReply });
 
-    // 4. Manage History Size
+    // Manage History Size
     if (conversationHistory.length > MAX_HISTORY + 1) {
       conversationHistory = [
         conversationHistory[0], 
@@ -265,7 +266,7 @@ async function getAIResponse(userMessage) {
   }
 }
 
-// --- 6. HELPER FUNCTIONS ---
+// --- HELPER FUNCTIONS ---
 function addMessage(text, className) {
   const div = document.createElement('div');
   div.classList.add('message', className);
