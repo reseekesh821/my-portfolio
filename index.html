@@ -275,7 +275,6 @@
 <div class="chat-widget">
   <div class="voice-actions">
     <button id="voice-help-btn" class="voice-help-btn" title="What can I say?"><i class="fa-solid fa-circle-question"></i></button>
-    <button id="voice-btn" class="voice-btn" title="Voice assistant"><i class="fa-solid fa-microphone"></i></button>
   </div>
   <div class="voice-commands-panel" id="voice-commands-panel">
     <div class="voice-commands-header"><i class="fa-solid fa-microphone-lines"></i> Voice commands</div>
@@ -289,32 +288,35 @@
       <li><strong>Help:</strong> "What can you do?" "Help"</li>
     </ul>
   </div>
-  <div class="voice-status" id="voice-status">Listening...</div>
   <button id="chat-toggle-btn" class="chat-toggle-btn"><i class="fa-solid fa-comment-dots"></i></button>
   <div class="chat-box" id="chat-box">
     <div class="chat-header">
-      <span><i class="fa-solid fa-robot"></i> Rishi's Assistant</span>
-      <button id="close-chat"><i class="fa-solid fa-xmark"></i></button>
+      <span class="chat-header-title"><i class="fa-solid fa-robot"></i> Rishi's Assistant</span>
+      <button id="close-chat" class="chat-close-btn" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
     </div>
     
     <div class="chat-messages" id="chat-messages">
-      <div class="message bot-message">
-        Hey! I'm Rishi's assistant. Ask me about him, his projects, or try the <b>Games</b> tab to quiz yourself. What would you like to know?
+      <div class="message bot-message chat-welcome">
+        Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.
       </div>
       <div class="quick-replies" id="quick-replies">
-        <button class="chip" onclick="handleQuickReply('Tell me about Rishikesh')">About Rishi</button>
-        <button class="chip" onclick="handleQuickReply('What projects has he built?')">Projects</button>
-        <button class="chip" onclick="handleQuickReply('How can I contact him?')">Contact</button>
+        <button type="button" class="chip" onclick="handleQuickReply('change color to red')">Red theme</button>
+        <button type="button" class="chip" onclick="handleQuickReply('play music')">Play music</button>
+        <button type="button" class="chip" onclick="handleQuickReply('Tell me about Rishikesh')">About Rishi</button>
+        <button type="button" class="chip" onclick="handleQuickReply('show projects')">Projects</button>
       </div>
     </div>
     
     <div class="typing-indicator" id="typing-indicator">
-      Assistant is typing<span>.</span><span>.</span><span>.</span>
+      Thinking...
     </div>
     
+    <div class="voice-status chat-voice-status" id="voice-status">Listening...</div>
+    
     <div class="chat-input-area">
-      <input type="text" id="user-input" placeholder="Type a message...">
-      <button id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+      <input type="text" id="user-input" placeholder="Type a message or command..." autocomplete="off" aria-label="Chat message">
+      <button type="button" id="voice-btn" class="voice-btn chat-voice-btn" title="Voice assistant" aria-label="Voice assistant"><i class="fa-solid fa-microphone"></i></button>
+      <button type="button" id="send-btn" class="chat-send-btn" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
   </div>
 </div>

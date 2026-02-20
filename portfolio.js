@@ -310,71 +310,69 @@ const VoiceAssistant = (function() {
     return true;
   }
 
-  function handleCommand(text) {
+  function handleCommand(text, forChat) {
     const t = text.toLowerCase().trim();
+    function reply(msg) {
+      if (!forChat) speak(msg);
+      return forChat ? msg : true;
+    }
 
-    // Greetings → welcome + what I can do
+    // Greetings
     if (/^(hi|hello|hey|yo|sup|what'?s up|howdy|good morning|good afternoon|good evening)\s*\.?$/.test(t)) {
-      speak("Hi! I'm Rishi's voice assistant. You can ask me about Rishikesh, the weather or time in Kathmandu, play music, change the theme color, or open any section. What would you like?");
-      return true;
+      return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
     // About Rishikesh
     if (/\b(who is|tell me about|about)\s*(rishi|rishikesh|him|this (guy|person)|the (owner|developer))\b/.test(t) || 
         /^(who('?s| is) (rishi|this)|introduce (rishi|him)|describe (rishi|him))\b/.test(t)) {
-      speak(ABOUT_RISHI);
-      return true;
+      return reply(ABOUT_RISHI);
     }
 
     // Weather
     if (/\b(weather|temperature|how('?s| is) (the )?weather|what'?s (the )?weather|weather in (kathmandu|nepal)?)\b/.test(t) || t === "what's the weather") {
       if (lastWeather.temp != null) {
-        speak(`In Kathmandu it's ${Math.round(lastWeather.temp)} degrees Celsius, with wind at ${Math.round(lastWeather.wind)} kilometres per hour.`);
-      } else {
+        return reply(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C, wind ${Math.round(lastWeather.wind)} km/h.`);
+      }
+      if (!forChat) {
         speak("Checking the weather for Kathmandu. One moment.");
         getWeather().then(() => {
-          if (lastWeather.temp != null) speak(`In Kathmandu it's ${Math.round(lastWeather.temp)} degrees Celsius.`);
+          if (lastWeather.temp != null) speak(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C.`);
           else speak("Weather is unavailable right now.");
         });
       }
-      return true;
+      return reply("Checking weather for Kathmandu…");
     }
 
     // Time
     if (/\b(time|what('?s| is) (the )?time|current time|time in (kathmandu|nepal)?)\b/.test(t) || t === "what time is it") {
       const { timeStr, dateStr } = getNepalTimeForVoice();
-      speak(`In Kathmandu it's ${timeStr}. Today is ${dateStr}.`);
-      return true;
+      return reply(`In Kathmandu it's ${timeStr}. ${dateStr}.`);
     }
 
-    // Help / what can you do
+    // Help
     if (/\b(help|what can you do|commands|what do you do|how do (you|i) (work|use this)|what (can i|should i) say)\b/.test(t)) {
-      speak(HELP_PHRASE);
-      return true;
+      return reply(HELP_PHRASE);
     }
 
     // Play music
     if (/(play|start)\s*(the\s*)?(music|song)/.test(t) || t === 'play' || t === 'play music') {
-      if (!isPlaying) { togglePlay(); speak('Playing music.'); return true; }
-      speak('Music is already playing.');
-      return true;
+      if (!isPlaying) { togglePlay(); return reply('Playing music.'); }
+      return reply('Music is already playing.');
     }
 
     // Pause music
     if (/(pause|stop)\s*(the\s*)?(music|song)?/.test(t) || t === 'pause' || t === 'stop') {
-      if (isPlaying) { togglePlay(); speak('Music paused.'); return true; }
-      speak('Music is already paused.');
-      return true;
+      if (isPlaying) { togglePlay(); return reply('Music paused.'); }
+      return reply('Music is already paused.');
     }
 
-    // Color / theme — support all theme names
-    const colorMatch = t.match(/(change\s*(to\s*)?|make\s*it\s*|set\s*(to\s*)?|switch\s*to\s*|theme\s*)?(cyan|blue|purple|green|red|orange|pink|teal|yellow)/i) ||
+    // Color / theme (e.g. "change color to red", "color change to red", "make it blue")
+    const colorMatch = t.match(/(?:change\s*(?:color\s*)?to\s*|color\s*change\s*to\s*|make\s*it\s*|set\s*to\s*|switch\s*to\s*|theme\s*)(cyan|blue|purple|green|red|orange|pink|teal|yellow)/i) ||
                        t.match(/(cyan|blue|purple|green|red|orange|pink|teal|yellow)\s*(theme|color)?/i);
     if (colorMatch) {
       const color = (colorMatch[2] || colorMatch[1]).toLowerCase();
       if (THEMES[color] && applyTheme(color)) {
-        speak(`Theme changed to ${color}.`);
-        return true;
+        return reply(`Theme changed to <b>${color}</b>.`);
       }
     }
 
@@ -382,12 +380,12 @@ const VoiceAssistant = (function() {
     const tabMap = { intro: 'intro', projects: 'projects', education: 'education', hometown: 'hometown', favorites: 'favorites', games: 'games', contact: 'contact' };
     for (const [keyword, id] of Object.entries(tabMap)) {
       if (t.includes(keyword) && (t.includes('show') || t.includes('go') || t.includes('open') || t.includes('switch') || t.includes('take me'))) {
-        if (switchTab(id)) { speak(`Opening ${keyword}.`); return true; }
+        if (switchTab(id)) return reply(`Opening <b>${keyword}</b>.`);
       }
     }
     if (/(show|go\s*to|open|switch to)\s*(intro|projects|education|hometown|favorites|games|contact)/.test(t)) {
       const id = t.match(/(intro|projects|education|hometown|favorites|games|contact)/)[1];
-      if (switchTab(id)) { speak(`Opening ${id}.`); return true; }
+      if (switchTab(id)) return reply(`Opening <b>${id}</b>.`);
     }
 
     return false;
@@ -572,20 +570,27 @@ async function sendMessage() {
   const text = userInput.value.trim();
   if (!text) return;
 
-  // UI Updates
   isCoolingDown = true;
   sendBtn.disabled = true;
   userInput.value = '';
-  
   if (quickRepliesContainer) quickRepliesContainer.style.display = 'none';
-  
   addMessage(text, 'user-message');
+
+  // Run portfolio commands first (color, play music, show tab, etc.)
+  const commandReply = VoiceAssistant && VoiceAssistant.handleCommand(text, true);
+  if (commandReply !== false && typeof commandReply === 'string') {
+    addMessage(commandReply, 'bot-message');
+    if (quickRepliesContainer) {
+      quickRepliesContainer.style.display = 'flex';
+      chatMessages.appendChild(quickRepliesContainer);
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    setTimeout(() => { isCoolingDown = false; sendBtn.disabled = false; }, 600);
+    return;
+  }
+
   showTyping();
-
-  // API Call
   const botReply = await getAIResponse(text);
-
-  // Handle Response
   hideTyping();
   addMessage(botReply, 'bot-message');
 
@@ -593,10 +598,8 @@ async function sendMessage() {
     quickRepliesContainer.style.display = 'flex';
     chatMessages.appendChild(quickRepliesContainer);
   }
-  
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
-  // Reset Cooldown
   setTimeout(() => {
     isCoolingDown = false;
     sendBtn.disabled = false;
