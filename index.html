@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="html-theme">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rishikesh Bastakoti - Portfolio</title>
+    <script>
+      (function(){try{var t=localStorage.getItem('portfolio-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();
+    </script>
     <link rel="stylesheet" href="portfolio.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -11,6 +14,10 @@
 
 <div class="container">
   <div class="cover">
+    <button type="button" id="theme-toggle" class="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+      <i class="fa-solid fa-moon" id="theme-icon-dark"></i>
+      <i class="fa-solid fa-sun" id="theme-icon-light" class="hidden"></i>
+    </button>
     <div class="profile-pic">
       <img src="https://avatars.githubusercontent.com/u/140906117?v=4" alt="Rishikesh Bastakoti">
     </div>
@@ -28,6 +35,7 @@
       <li data-target="education"><i class="fa-solid fa-graduation-cap"></i> Education</li>
       <li data-target="hometown"><i class="fa-solid fa-map-location-dot"></i> Hometown</li>
       <li data-target="favorites"><i class="fa-solid fa-heart"></i> Favorites</li>
+      <li data-target="games"><i class="fa-solid fa-gamepad"></i> Games</li>
       <li data-target="contact"><i class="fa-solid fa-address-book"></i> Contact</li>
     </ul>
     
@@ -106,15 +114,15 @@
         
         <img src="https://raw.githubusercontent.com/reseekesh821/music/main/kathmandu.png" alt="Kathmandu" style="width: 100%; border-radius: 8px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);">
         
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1);">
+        <div class="hometown-time-card">
           <p style="margin-bottom: 5px;"><strong><i class="fa-solid fa-clock"></i> Kathmandu Time:</strong></p>
-          <div id="nepal-clock" style="font-size: 18px; font-weight: bold; color: #00d2ff;">Loading...</div>
-          <div id="nepal-date" style="font-size: 14px; color: #bbb; margin-top: 2px;">Loading Date...</div>
+          <div id="nepal-clock" class="hometown-clock">Loading...</div>
+          <div id="nepal-date" class="hometown-date">Loading Date...</div>
           
-          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+          <hr class="hometown-card-hr">
           
           <p style="margin-bottom: 5px;"><strong><i class="fa-solid fa-cloud-sun"></i> Weather:</strong></p>
-          <div id="nepal-weather" style="font-size: 18px; font-weight: bold; color: #fad648;">Loading...</div>
+          <div id="nepal-weather" class="hometown-weather">Loading...</div>
         </div>
 
         <div class="map-container">
@@ -188,6 +196,24 @@
       </div>
     </div>
 
+    <div id="games" class="tab-content">
+      <h3><i class="fa-solid fa-gamepad"></i> Play & Learn</h3>
+      <p>Test what you know about Rishikesh with a quick quiz.</p>
+      <div class="game-card">
+        <div class="game-header">
+          <span class="game-title">Know Rishikesh?</span>
+          <span class="game-score" id="quiz-score">Score: 0 / 0</span>
+        </div>
+        <p class="game-question" id="quiz-question">Click Start to begin.</p>
+        <div class="game-choices" id="quiz-choices"></div>
+        <div class="game-actions">
+          <button type="button" class="game-btn primary" id="quiz-start">Start Quiz</button>
+          <button type="button" class="game-btn secondary hidden" id="quiz-next">Next Question</button>
+        </div>
+        <div class="game-result hidden" id="quiz-result"></div>
+      </div>
+    </div>
+
     <div id="contact" class="tab-content">
   <h3><i class="fa-solid fa-address-book"></i> Contact & Portfolio</h3>
   <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
@@ -247,6 +273,23 @@
 </div>
 
 <div class="chat-widget">
+  <div class="voice-actions">
+    <button id="voice-help-btn" class="voice-help-btn" title="What can I say?"><i class="fa-solid fa-circle-question"></i></button>
+    <button id="voice-btn" class="voice-btn" title="Voice assistant"><i class="fa-solid fa-microphone"></i></button>
+  </div>
+  <div class="voice-commands-panel" id="voice-commands-panel">
+    <div class="voice-commands-header"><i class="fa-solid fa-microphone-lines"></i> Voice commands</div>
+    <ul class="voice-commands-list">
+      <li><strong>About:</strong> "Who is Rishikesh?" "Tell me about him"</li>
+      <li><strong>Weather:</strong> "What's the weather?" "Weather in Kathmandu"</li>
+      <li><strong>Time:</strong> "What time is it?" "Time in Kathmandu"</li>
+      <li><strong>Music:</strong> "Play music" "Pause"</li>
+      <li><strong>Colors:</strong> "Change color to blue/red/green/purple/orange/pink/teal/yellow"</li>
+      <li><strong>Navigate:</strong> "Show projects" "Open contact" "Go to games" "Go to favorites"</li>
+      <li><strong>Help:</strong> "What can you do?" "Help"</li>
+    </ul>
+  </div>
+  <div class="voice-status" id="voice-status">Listening...</div>
   <button id="chat-toggle-btn" class="chat-toggle-btn"><i class="fa-solid fa-comment-dots"></i></button>
   <div class="chat-box" id="chat-box">
     <div class="chat-header">
@@ -256,12 +299,12 @@
     
     <div class="chat-messages" id="chat-messages">
       <div class="message bot-message">
-        Hi! I'm Rishi's virtual assistant. How can I help you?
+        Hey! I'm Rishi's assistant. Ask me about him, his projects, or try the <b>Games</b> tab to quiz yourself. What would you like to know?
       </div>
       <div class="quick-replies" id="quick-replies">
-        <button class="chip" onclick="handleQuickReply('Projects')">Projects</button>
-        <button class="chip" onclick="handleQuickReply('Skills')">Skills</button>
-        <button class="chip" onclick="handleQuickReply('Contact')">Contact</button>
+        <button class="chip" onclick="handleQuickReply('Tell me about Rishikesh')">About Rishi</button>
+        <button class="chip" onclick="handleQuickReply('What projects has he built?')">Projects</button>
+        <button class="chip" onclick="handleQuickReply('How can I contact him?')">Contact</button>
       </div>
     </div>
     

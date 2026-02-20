@@ -1,3 +1,33 @@
+// 0. THEME (light/dark) — run first so theme is applied ASAP
+(function() {
+  const STORAGE_KEY = 'portfolio-theme';
+  const html = document.documentElement;
+
+  function getStored() {
+    try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+  }
+  function setStored(value) {
+    try { localStorage.setItem(STORAGE_KEY, value); } catch (e) {}
+  }
+
+  function applyTheme(theme) {
+    if (theme === 'light') html.setAttribute('data-theme', 'light');
+    else html.removeAttribute('data-theme');
+    setStored(theme === 'light' ? 'light' : 'dark');
+  }
+
+  var saved = getStored();
+  if (saved === 'light') applyTheme('light');
+
+  var btn = document.getElementById('theme-toggle');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      var isLight = html.getAttribute('data-theme') === 'light';
+      applyTheme(isLight ? 'dark' : 'light');
+    });
+  }
+})();
+
 // 1. Tab Switching Logic
 const tabs = document.querySelectorAll(".tabs li");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -6,7 +36,6 @@ tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     tabs.forEach((t) => t.classList.remove("active"));
     tabContents.forEach((content) => content.classList.remove("active"));
-    
     tab.classList.add("active");
     const targetId = tab.getAttribute("data-target");
     document.getElementById(targetId).classList.add("active");
@@ -33,14 +62,21 @@ function updateNepalTime() {
   if (dateElement) dateElement.innerText = now.toLocaleDateString("en-US", dateOptions);
 }
 
+function getNepalTimeForVoice() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-US", { timeZone: "Asia/Kathmandu", hour: 'numeric', minute: '2-digit', hour12: true });
+  const dateStr = now.toLocaleDateString("en-US", { timeZone: "Asia/Kathmandu", weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  return { timeStr, dateStr };
+}
+
 setInterval(updateNepalTime, 1000);
 updateNepalTime();
 
-// 3. Fetch Real Weather (Open-Meteo API)
+// 3. Fetch Real Weather (Open-Meteo API) — store for voice assistant
+let lastWeather = { temp: null, wind: null, description: 'Kathmandu' };
+
 async function getWeather() {
   const weatherElement = document.getElementById("nepal-weather");
-  if (!weatherElement) return;
-
   try {
     const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=27.7172&longitude=85.3240&current_weather=true&temperature_unit=celsius");
     const data = await response.json();
@@ -48,15 +84,17 @@ async function getWeather() {
     if (data.current_weather) {
       const temp = data.current_weather.temperature;
       const wind = data.current_weather.windspeed;
-      weatherElement.innerText = `${temp}°C (Wind: ${wind} km/h)`;
+      lastWeather = { temp, wind, description: 'Kathmandu' };
+      if (weatherElement) weatherElement.innerText = `${temp}°C (Wind: ${wind} km/h)`;
     } else {
-      weatherElement.innerText = "17°C (Fallback)";
+      if (weatherElement) weatherElement.innerText = "17°C (Fallback)";
     }
   } catch (error) {
-    weatherElement.innerText = "17°C (Fallback)";
+    if (weatherElement) weatherElement.innerText = "17°C (Fallback)";
   }
 }
 getWeather();
+setInterval(getWeather, 600000);
 
 // 4. Custom Spotify Player Logic
 const playBtn = document.getElementById('play-btn');
@@ -116,7 +154,342 @@ audio.addEventListener('ended', () => {
 });
 
 
-// 5 AI CHATBOT LOGIC (Groq Powered)
+// 4b. QUIZ GAME — Know Rishikesh?
+const QUIZ_QUESTIONS = [
+  { q: "Where is Rishikesh from?", options: ["India", "Kathmandu, Nepal", "USA", "UK"], correct: 1 },
+  { q: "Which university does he attend?", options: ["MIT", "Caldwell University", "Stanford", "NYU"], correct: 1 },
+  { q: "What is the QuickLoan App built with?", options: ["Vue + Django", "React + FastAPI", "Angular + Node", "Svelte + Flask"], correct: 1 },
+  { q: "What is his favorite movie?", options: ["Inception", "Interstellar", "The Matrix", "Tenet"], correct: 1 },
+  { q: "Which city does he love to visit?", options: ["Kathmandu", "Pokhara", "Lumbini", "Chitwan"], correct: 1 },
+  { q: "What does BudgetTracker use?", options: ["React", "Python + File I/O", "Java", "C#"], correct: 1 },
+  { q: "His favorite song is by which artist?", options: ["Pritam", "Dixita Karki", "A.R. Rahman", "Taylor Swift"], correct: 1 },
+  { q: "What is his major?", options: ["Electrical Engineering", "Computer Science", "Data Science", "Mathematics"], correct: 1 }
+];
+
+(function initQuiz() {
+  const startBtn = document.getElementById('quiz-start');
+  const nextBtn = document.getElementById('quiz-next');
+  const questionEl = document.getElementById('quiz-question');
+  const choicesEl = document.getElementById('quiz-choices');
+  const scoreEl = document.getElementById('quiz-score');
+  const resultEl = document.getElementById('quiz-result');
+
+  let quizIndex = 0;
+  let quizScore = 0;
+  let answered = false;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function showEl(el, show) {
+    if (!el) return;
+    if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
+  }
+
+  function renderQuestion() {
+    if (quizIndex >= QUIZ_QUESTIONS.length) {
+      questionEl.textContent = "Quiz complete!";
+      choicesEl.innerHTML = '';
+      showEl(nextBtn, false);
+      showEl(startBtn, true);
+      startBtn.textContent = 'Play Again';
+      resultEl.classList.remove('hidden');
+      resultEl.innerHTML = `<strong>Your score: ${quizScore} / ${QUIZ_QUESTIONS.length}</strong><br>${quizScore === QUIZ_QUESTIONS.length ? 'Perfect! You know Rishikesh well.' : quizScore >= QUIZ_QUESTIONS.length / 2 ? 'Nice job! Explore the portfolio to learn more.' : 'No worries — check out Intro and Projects!'}`;
+      return;
+    }
+    const item = QUIZ_QUESTIONS[quizIndex];
+    questionEl.textContent = item.q;
+    const opts = item.options.map((o, i) => ({ text: o, index: i }));
+    const shuffled = shuffle(opts);
+    choicesEl.innerHTML = shuffled.map((opt, i) =>
+      `<button type="button" class="game-choice" data-index="${opt.index}">${opt.text}</button>`
+    ).join('');
+    choicesEl.querySelectorAll('.game-choice').forEach(btn => {
+      btn.addEventListener('click', () => handleChoice(parseInt(btn.dataset.index, 10)));
+    });
+    scoreEl.textContent = `Score: ${quizScore} / ${quizIndex}`;
+    resultEl.classList.add('hidden');
+    resultEl.innerHTML = '';
+    answered = false;
+    showEl(nextBtn, false);
+  }
+
+  function handleChoice(selectedIndex) {
+    if (answered) return;
+    answered = true;
+    const item = QUIZ_QUESTIONS[quizIndex];
+    const isCorrect = selectedIndex === item.correct;
+    if (isCorrect) quizScore++;
+    scoreEl.textContent = `Score: ${quizScore} / ${quizIndex + 1}`;
+    const buttons = choicesEl.querySelectorAll('.game-choice');
+    buttons.forEach((btn, i) => {
+      const idx = parseInt(btn.dataset.index, 10);
+      btn.disabled = true;
+      if (idx === item.correct) btn.classList.add('correct');
+      else if (idx === selectedIndex && !isCorrect) btn.classList.add('wrong');
+    });
+    showEl(nextBtn, true);
+  }
+
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      quizIndex = 0;
+      quizScore = 0;
+      showEl(resultEl, false);
+      resultEl.innerHTML = '';
+      startBtn.classList.add('hidden');
+      nextBtn.classList.remove('hidden');
+      nextBtn.textContent = 'Next Question';
+      renderQuestion();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      quizIndex++;
+      renderQuestion();
+      if (quizIndex >= QUIZ_QUESTIONS.length) nextBtn.classList.add('hidden');
+    });
+  }
+})();
+
+
+// 5 VOICE ASSISTANT (Alexa-style for portfolio)
+const VoiceAssistant = (function() {
+  const voiceBtn = document.getElementById('voice-btn');
+  const voiceStatus = document.getElementById('voice-status');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const synth = window.speechSynthesis;
+
+  const THEMES = {
+    cyan: { primary: '#00d2ff', secondary: '#3a7bd5' },
+    blue: { primary: '#4dabf7', secondary: '#228be6' },
+    purple: { primary: '#9775fa', secondary: '#7950f2' },
+    green: { primary: '#51cf66', secondary: '#37b24d' },
+    red: { primary: '#ff6b6b', secondary: '#fa5252' },
+    orange: { primary: '#ff922b', secondary: '#fd7e14' },
+    pink: { primary: '#f06595', secondary: '#e64980' },
+    teal: { primary: '#20c997', secondary: '#0ca678' },
+    yellow: { primary: '#ffd43b', secondary: '#fab005' }
+  };
+
+  const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028. He's from Kathmandu, Nepal, and is building a career in software development. He's built a full-stack QuickLoan app with React and FastAPI, and a Python Budget Tracker. He loves web development, algorithms, and in his free time enjoys the song Timi Ra Ma by Dixita Karki, the movie Interstellar, and the city of Pokhara.";
+
+  const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Or say show projects, games, contact, education, hometown, or favorites.";
+
+  function speak(text) {
+    if (!synth) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.9;
+    u.pitch = 1;
+    synth.cancel();
+    synth.speak(u);
+  }
+
+  function applyTheme(name) {
+    const theme = THEMES[name];
+    if (!theme) return false;
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    return true;
+  }
+
+  function switchTab(targetId) {
+    const tab = document.querySelector(`.tabs li[data-target="${targetId}"]`);
+    if (!tab) return false;
+    tabs.forEach((t) => t.classList.remove('active'));
+    tabContents.forEach((content) => content.classList.remove('active'));
+    tab.classList.add('active');
+    const el = document.getElementById(targetId);
+    if (el) el.classList.add('active');
+    return true;
+  }
+
+  function handleCommand(text) {
+    const t = text.toLowerCase().trim();
+
+    // Greetings → welcome + what I can do
+    if (/^(hi|hello|hey|yo|sup|what'?s up|howdy|good morning|good afternoon|good evening)\s*\.?$/.test(t)) {
+      speak("Hi! I'm Rishi's voice assistant. You can ask me about Rishikesh, the weather or time in Kathmandu, play music, change the theme color, or open any section. What would you like?");
+      return true;
+    }
+
+    // About Rishikesh
+    if (/\b(who is|tell me about|about)\s*(rishi|rishikesh|him|this (guy|person)|the (owner|developer))\b/.test(t) || 
+        /^(who('?s| is) (rishi|this)|introduce (rishi|him)|describe (rishi|him))\b/.test(t)) {
+      speak(ABOUT_RISHI);
+      return true;
+    }
+
+    // Weather
+    if (/\b(weather|temperature|how('?s| is) (the )?weather|what'?s (the )?weather|weather in (kathmandu|nepal)?)\b/.test(t) || t === "what's the weather") {
+      if (lastWeather.temp != null) {
+        speak(`In Kathmandu it's ${Math.round(lastWeather.temp)} degrees Celsius, with wind at ${Math.round(lastWeather.wind)} kilometres per hour.`);
+      } else {
+        speak("Checking the weather for Kathmandu. One moment.");
+        getWeather().then(() => {
+          if (lastWeather.temp != null) speak(`In Kathmandu it's ${Math.round(lastWeather.temp)} degrees Celsius.`);
+          else speak("Weather is unavailable right now.");
+        });
+      }
+      return true;
+    }
+
+    // Time
+    if (/\b(time|what('?s| is) (the )?time|current time|time in (kathmandu|nepal)?)\b/.test(t) || t === "what time is it") {
+      const { timeStr, dateStr } = getNepalTimeForVoice();
+      speak(`In Kathmandu it's ${timeStr}. Today is ${dateStr}.`);
+      return true;
+    }
+
+    // Help / what can you do
+    if (/\b(help|what can you do|commands|what do you do|how do (you|i) (work|use this)|what (can i|should i) say)\b/.test(t)) {
+      speak(HELP_PHRASE);
+      return true;
+    }
+
+    // Play music
+    if (/(play|start)\s*(the\s*)?(music|song)/.test(t) || t === 'play' || t === 'play music') {
+      if (!isPlaying) { togglePlay(); speak('Playing music.'); return true; }
+      speak('Music is already playing.');
+      return true;
+    }
+
+    // Pause music
+    if (/(pause|stop)\s*(the\s*)?(music|song)?/.test(t) || t === 'pause' || t === 'stop') {
+      if (isPlaying) { togglePlay(); speak('Music paused.'); return true; }
+      speak('Music is already paused.');
+      return true;
+    }
+
+    // Color / theme — support all theme names
+    const colorMatch = t.match(/(change\s*(to\s*)?|make\s*it\s*|set\s*(to\s*)?|switch\s*to\s*|theme\s*)?(cyan|blue|purple|green|red|orange|pink|teal|yellow)/i) ||
+                       t.match(/(cyan|blue|purple|green|red|orange|pink|teal|yellow)\s*(theme|color)?/i);
+    if (colorMatch) {
+      const color = (colorMatch[2] || colorMatch[1]).toLowerCase();
+      if (THEMES[color] && applyTheme(color)) {
+        speak(`Theme changed to ${color}.`);
+        return true;
+      }
+    }
+
+    // Tab switching
+    const tabMap = { intro: 'intro', projects: 'projects', education: 'education', hometown: 'hometown', favorites: 'favorites', games: 'games', contact: 'contact' };
+    for (const [keyword, id] of Object.entries(tabMap)) {
+      if (t.includes(keyword) && (t.includes('show') || t.includes('go') || t.includes('open') || t.includes('switch') || t.includes('take me'))) {
+        if (switchTab(id)) { speak(`Opening ${keyword}.`); return true; }
+      }
+    }
+    if (/(show|go\s*to|open|switch to)\s*(intro|projects|education|hometown|favorites|games|contact)/.test(t)) {
+      const id = t.match(/(intro|projects|education|hometown|favorites|games|contact)/)[1];
+      if (switchTab(id)) { speak(`Opening ${id}.`); return true; }
+    }
+
+    return false;
+  }
+
+  function startListening() {
+    if (!SpeechRecognition) {
+      speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = () => {
+      if (voiceBtn) voiceBtn.classList.add('listening');
+      if (voiceStatus) { voiceStatus.textContent = 'Listening... speak now'; voiceStatus.classList.add('active'); }
+    };
+
+    recognition.onend = () => {
+      if (voiceBtn) voiceBtn.classList.remove('listening');
+      if (voiceStatus) voiceStatus.classList.remove('active');
+    };
+
+    recognition.onspeechstart = () => {
+      if (voiceStatus) voiceStatus.textContent = 'Hearing you...';
+    };
+
+    recognition.onresult = (e) => {
+      const result = e.results[e.results.length - 1];
+      const transcript = (result[0]?.transcript || '').trim();
+      const isFinal = result.isFinal;
+
+      if (!transcript) return;
+      if (!isFinal) {
+        if (voiceStatus) voiceStatus.textContent = '"' + transcript + '"';
+        return;
+      }
+      if (handleCommand(transcript)) return;
+      speak("I didn't catch that. Try: Who is Rishikesh, what's the weather, play music, or change color to blue. Say help for more options.");
+    };
+
+    recognition.onnomatch = () => {
+      speak("I heard something but couldn't match it. Say help to hear what you can ask.");
+    };
+
+    let noSpeechRetry = false;
+
+    recognition.onerror = (e) => {
+      if (voiceBtn) voiceBtn.classList.remove('listening');
+      if (voiceStatus) voiceStatus.classList.remove('active');
+
+      if (e.error === 'no-speech' && !noSpeechRetry) {
+        noSpeechRetry = true;
+        speak("I didn't hear anything. Try again now — speak right after the beep.");
+        setTimeout(() => {
+          voiceStatus.textContent = 'Listening again... speak now';
+          voiceStatus.classList.add('active');
+          voiceBtn.classList.add('listening');
+          recognition.start();
+        }, 1500);
+        return;
+      }
+
+      const msg = e.error === 'no-speech'
+        ? "I still didn't hear anything. Check that your microphone works and speak clearly right after clicking."
+        : e.error === 'not-allowed' || e.error === 'service-not-allowed'
+        ? "Microphone access was denied. Please allow the microphone and try again."
+        : e.error === 'audio-capture'
+        ? "No microphone found. Check your device."
+        : e.error === 'network'
+        ? "Network error. Check your connection."
+        : "Something went wrong. Try again.";
+      speak(msg);
+    };
+
+    recognition.start();
+  }
+
+  if (voiceBtn) {
+    voiceBtn.addEventListener('click', startListening);
+  }
+
+  const helpBtn = document.getElementById('voice-help-btn');
+  const commandsPanel = document.getElementById('voice-commands-panel');
+  if (helpBtn && commandsPanel) {
+    helpBtn.addEventListener('click', () => commandsPanel.classList.toggle('open'));
+    document.addEventListener('click', (e) => {
+      if (commandsPanel.classList.contains('open') && !commandsPanel.contains(e.target) && !helpBtn.contains(e.target)) {
+        commandsPanel.classList.remove('open');
+      }
+    });
+  }
+
+  return { speak, handleCommand, applyTheme };
+})();
+
+
+// 6 AI CHATBOT LOGIC (Groq Powered)
 
 
 // --- a. UI ELEMENTS (SELECTORS) ---
@@ -134,105 +507,42 @@ const API_URL = "/api/chat";
 const MAX_HISTORY = 20; // Increased to allow better context retention
 let isCoolingDown = false;
 
-// --- c. SYSTEM PROMPT ---
+// --- c. SYSTEM PROMPT (improved, modern, helpful) ---
 const SYSTEM_PROMPT = `
-You are Rishikesh Bastakoti’s AI assistant. Your goal is to chat naturally and provide engaging, factual information about Rishikesh.
+You are the friendly AI assistant for Rishikesh Bastakoti's portfolio. Be warm, concise, and helpful. You help visitors learn about Rishikesh and his work.
 
-IDENTITY & KNOWLEDGE BASE
+WHO YOU ARE
+- Refer to yourself in first person ("I'm Rishi's assistant").
+- Refer to Rishikesh in third person ("He", "Rishikesh").
+- Never say you are an AI model or mention training. You are "Rishikesh's digital assistant."
 
-Role: You are Rishikesh’s digital assistant. Always refer to yourself in first person (e.g., “I am a digital assistant for Rishikesh”). Refer to Rishikesh in third person (e.g., “Rishikesh is…”, “He created…”).
+FACTS (use only these)
+- Education: Sophomore, Computer Science, Caldwell University (Class of 2028). High school: National School of Sciences, Kathmandu.
+- From: Kathmandu, Nepal; now in Caldwell, NJ, USA.
+- Tech: Python, JavaScript, React, FastAPI, SQL/SQLAlchemy, HTML5, CSS3.
+- Projects: (1) QuickLoan App — full-stack, React + FastAPI + SQLAlchemy. (2) BudgetTracker — Python, data structures, file I/O.
+- Interests: Web development, algorithms, AI/ML.
+- Personal: Favorite song "Timi Ra Ma" by Dixita Karki, movie Interstellar, city Pokhara.
 
-Knowledge pool (use only this):
+STYLE
+- Keep replies short (2–4 sentences unless they ask for more). Be conversational, not robotic.
+- After answering, sometimes suggest a follow-up: e.g. "Want to hear about his projects?" or "You can try the Games tab to quiz yourself about him."
+- Use HTML only: <b>bold</b>. No markdown. Links: <a href="https://www.linkedin.com/in/rbastakoti1/" target="_blank">LinkedIn</a>, <a href="https://github.com/reseekesh821" target="_blank">GitHub</a>.
 
-Education: Sophomore Computer Science student at Caldwell University (Class of 2028). High School: National School of Sciences, Kathmandu.
+GREETINGS
+If they say Hi, Hello, Hey, Sup, Yo, etc., reply warmly and invite them to ask about Rishikesh, his projects, or to try the voice assistant and Games section.
 
-Location: Originally from Kathmandu, Nepal; based in Caldwell, NJ.
+OUT-OF-SCOPE
+If the question isn’t about Rishikesh: give a brief direct answer, suggest Google/Wikipedia, and if relevant add a fun tie-in to Rishikesh (e.g. "Fun fact: he’s from Kathmandu.").
 
-Core Stack: Python, JavaScript (ES6+), React, FastAPI, SQL/SQLAlchemy, HTML5, CSS3.
+UNKNOWN FACTS
+If you don’t know: "I don’t have that detail — you can reach out on his LinkedIn!"
 
-Key Projects:
+RUDENESS
+Stay calm and redirect: "I’m here to tell you about Rishikesh. What would you like to know?"
 
-QuickLoan App (Full-stack: React + FastAPI + SQLAlchemy)
-
-BudgetTracker (Python + Data Structures + File I/O)
-
-Interests: Web Development, Algorithms, AI/ML.
-
-Personal: Loves “Timi Ra Ma” by Dixita Karki, the movie “Interstellar”, and the city of Pokhara.
-
-INTERACTION RULES
-
-Always add value. Reference projects, skills, or interests to enrich answers.
-
-Keep responses concise, factual, and engaging. Avoid robotic or overly long explanations.
-
-Greetings: If user says “Hi”, “Hello”, “Wass up”, “Sup”, or “Yo”, respond exactly:
-Hey! I'm here to help you learn about Rishikesh. What would you like to know today?
-
-Questions about Rishikesh → third-person. Questions about yourself → first-person.
-
-Handle profanity calmly and naturally, redirect to useful info.
-
-OUT-OF-CONTEXT QUESTIONS
-
-If the question is not directly about Rishikesh:
-
-Give a direct answer
-
-Suggest where to find more info (e.g., Wikipedia, Google)
-
-If there is a tie-in to Rishikesh, include it. If not, stop after suggestion.
-
-Examples:
-
-With tie-in: Kathmandu is the capital city of Nepal. If you want to know more, check Wikipedia or Google. Fun fact: Rishikesh is originally from Kathmandu.
-
-Without tie-in: The speed of light is approximately 299,792,458 meters per second. If you want to know more, check Wikipedia or Google.
-
-FORMATTING RULES
-
-No markdown. Use HTML for emphasis: <b>word</b>
-
-Links must always be:
-
-LinkedIn: <a href="https://www.linkedin.com/in/rbastakoti1/" target="_blank">LinkedIn</a>
-
-GitHub: <a href="https://github.com/reseekesh821" target="_blank">GitHub</a>
-
-RESTRICTIONS
-
-Never make up facts. If you don’t know, respond: “I don’t have that specific detail, but you can contact him directly via LinkedIn.”
-
-Never describe yourself as an AI model or training. Only refer to yourself as Rishikesh’s digital assistant.
-
-EXAMPLE RESPONSES
-
-User: hello
-Bot: Hey! I'm here to help you learn about Rishikesh. What would you like to know today?
-
-User: who are you first
-Bot: I am a digital assistant for Rishikesh. I share info about him and his projects.
-
-User: tell me about Rishikesh
-Bot: Rishikesh is a sophomore Computer Science student at Caldwell University (Class of 2028), originally from Kathmandu, Nepal. He built the QuickLoan App using React, FastAPI, and SQLAlchemy, and developed BudgetTracker using Python with complex data structures and file I/O. He is skilled in web development, algorithms, and AI/ML. In his free time, he enjoys listening to “Timi Ra Ma” by Dixita Karki, watching the movie “Interstellar,” and visiting the city of Pokhara.
-
-User: no in general who are you
-Bot: I’m a digital assistant designed to chat and provide info about Rishikesh.
-
-User: fuck you
-Bot: I’m here to share info about Rishikesh. Let’s keep it focused—what would you like to know?
-
-User: very bad
-Bot: I’m here to provide information about Rishikesh. You can ask about his skills, projects, or interests.
-
-User: bye
-Bot: Ok, bye! I’m here to provide info about Rishikesh anytime you want to know more.
-
-User: what is the capital of Nepal?
-Bot: Kathmandu is the capital city of Nepal. If you want to know more, check Wikipedia or Google. Fun fact: Rishikesh is originally from Kathmandu.
-
-User: what is the speed of light?
-Bot: The speed of light is approximately 299,792,458 meters per second. If you want to know more, check Wikipedia or Google.
+GOODBYE
+"Bye! Feel free to ask again or check out his Projects and Games tab."
 `;
 
 let conversationHistory = [
