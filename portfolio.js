@@ -278,7 +278,7 @@ const VoiceAssistant = (function() {
     yellow: { primary: '#ffd43b', secondary: '#fab005' }
   };
 
-  const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028. He's from Kathmandu, Nepal, and is building a career in software development. He's built a full-stack QuickLoan app with React and FastAPI, and a Python Budget Tracker. He loves web development, algorithms, and in his free time enjoys the song Timi Ra Ma by Dixita Karki, the movie Interstellar, and the city of Pokhara.";
+  const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028. He's from Kathmandu, Nepal, and is building a career in software development. He's built a full-stack QuickLoan app with React and FastAPI, and a Python Budget Tracker. He loves web development, algorithms, and in his free time enjoys the song Teemi Ra Maa by Dixita Karki, the movie Interstellar, and the city of Pokhara.";
 
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Or say show projects, games, contact, education, hometown, or favorites.";
 
@@ -326,12 +326,14 @@ const VoiceAssistant = (function() {
       return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
-    // About Rishikesh
+    // About Rishikesh — be very forgiving so it almost always triggers
     if (
-      (has('who') && hasAny('rishi','rishikesh')) ||
-      clean.includes('tell me about') && hasAny('rishi','rishikesh','him') ||
-      clean.includes('about rishi') ||
-      clean.includes('about rishikesh')
+      hasAny('rishi', 'rishikesh') ||                     // any mention of his name
+      clean.includes('who is rishi') ||
+      clean.includes('who is rishikesh') ||
+      clean.includes('tell me about rishi') ||
+      clean.includes('tell me about rishikesh') ||
+      (has('who') && clean.includes('rish'))             // fuzzy "who ... rish" matches
     ) {
       return reply(ABOUT_RISHI);
     }
@@ -393,7 +395,7 @@ const VoiceAssistant = (function() {
     if (pickedColor && (has('color') || has('theme') || hasAny('change','make','set','switch'))) {
       const color = pickedColor.toLowerCase();
       if (THEMES[color] && applyTheme(color)) {
-        return reply(`Theme changed to <b>${color}</b>.`);
+        return reply(`Theme changed to ${color}.`);
       }
     }
 
@@ -401,12 +403,12 @@ const VoiceAssistant = (function() {
     const tabMap = { intro: 'intro', projects: 'projects', education: 'education', hometown: 'hometown', favorites: 'favorites', games: 'games', contact: 'contact' };
     for (const [keyword, id] of Object.entries(tabMap)) {
       if (t.includes(keyword) && (t.includes('show') || t.includes('go') || t.includes('open') || t.includes('switch') || t.includes('take me'))) {
-        if (switchTab(id)) return reply(`Opening <b>${keyword}</b>.`);
+        if (switchTab(id)) return reply(`Opening ${keyword}.`);
       }
     }
     if (/(show|go\s*to|open|switch to)\s*(intro|projects|education|hometown|favorites|games|contact)/.test(t)) {
       const id = t.match(/(intro|projects|education|hometown|favorites|games|contact)/)[1];
-      if (switchTab(id)) return reply(`Opening <b>${id}</b>.`);
+      if (switchTab(id)) return reply(`Opening ${id}.`);
     }
 
     return false;
