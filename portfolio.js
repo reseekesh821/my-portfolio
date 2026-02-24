@@ -312,24 +312,32 @@ const VoiceAssistant = (function() {
 
   function handleCommand(text, forChat) {
     const t = text.toLowerCase().trim();
+    const clean = t.replace(/[?!.,]/g, ' ');
+    const words = clean.split(/\s+/).filter(Boolean);
+    const has = (w) => words.includes(w);
+    const hasAny = (...ws) => ws.some((w) => words.includes(w));
     function reply(msg) {
       if (!forChat) speak(msg);
       return forChat ? msg : true;
     }
 
     // Greetings
-    if (/^(hi|hello|hey|yo|sup|what'?s up|howdy|good morning|good afternoon|good evening)\s*\.?$/.test(t)) {
+    if (hasAny('hi','hello','hey','yo','sup') || clean.startsWith('good morning') || clean.startsWith('good afternoon') || clean.startsWith('good evening')) {
       return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
     // About Rishikesh
-    if (/\b(who is|tell me about|about)\s*(rishi|rishikesh|him|this (guy|person)|the (owner|developer))\b/.test(t) || 
-        /^(who('?s| is) (rishi|this)|introduce (rishi|him)|describe (rishi|him))\b/.test(t)) {
+    if (
+      (has('who') && hasAny('rishi','rishikesh')) ||
+      clean.includes('tell me about') && hasAny('rishi','rishikesh','him') ||
+      clean.includes('about rishi') ||
+      clean.includes('about rishikesh')
+    ) {
       return reply(ABOUT_RISHI);
     }
 
     // Weather
-    if (/\b(weather|temperature|how('?s| is) (the )?weather|what'?s (the )?weather|weather in (kathmandu|nepal)?)\b/.test(t) || t === "what's the weather") {
+    if (clean.includes('weather') || has('temperature')) {
       if (lastWeather.temp != null) {
         return reply(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C, wind ${Math.round(lastWeather.wind)} km/h.`);
       }
@@ -344,33 +352,36 @@ const VoiceAssistant = (function() {
     }
 
     // Time
-    if (/\b(time|what('?s| is) (the )?time|current time|time in (kathmandu|nepal)?)\b/.test(t) || t === "what time is it") {
+    if (has('time') || clean.includes('what time') || clean.includes('current time')) {
       const { timeStr, dateStr } = getNepalTimeForVoice();
       return reply(`In Kathmandu it's ${timeStr}. ${dateStr}.`);
     }
 
     // Help
-    if (/\b(help|what can you do|commands|what do you do|how do (you|i) (work|use this)|what (can i|should i) say)\b/.test(t)) {
+    if (has('help') || clean.includes('what can you do') || clean.includes('commands') || clean.includes('what should i say')) {
       return reply(HELP_PHRASE);
     }
 
-    // Play music — understand full phrases like "play some music" or just "play"
-    if (/(play|start).*?\b(music|song)\b/.test(t) || /\bplay\b/.test(t)) {
+    // Play music — understand phrases like "play some music", "start the song", or just "play music"
+    if ((has('play') || has('start')) && hasAny('music','song','songs')) {
       if (!isPlaying) { togglePlay(); return reply('Playing music.'); }
       return reply('Music is already playing.');
     }
 
-    // Pause music — understand phrases like "pause the music" or just "pause"
-    if (/(pause|stop).*?\b(music|song)?\b/.test(t) || /\b(pause|stop)\b/.test(t)) {
+    // Pause music — phrases like "pause the music", "stop song", or just "pause"
+    if (hasAny('pause','stop') && (hasAny('music','song','songs') || true)) {
       if (isPlaying) { togglePlay(); return reply('Music paused.'); }
       return reply('Music is already paused.');
     }
 
-    // Color / theme (e.g. "change color to red", "color change to red", "make it blue")
-    const colorMatch = t.match(/(?:change\s*(?:color\s*)?to\s*|color\s*change\s*to\s*|make\s*it\s*|set\s*to\s*|switch\s*to\s*|theme\s*)(cyan|blue|purple|green|red|orange|pink|teal|yellow)/i) ||
-                       t.match(/(cyan|blue|purple|green|red|orange|pink|teal|yellow)\s*(theme|color)?/i);
-    if (colorMatch) {
-      const color = (colorMatch[2] || colorMatch[1]).toLowerCase();
+    // Color / theme (e.g. "change color to red", "make it blue theme")
+    const colorNames = Object.keys(THEMES);
+    let pickedColor = null;
+    for (const c of colorNames) {
+      if (has(c)) { pickedColor = c; break; }
+    }
+    if (pickedColor && (has('color') || has('theme') || hasAny('change','make','set','switch'))) {
+      const color = pickedColor.toLowerCase();
       if (THEMES[color] && applyTheme(color)) {
         return reply(`Theme changed to <b>${color}</b>.`);
       }
