@@ -395,12 +395,12 @@ const VoiceAssistant = (function() {
   let recognition = null;
   let noSpeechRetry = false;
   let wasPlayingBeforeMic = false;
-  let micStream = null;
+  let hasMicPermission = false;
   let micPermissionPromise = null;
 
   async function ensureMicPermission() {
     // Request mic permission once per page session.
-    if (micStream) return true;
+    if (hasMicPermission) return true;
     if (micPermissionPromise) return micPermissionPromise;
 
     micPermissionPromise = (async () => {
@@ -413,7 +413,10 @@ const VoiceAssistant = (function() {
             const status = await navigator.permissions.query({ name: 'microphone' });
             if (status && status.state === 'denied') return false;
             if (status && status.state === 'granted') {
-              micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              // Immediately stop tracks; we only needed the permission grant
+              stream.getTracks().forEach(t => t.stop());
+              hasMicPermission = true;
               return true;
             }
           }
@@ -421,13 +424,15 @@ const VoiceAssistant = (function() {
           // ignore and fallback to direct getUserMedia
         }
 
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+        hasMicPermission = true;
         return true;
       } catch (e) {
         return false;
       } finally {
         // allow retry if permission was denied/failed
-        if (!micStream) micPermissionPromise = null;
+        if (!hasMicPermission) micPermissionPromise = null;
       }
     })();
 
