@@ -395,59 +395,17 @@ const VoiceAssistant = (function() {
   let recognition = null;
   let noSpeechRetry = false;
   let wasPlayingBeforeMic = false;
-  let hasMicPermission = false;
-  let micPermissionPromise = null;
-
-  async function ensureMicPermission() {
-    // Request mic permission once per page session.
-    if (hasMicPermission) return true;
-    if (micPermissionPromise) return micPermissionPromise;
-
-    micPermissionPromise = (async () => {
-      try {
-        if (!navigator.mediaDevices?.getUserMedia) return true; // SpeechRecognition may still work
-
-        // If Permissions API exists and already granted, skip prompt
-        try {
-          if (navigator.permissions?.query) {
-            const status = await navigator.permissions.query({ name: 'microphone' });
-            if (status && status.state === 'denied') return false;
-            if (status && status.state === 'granted') {
-              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              // Immediately stop tracks; we only needed the permission grant
-              stream.getTracks().forEach(t => t.stop());
-              hasMicPermission = true;
-              return true;
-            }
-          }
-        } catch (e) {
-          // ignore and fallback to direct getUserMedia
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        hasMicPermission = true;
-        return true;
-      } catch (e) {
-        return false;
-      } finally {
-        // allow retry if permission was denied/failed
-        if (!hasMicPermission) micPermissionPromise = null;
-      }
-    })();
-
-    return micPermissionPromise;
-  }
 
   function getRecognition() {
     if (!SpeechRecognition) return null;
     if (recognition) return recognition;
 
     recognition = new SpeechRecognition();
+    // Keep it simple and stable: one short utterance each time
     recognition.continuous = false;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.lang = 'en-US';
-    recognition.maxAlternatives = 3;
+    recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
       if (voiceBtn) voiceBtn.classList.add('listening');
@@ -512,15 +470,17 @@ const VoiceAssistant = (function() {
         return;
       }
 
-      const msg = e.error === 'no-speech'
-        ? "I still didn't hear anything. Check that your microphone works and speak clearly right after clicking."
-        : e.error === 'not-allowed' || e.error === 'service-not-allowed'
-        ? "Microphone access was denied. Please allow the microphone and try again."
-        : e.error === 'audio-capture'
-        ? "No microphone found. Check your device."
-        : e.error === 'network'
-        ? "Network error. Check your connection."
-        : "Something went wrong. Try again.";
+      let msg;
+      if (e.error === 'no-speech') {
+        msg = "I didn't hear anything. Please try speaking a bit closer to the microphone.";
+      } else if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        msg = "Microphone access was denied. Please allow the microphone and try again.";
+      } else if (e.error === 'audio-capture') {
+        msg = "No microphone found. Check your device.";
+      } else {
+        // For network/other transient errors, keep the message generic
+        msg = "I couldn't understand that. Please try again.";
+      }
       speak(msg);
     };
 
@@ -530,12 +490,6 @@ const VoiceAssistant = (function() {
   async function startListening() {
     if (!SpeechRecognition) {
       speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
-      return;
-    }
-
-    const ok = await ensureMicPermission();
-    if (!ok) {
-      speak('Microphone permission is blocked. Please allow microphone access for this site and try again.');
       return;
     }
 
