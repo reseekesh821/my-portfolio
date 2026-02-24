@@ -367,7 +367,7 @@ h1 {
 .hometown-clock {
   font-size: 18px;
   font-weight: bold;
-  color: #00d2ff;
+  color: var(--primary-color);
 }
 
 .hometown-date {
@@ -394,7 +394,7 @@ h1 {
 }
 
 [data-theme="light"] .hometown-clock {
-  color: #0c4a6e;
+  color: var(--primary-color);
 }
 
 [data-theme="light"] .hometown-date {
@@ -1507,7 +1507,7 @@ h3 i, strong i, p strong i {
 
 /* Submit Button */
 .send-btn {
-  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   color: #0f0c29;
   padding: 12px 25px;
   border: none;
@@ -1525,7 +1525,7 @@ h3 i, strong i, p strong i {
 
 .send-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 5px 20px rgba(0, 210, 255, 0.4);
+  box-shadow: 0 5px 20px color-mix(in srgb, var(--primary-color) 45%, transparent);
 }
 
 .send-btn i {

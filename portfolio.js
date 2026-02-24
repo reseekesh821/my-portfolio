@@ -156,7 +156,7 @@ audio.addEventListener('ended', () => {
 
 // 4b. QUIZ GAME — Know Rishikesh?
 const QUIZ_QUESTIONS = [
-  { q: "Where is Rishikesh from?", options: ["India", "Kathmandu, Nepal", "USA", "UK"], correct: 1 },
+  { q: "Where is Rishikesh from?", options: ["India", "Nepal", "USA", "UK"], correct: 1 },
   { q: "Which university does he attend?", options: ["MIT", "Caldwell University", "Stanford", "NYU"], correct: 1 },
   { q: "What is the QuickLoan App built with?", options: ["Vue + Django", "React + FastAPI", "Angular + Node", "Svelte + Flask"], correct: 1 },
   { q: "What is his favorite movie?", options: ["Inception", "Interstellar", "The Matrix", "Tenet"], correct: 1 },
@@ -354,14 +354,14 @@ const VoiceAssistant = (function() {
       return reply(HELP_PHRASE);
     }
 
-    // Play music
-    if (/(play|start)\s*(the\s*)?(music|song)/.test(t) || t === 'play' || t === 'play music') {
+    // Play music — understand full phrases like "play some music" or just "play"
+    if (/(play|start).*?\b(music|song)\b/.test(t) || /\bplay\b/.test(t)) {
       if (!isPlaying) { togglePlay(); return reply('Playing music.'); }
       return reply('Music is already playing.');
     }
 
-    // Pause music
-    if (/(pause|stop)\s*(the\s*)?(music|song)?/.test(t) || t === 'pause' || t === 'stop') {
+    // Pause music — understand phrases like "pause the music" or just "pause"
+    if (/(pause|stop).*?\b(music|song)?\b/.test(t) || /\b(pause|stop)\b/.test(t)) {
       if (isPlaying) { togglePlay(); return reply('Music paused.'); }
       return reply('Music is already paused.');
     }
@@ -391,13 +391,54 @@ const VoiceAssistant = (function() {
     return false;
   }
 
-  function startListening() {
-    if (!SpeechRecognition) {
-      speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
-      return;
-    }
+  // Keep a single SpeechRecognition instance for the whole session
+  let recognition = null;
+  let noSpeechRetry = false;
+  let wasPlayingBeforeMic = false;
+  let micStream = null;
+  let micPermissionPromise = null;
 
-    const recognition = new SpeechRecognition();
+  async function ensureMicPermission() {
+    // Request mic permission once per page session.
+    if (micStream) return true;
+    if (micPermissionPromise) return micPermissionPromise;
+
+    micPermissionPromise = (async () => {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) return true; // SpeechRecognition may still work
+
+        // If Permissions API exists and already granted, skip prompt
+        try {
+          if (navigator.permissions?.query) {
+            const status = await navigator.permissions.query({ name: 'microphone' });
+            if (status && status.state === 'denied') return false;
+            if (status && status.state === 'granted') {
+              micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              return true;
+            }
+          }
+        } catch (e) {
+          // ignore and fallback to direct getUserMedia
+        }
+
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        return true;
+      } catch (e) {
+        return false;
+      } finally {
+        // allow retry if permission was denied/failed
+        if (!micStream) micPermissionPromise = null;
+      }
+    })();
+
+    return micPermissionPromise;
+  }
+
+  function getRecognition() {
+    if (!SpeechRecognition) return null;
+    if (recognition) return recognition;
+
+    recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
@@ -405,12 +446,24 @@ const VoiceAssistant = (function() {
 
     recognition.onstart = () => {
       if (voiceBtn) voiceBtn.classList.add('listening');
-      if (voiceStatus) { voiceStatus.textContent = 'Listening... speak now'; voiceStatus.classList.add('active'); }
+      if (voiceStatus) {
+        voiceStatus.textContent = 'Listening... speak now';
+        voiceStatus.classList.add('active');
+      }
+      // If the browser auto-paused the music when the mic opened, try to resume it
+      if (wasPlayingBeforeMic && isPlaying && audio.paused) {
+        audio.play().catch(() => {});
+      }
     };
 
     recognition.onend = () => {
       if (voiceBtn) voiceBtn.classList.remove('listening');
       if (voiceStatus) voiceStatus.classList.remove('active');
+
+      // After listening, if music was playing before and got paused, resume it
+      if (wasPlayingBeforeMic && isPlaying && audio.paused) {
+        audio.play().catch(() => {});
+      }
     };
 
     recognition.onspeechstart = () => {
@@ -435,8 +488,6 @@ const VoiceAssistant = (function() {
       speak("I heard something but couldn't match it. Say help to hear what you can ask.");
     };
 
-    let noSpeechRetry = false;
-
     recognition.onerror = (e) => {
       if (voiceBtn) voiceBtn.classList.remove('listening');
       if (voiceStatus) voiceStatus.classList.remove('active');
@@ -445,9 +496,12 @@ const VoiceAssistant = (function() {
         noSpeechRetry = true;
         speak("I didn't hear anything. Try again now — speak right after the beep.");
         setTimeout(() => {
-          voiceStatus.textContent = 'Listening again... speak now';
-          voiceStatus.classList.add('active');
-          voiceBtn.classList.add('listening');
+          if (!recognition) return;
+          if (voiceStatus) {
+            voiceStatus.textContent = 'Listening again... speak now';
+            voiceStatus.classList.add('active');
+          }
+          if (voiceBtn) voiceBtn.classList.add('listening');
           recognition.start();
         }, 1500);
         return;
@@ -465,7 +519,33 @@ const VoiceAssistant = (function() {
       speak(msg);
     };
 
-    recognition.start();
+    return recognition;
+  }
+
+  async function startListening() {
+    if (!SpeechRecognition) {
+      speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    const ok = await ensureMicPermission();
+    if (!ok) {
+      speak('Microphone permission is blocked. Please allow microphone access for this site and try again.');
+      return;
+    }
+
+    const rec = getRecognition();
+    if (!rec) return;
+
+    // Remember if music was playing before opening the mic
+    wasPlayingBeforeMic = isPlaying;
+    noSpeechRetry = false;
+
+    try {
+      rec.start();
+    } catch (e) {
+      // If start() is called while already running, ignore the error
+    }
   }
 
   if (voiceBtn) {
