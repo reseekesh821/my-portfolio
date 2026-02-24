@@ -1283,17 +1283,6 @@ h3 i, strong i, p strong i {
 
 /* Icon styles handled by specific button classes */
 
-.social-links button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.social-links button i {
-  font-size: 18px;
-}
-
 .controls button i {
   font-size: 18px;
 }
