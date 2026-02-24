@@ -336,8 +336,13 @@ const VoiceAssistant = (function() {
       return reply(ABOUT_RISHI);
     }
 
-    // Weather
-    if (clean.includes('weather') || has('temperature')) {
+    // Weather — handle phrases like "Kathmandu weather", "weather in Nepal", or even short follow‑ups
+    const isWeatherIntent =
+      clean.includes('weather') ||
+      clean.includes('whether') || // STT sometimes mishears "weather" as "whether"
+      has('temperature') ||
+      ((hasAny('kathmandu', 'nepal') || has('weather')) && words.length <= 3);
+    if (isWeatherIntent) {
       if (lastWeather.temp != null) {
         return reply(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C, wind ${Math.round(lastWeather.wind)} km/h.`);
       }
@@ -351,8 +356,13 @@ const VoiceAssistant = (function() {
       return reply("Checking weather for Kathmandu…");
     }
 
-    // Time
-    if (has('time') || clean.includes('what time') || clean.includes('current time')) {
+    // Time — "what time is it", "Kathmandu time", "time in Nepal"
+    const isTimeIntent =
+      has('time') ||
+      clean.includes('what time') ||
+      clean.includes('current time') ||
+      ((hasAny('kathmandu', 'nepal') && has('time')));
+    if (isTimeIntent) {
       const { timeStr, dateStr } = getNepalTimeForVoice();
       return reply(`In Kathmandu it's ${timeStr}. ${dateStr}.`);
     }
