@@ -39,6 +39,23 @@
   box-sizing: border-box;
 }
 
+/* --- Accessibility: visible focus rings --- */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.tabs li:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary-color) 35%, transparent),
+    0 0 0 1px var(--primary-color);
+  border-radius: 12px;
+}
+
+.tabs li {
+  outline: none;
+}
+
 body {
   font-family: var(--font-main);
   background: var(--bg-body);
@@ -894,6 +911,19 @@ h1 {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(16px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- Accessibility: reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 .chat-header {

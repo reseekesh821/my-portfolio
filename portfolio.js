@@ -28,19 +28,58 @@
   }
 })();
 
-// 1. Tab Switching Logic
+// 1. Tabs (click + keyboard accessible)
 const tabs = document.querySelectorAll(".tabs li");
 const tabContents = document.querySelectorAll(".tab-content");
 
-tabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    tabs.forEach((t) => t.classList.remove("active"));
-    tabContents.forEach((content) => content.classList.remove("active"));
-    tab.classList.add("active");
-    const targetId = tab.getAttribute("data-target");
-    document.getElementById(targetId).classList.add("active");
+function setActiveTab(tabEl, { focus = false } = {}) {
+  if (!tabEl) return;
+  const targetId = tabEl.getAttribute("data-target");
+  const panel = targetId ? document.getElementById(targetId) : null;
+
+  tabs.forEach((t) => {
+    t.classList.remove("active");
+    t.setAttribute("aria-selected", "false");
+    t.setAttribute("tabindex", "-1");
+  });
+  tabContents.forEach((content) => content.classList.remove("active"));
+
+  tabEl.classList.add("active");
+  tabEl.setAttribute("aria-selected", "true");
+  tabEl.setAttribute("tabindex", "0");
+  if (panel) panel.classList.add("active");
+
+  if (focus) tabEl.focus();
+}
+
+tabs.forEach((tab, idx) => {
+  tab.addEventListener("click", () => setActiveTab(tab));
+  tab.addEventListener("keydown", (e) => {
+    const key = e.key;
+    if (!["ArrowLeft", "ArrowRight", "Home", "End", "Enter", " "].includes(key)) return;
+    e.preventDefault();
+
+    const currentIndex = Array.from(tabs).indexOf(document.activeElement);
+    const activeIndex = currentIndex >= 0 ? currentIndex : idx;
+    let nextIndex = activeIndex;
+
+    if (key === "ArrowLeft") nextIndex = (activeIndex - 1 + tabs.length) % tabs.length;
+    if (key === "ArrowRight") nextIndex = (activeIndex + 1) % tabs.length;
+    if (key === "Home") nextIndex = 0;
+    if (key === "End") nextIndex = tabs.length - 1;
+
+    if (key === "Enter" || key === " ") {
+      setActiveTab(document.activeElement);
+      return;
+    }
+
+    tabs[nextIndex].focus();
   });
 });
+
+// Ensure initial ARIA state matches the active tab
+const initialActive = document.querySelector(".tabs li.active") || tabs[0];
+if (initialActive) setActiveTab(initialActive);
 
 // 2. Real-Time Nepal Clock & Date
 function updateNepalTime() {
@@ -326,15 +365,15 @@ const VoiceAssistant = (function() {
       return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
-    // About Rishikesh — be very forgiving so it almost always triggers
-    if (
-      hasAny('rishi', 'rishikesh') ||                     // any mention of his name
-      clean.includes('who is rishi') ||
-      clean.includes('who is rishikesh') ||
-      clean.includes('tell me about rishi') ||
-      clean.includes('tell me about rishikesh') ||
-      (has('who') && clean.includes('rish'))             // fuzzy "who ... rish" matches
-    ) {
+    // About Rishikesh — very forgiving: name anywhere, or "who" + "rish", or "about" + "rish"
+    const hasRishiName = words.some((w) => /rishi|rishikesh|reeshi|rishy/i.test(w)) ||
+      clean.includes('rishi') || clean.includes('rishikesh') ||
+      hasAny('rishi', 'rishikesh');
+    const whoPlusRish = (has('who') || clean.includes('who is')) && /rish/i.test(clean);
+    const aboutPlusRish = clean.includes('about') && /rish/i.test(clean);
+    if (hasRishiName || whoPlusRish || aboutPlusRish ||
+      clean.includes('who is rishi') || clean.includes('who is rishikesh') ||
+      clean.includes('tell me about rishi') || clean.includes('tell me about rishikesh')) {
       return reply(ABOUT_RISHI);
     }
 
@@ -611,10 +650,19 @@ let conversationHistory = [
 
 // --- d. EVENT LISTENERS ---
 if (chatToggle) {
-  chatToggle.addEventListener('click', () => chatBox.classList.toggle('open'));
+  chatToggle.addEventListener('click', () => {
+    const willOpen = !chatBox.classList.contains('open');
+    chatBox.classList.toggle('open');
+    chatToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen && userInput) setTimeout(() => userInput.focus(), 0);
+  });
 }
 if (closeChat) {
-  closeChat.addEventListener('click', () => chatBox.classList.remove('open'));
+  closeChat.addEventListener('click', () => {
+    chatBox.classList.remove('open');
+    if (chatToggle) chatToggle.setAttribute('aria-expanded', 'false');
+    if (chatToggle) chatToggle.focus();
+  });
 }
 if (sendBtn) {
   sendBtn.addEventListener('click', sendMessage);
@@ -624,6 +672,16 @@ if (userInput) {
     if (e.key === 'Enter') sendMessage();
   });
 }
+
+// ESC closes chat when open
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!chatBox || !chatToggle) return;
+  if (!chatBox.classList.contains('open')) return;
+  chatBox.classList.remove('open');
+  chatToggle.setAttribute('aria-expanded', 'false');
+  chatToggle.focus();
+});
 
 // --- e. CORE LOGIC ---
 async function sendMessage() {

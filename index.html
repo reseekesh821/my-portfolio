@@ -29,23 +29,23 @@
   </div>
   
   <div class="main">
-    <ul class="tabs">
-      <li data-target="intro" class="active"><i class="fa-solid fa-user"></i> Intro</li>
-      <li data-target="projects"><i class="fa-solid fa-code"></i> Projects</li>
-      <li data-target="education"><i class="fa-solid fa-graduation-cap"></i> Education</li>
-      <li data-target="hometown"><i class="fa-solid fa-map-location-dot"></i> Hometown</li>
-      <li data-target="favorites"><i class="fa-solid fa-heart"></i> Favorites</li>
-      <li data-target="games"><i class="fa-solid fa-gamepad"></i> Games</li>
-      <li data-target="contact"><i class="fa-solid fa-address-book"></i> Contact</li>
+    <ul class="tabs" role="tablist" aria-label="Portfolio sections">
+      <li id="tab-intro" role="tab" aria-controls="intro" aria-selected="true" tabindex="0" data-target="intro" class="active"><i class="fa-solid fa-user"></i> Intro</li>
+      <li id="tab-projects" role="tab" aria-controls="projects" aria-selected="false" tabindex="-1" data-target="projects"><i class="fa-solid fa-code"></i> Projects</li>
+      <li id="tab-education" role="tab" aria-controls="education" aria-selected="false" tabindex="-1" data-target="education"><i class="fa-solid fa-graduation-cap"></i> Education</li>
+      <li id="tab-hometown" role="tab" aria-controls="hometown" aria-selected="false" tabindex="-1" data-target="hometown"><i class="fa-solid fa-map-location-dot"></i> Hometown</li>
+      <li id="tab-favorites" role="tab" aria-controls="favorites" aria-selected="false" tabindex="-1" data-target="favorites"><i class="fa-solid fa-heart"></i> Favorites</li>
+      <li id="tab-games" role="tab" aria-controls="games" aria-selected="false" tabindex="-1" data-target="games"><i class="fa-solid fa-gamepad"></i> Games</li>
+      <li id="tab-contact" role="tab" aria-controls="contact" aria-selected="false" tabindex="-1" data-target="contact"><i class="fa-solid fa-address-book"></i> Contact</li>
     </ul>
     
-    <div id="intro" class="tab-content active">
+    <div id="intro" class="tab-content active" role="tabpanel" aria-labelledby="tab-intro" tabindex="0">
       <p style="font-size: 16px; margin-top: 15px;">
         Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the USA pursuing my undergraduate degree in Computer Science at Caldwell University. I am currently in my sophomore year and aim to pursue a career as a software developer. So far, I have completed several projects based on Python, HTML, CSS, and JavaScript, and I am eager to learn more about full-stack development.
       </p>
     </div>
 
-    <div id="projects" class="tab-content">
+    <div id="projects" class="tab-content" role="tabpanel" aria-labelledby="tab-projects" tabindex="0">
       <h3><i class="fa-solid fa-laptop-code"></i> Featured Projects</h3>
       <p>Here are some of the projects I've been working on:</p>
 
@@ -92,7 +92,7 @@
       </div>
     </div>
 
-    <div id="education" class="tab-content">
+    <div id="education" class="tab-content" role="tabpanel" aria-labelledby="tab-education" tabindex="0">
       <div class="info-block">
         <h3><i class="fa-solid fa-building-columns"></i> University</h3>
         <p><strong>Caldwell University</strong><br>
@@ -108,7 +108,7 @@
       </div>
     </div>
 
-    <div id="hometown" class="tab-content">
+    <div id="hometown" class="tab-content" role="tabpanel" aria-labelledby="tab-hometown" tabindex="0">
       <div class="info-block">
         <h3><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal </h3>
         
@@ -140,7 +140,7 @@
       </div>
     </div>
 
-    <div id="favorites" class="tab-content">
+    <div id="favorites" class="tab-content" role="tabpanel" aria-labelledby="tab-favorites" tabindex="0">
       <div class="info-block">
         <h3><i class="fa-solid fa-music"></i> Favorite Music</h3>
         
@@ -196,7 +196,7 @@
       </div>
     </div>
 
-    <div id="games" class="tab-content">
+    <div id="games" class="tab-content" role="tabpanel" aria-labelledby="tab-games" tabindex="0">
       <h3><i class="fa-solid fa-gamepad"></i> Play & Learn</h3>
       <p>Test what you know about Rishikesh with a quick quiz.</p>
       <div class="game-card">
@@ -214,7 +214,7 @@
       </div>
     </div>
 
-    <div id="contact" class="tab-content">
+    <div id="contact" class="tab-content" role="tabpanel" aria-labelledby="tab-contact" tabindex="0">
   <h3><i class="fa-solid fa-address-book"></i> Contact & Portfolio</h3>
   <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
   
@@ -288,7 +288,7 @@
       <li><strong>Help:</strong> "What can you do?" "Help"</li>
     </ul>
   </div>
-  <button id="chat-toggle-btn" class="chat-toggle-btn"><i class="fa-solid fa-comment-dots"></i></button>
+  <button id="chat-toggle-btn" class="chat-toggle-btn" aria-controls="chat-box" aria-expanded="false" aria-label="Open chat"><i class="fa-solid fa-comment-dots"></i></button>
   <div class="chat-box" id="chat-box">
     <div class="chat-header">
       <span class="chat-header-title"><i class="fa-solid fa-robot"></i> Rishi's Assistant</span>
