@@ -685,6 +685,102 @@ document.addEventListener('keydown', (e) => {
   chatToggle.focus();
 });
 
+// --- Contact form: AJAX submit, no Formspree redirect, valid email only ---
+(function contactForm() {
+  const form = document.getElementById('contact-form');
+  const statusEl = document.getElementById('form-status');
+  const submitBtn = document.getElementById('contact-submit-btn');
+  const FORMSPREE_URL = 'https://formspree.io/f/xpqjaove';
+
+  function isValidEmail(email) {
+    const trimmed = (email || '').trim();
+    if (!trimmed) return false;
+    // Realistic format: local@domain.tld (no spaces, has @ and a dot in domain)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) && trimmed.length <= 254;
+  }
+
+  function setStatus(message, isError) {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.className = 'form-status ' + (isError ? 'form-status-error' : 'form-status-success');
+    statusEl.setAttribute('aria-live', 'polite');
+  }
+
+  function clearStatus() {
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.className = 'form-status';
+    }
+  }
+
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nameInput = form.querySelector('input[name="name"]');
+    const emailInput = form.querySelector('input[name="email"]');
+    const messageInput = form.querySelector('textarea[name="message"]');
+
+    const name = (nameInput && nameInput.value || '').trim();
+    const email = (emailInput && emailInput.value || '').trim();
+    const message = (messageInput && messageInput.value || '').trim();
+
+    clearStatus();
+
+    if (name.length < 2) {
+      setStatus('Please enter your name (at least 2 characters).', true);
+      if (nameInput) nameInput.focus();
+      return;
+    }
+    if (!email) {
+      setStatus('Please enter your email address.', true);
+      if (emailInput) emailInput.focus();
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setStatus('Please enter a valid email address (e.g. name@example.com).', true);
+      if (emailInput) emailInput.focus();
+      return;
+    }
+    if (message.length < 10) {
+      setStatus('Please write a message (at least 10 characters).', true);
+      if (messageInput) messageInput.focus();
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.setAttribute('aria-busy', 'true');
+    }
+
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && (data.ok !== false)) {
+        setStatus('Thanks! Your message was sent. I\'ll reply to your email soon.');
+        form.reset();
+        setTimeout(clearStatus, 6000);
+      } else {
+        setStatus(data.error || 'Something went wrong. Please try again.', true);
+      }
+    } catch (err) {
+      setStatus('Could not send. Check your connection and try again.', true);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute('aria-busy');
+      }
+    }
+  });
+})();
+
 // --- e. CORE LOGIC ---
 async function sendMessage() {
   if (isCoolingDown) return;

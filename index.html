@@ -246,24 +246,24 @@
   <div class="form-container">
   <h3><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
   
-  <form action="https://formspree.io/f/xpqjaove" method="POST" class="contact-form">
-    
+  <form id="contact-form" action="https://formspree.io/f/xpqjaove" method="POST" class="contact-form">
+    <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
     <div class="input-group">
-      <input type="text" name="name" required placeholder=" ">
+      <input type="text" name="name" id="contact-name" required placeholder=" " minlength="2" autocomplete="name">
       <label>Name</label>
     </div>
 
     <div class="input-group">
-      <input type="email" name="email" required placeholder=" ">
+      <input type="email" name="email" id="contact-email" required placeholder=" " autocomplete="email">
       <label>Email Address</label>
     </div>
 
     <div class="input-group">
-      <textarea name="message" rows="5" required placeholder=" "></textarea>
+      <textarea name="message" id="contact-message" rows="5" required placeholder=" " minlength="10"></textarea>
       <label>Your Message</label>
     </div>
 
-    <button type="submit" class="send-btn">
+    <button type="submit" class="send-btn" id="contact-submit-btn">
       Send Message <i class="fa-solid fa-paper-plane"></i>
     </button>
   </form>
