@@ -365,15 +365,17 @@ const VoiceAssistant = (function() {
       return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
-    // About Rishikesh — very forgiving: name anywhere, or "who" + "rish", or "about" + "rish"
-    const hasRishiName = words.some((w) => /rishi|rishikesh|reeshi|rishy/i.test(w)) ||
-      clean.includes('rishi') || clean.includes('rishikesh') ||
+    // About Rishikesh — maximum forgiveness: catch every possible mishearing
+    const lower = clean.toLowerCase();
+    const rishiLike = /rishi|rishikesh|rishy|reeshi|reishikesh|reshikesh|rish\s*ikesh|rish\s*kesh/i;
+    const hasRishiAnywhere = rishiLike.test(lower) ||
+      words.some((w) => /rishi|rishikesh|rishy|reeshi|resh/i.test(w)) ||
       hasAny('rishi', 'rishikesh');
-    const whoPlusRish = (has('who') || clean.includes('who is')) && /rish/i.test(clean);
-    const aboutPlusRish = clean.includes('about') && /rish/i.test(clean);
-    if (hasRishiName || whoPlusRish || aboutPlusRish ||
-      clean.includes('who is rishi') || clean.includes('who is rishikesh') ||
-      clean.includes('tell me about rishi') || clean.includes('tell me about rishikesh')) {
+    const whoPlusRish = (has('who') || lower.includes('who is')) && /rish|resh/i.test(lower);
+    const aboutPlusRish = lower.includes('about') && /rish|resh|rishi|him/i.test(lower);
+    const shortWhoIs = has('who') && (has('is') || lower.includes('who is')) && words.length <= 6;
+    const tellAbout = (lower.includes('tell me about') || lower.includes('about him') || lower.includes('about rishi')) && words.length <= 7;
+    if (hasRishiAnywhere || whoPlusRish || aboutPlusRish || shortWhoIs || tellAbout) {
       return reply(ABOUT_RISHI);
     }
 
