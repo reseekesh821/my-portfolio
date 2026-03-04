@@ -768,12 +768,11 @@ document.addEventListener('keydown', (e) => {
   chatToggle.focus();
 });
 
-// --- Contact form: AJAX submit, no Formspree redirect, valid email only ---
+// --- Contact form: send to Supabase, no Formspree redirect ---
 (function contactForm() {
   const form = document.getElementById('contact-form');
   const statusEl = document.getElementById('form-status');
   const submitBtn = document.getElementById('contact-submit-btn');
-  const FORMSPREE_URL = 'https://formspree.io/f/xpqjaove';
 
   function isValidEmail(email) {
     const trimmed = (email || '').trim();
@@ -832,29 +831,32 @@ document.addEventListener('keydown', (e) => {
       return;
     }
 
+    if (!window.supabaseClient) {
+      setStatus('Server is not ready to receive messages. Please try again later.', true);
+      return;
+    }
+
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.setAttribute('aria-busy', 'true');
     }
 
     try {
-      const res = await fetch(FORMSPREE_URL, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'Accept': 'application/json' }
-      });
+      const { data, error } = await window.supabaseClient
+        .from('contact_messages')
+        .insert([{ name, email, message }]);
 
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok && (data.ok !== false)) {
-        setStatus('Thanks! Your message was sent. I\'ll reply to your email soon.');
+      if (error) {
+        console.error('Supabase insert error:', error);
+        setStatus('Could not send your message right now. Please try again later.', true);
+      } else {
+        setStatus("Thanks! Your message was sent. I'll reply to your email soon.");
         form.reset();
         setTimeout(clearStatus, 6000);
-      } else {
-        setStatus(data.error || 'Something went wrong. Please try again.', true);
       }
     } catch (err) {
-      setStatus('Could not send. Check your connection and try again.', true);
+      console.error('Unexpected error sending message:', err);
+      setStatus('Could not send your message. Check your connection and try again.', true);
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;

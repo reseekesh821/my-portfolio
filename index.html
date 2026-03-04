@@ -246,7 +246,7 @@
   <div class="form-container">
   <h3><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
   
-  <form id="contact-form" action="https://formspree.io/f/xpqjaove" method="POST" class="contact-form">
+  <form id="contact-form" action="#" method="POST" class="contact-form">
     <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
     <div class="input-group">
       <input type="text" name="name" id="contact-name" required placeholder=" " minlength="2" autocomplete="name">
@@ -320,7 +320,12 @@
     </div>
   </div>
 </div>
-
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://oilhydznurstsptwgaqh.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pbGh5ZHpudXJzdHNwdHdnYXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MzcwNzUsImV4cCI6MjA4ODIxMzA3NX0.48PlDEyLRmbU9NvoJISI3RxBgrLFexixxI1JJi9cRu4';
+  window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 <script src="portfolio.js?v=26.0_FINAL_STABLE"></script>
 </body>
 </html>
