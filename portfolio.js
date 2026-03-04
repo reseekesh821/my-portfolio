@@ -49,6 +49,11 @@ function setActiveTab(tabEl, { focus = false } = {}) {
   tabEl.setAttribute("tabindex", "0");
   if (panel) panel.classList.add("active");
 
+  // Log tab visit to Supabase (if configured)
+  if (targetId) {
+    logTabEvent(targetId);
+  }
+
   if (focus) tabEl.focus();
 }
 
@@ -240,6 +245,9 @@ const QUIZ_QUESTIONS = [
       startBtn.textContent = 'Play Again';
       resultEl.classList.remove('hidden');
       resultEl.innerHTML = `<strong>Your score: ${quizScore} / ${QUIZ_QUESTIONS.length}</strong><br>${quizScore === QUIZ_QUESTIONS.length ? 'Perfect! You know Rishikesh well.' : quizScore >= QUIZ_QUESTIONS.length / 2 ? 'Nice job! Explore the portfolio to learn more.' : 'No worries — check out Intro and Projects!'}`;
+
+      // Log quiz result to Supabase
+      logQuizResult(quizScore, QUIZ_QUESTIONS.length);
       return;
     }
     const item = QUIZ_QUESTIONS[quizIndex];
@@ -608,7 +616,7 @@ const API_URL = "/api/chat";
 const MAX_HISTORY = 20; // Increased to allow better context retention
 let isCoolingDown = false;
 
-// Chat session ID for logging to Supabase
+// Session ID for Supabase logging (chat, tabs, quiz)
 const CHAT_SESSION_STORAGE_KEY = 'portfolio-chat-session-id';
 let chatSessionId = null;
 
@@ -640,6 +648,30 @@ async function logChatMessage(role, content) {
       .insert([{ session_id: chatSessionId, role, content }]);
   } catch (err) {
     console.error('Supabase chat log error:', err);
+  }
+}
+
+async function logTabEvent(tabId) {
+  if (!window.supabaseClient) return;
+  if (!tabId) return;
+  try {
+    await window.supabaseClient
+      .from('tab_events')
+      .insert([{ session_id: chatSessionId, tab_id: tabId, event_type: 'open' }]);
+  } catch (err) {
+    console.error('Supabase tab event error:', err);
+  }
+}
+
+async function logQuizResult(score, totalQuestions) {
+  if (!window.supabaseClient) return;
+  if (typeof score !== 'number' || typeof totalQuestions !== 'number') return;
+  try {
+    await window.supabaseClient
+      .from('quiz_results')
+      .insert([{ session_id: chatSessionId, score, total_questions: totalQuestions }]);
+  } catch (err) {
+    console.error('Supabase quiz result error:', err);
   }
 }
 
