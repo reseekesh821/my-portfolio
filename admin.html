@@ -4,15 +4,206 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard – Rishi</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 20px auto; }
-    .token-area { margin-bottom: 16px; }
-    input[type="password"] { width: 260px; padding: 6px; }
-    button { padding: 6px 10px; margin-left: 4px; }
-    .section-buttons button { margin-right: 8px; margin-top: 4px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 12px; }
-    th { background: #f0f0f0; }
-    pre { font-size: 12px; background: #f7f7f7; padding: 8px; overflow-x: auto; }
+    :root {
+  --bg: #0b1020;
+  --surface: #141a2a;
+  --surface-soft: #181f33;
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.16);
+  --accent-strong: rgba(79, 70, 229, 0.45);
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border-subtle: #272b3d;
+  --danger: #ef4444;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 16px 20px 40px;
+  background: radial-gradient(circle at top, rgba(79,70,229,0.25), transparent 55%), var(--bg);
+  color: var(--text-main);
+}
+
+h1 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin-top: 24px;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.token-area {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.token-area label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+input[type="password"] {
+  width: 260px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-soft);
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+input[type="password"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+button:hover {
+  background: #4338ca;
+  box-shadow: 0 6px 18px var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.section-buttons {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.section-buttons button {
+  background: var(--surface-soft);
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+.section-buttons button:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+#status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+#section-title {
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+#results {
+  margin-top: 8px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  padding: 10px 12px;
+  overflow: auto;
+  max-height: calc(100vh - 220px);
+}
+
+/* Tables */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8rem;
+}
+
+th,
+td {
+  border-bottom: 1px solid #1f2435;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: #151a29;
+  z-index: 1;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+tr:nth-child(even) td {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+tr:hover td {
+  background: rgba(30, 64, 175, 0.25);
+}
+
+/* Text + code */
+
+pre {
+  font-size: 0.8rem;
+  background: var(--surface-soft);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+/* Small screens */
+
+@media (max-width: 640px) {
+  body {
+    margin: 12px auto;
+    padding: 10px 12px 24px;
+  }
+
+  .token-area {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  input[type="password"] {
+    width: 100%;
+  }
+
+  #results {
+    max-height: none;
+  }
+}
   </style>
 </head>
 <body>
