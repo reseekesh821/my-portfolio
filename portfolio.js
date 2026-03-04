@@ -608,6 +608,41 @@ const API_URL = "/api/chat";
 const MAX_HISTORY = 20; // Increased to allow better context retention
 let isCoolingDown = false;
 
+// Chat session ID for logging to Supabase
+const CHAT_SESSION_STORAGE_KEY = 'portfolio-chat-session-id';
+let chatSessionId = null;
+
+(function initChatSessionId() {
+  try {
+    const stored = window.localStorage ? localStorage.getItem(CHAT_SESSION_STORAGE_KEY) : null;
+    if (stored) {
+      chatSessionId = stored;
+      return;
+    }
+    const randomPart = Math.random().toString(36).slice(2, 10);
+    chatSessionId = 'sess_' + Date.now() + '_' + randomPart;
+    if (window.localStorage) {
+      localStorage.setItem(CHAT_SESSION_STORAGE_KEY, chatSessionId);
+    }
+  } catch (e) {
+    // Fallback: per-page-load ID if localStorage is unavailable
+    const randomPart = Math.random().toString(36).slice(2, 10);
+    chatSessionId = 'sess_' + Date.now() + '_' + randomPart;
+  }
+})();
+
+async function logChatMessage(role, content) {
+  if (!window.supabaseClient) return;
+  if (!role || !content) return;
+  try {
+    await window.supabaseClient
+      .from('chat_logs')
+      .insert([{ session_id: chatSessionId, role, content }]);
+  } catch (err) {
+    console.error('Supabase chat log error:', err);
+  }
+}
+
 // --- c. SYSTEM PROMPT (improved, modern, helpful) ---
 const SYSTEM_PROMPT = `
 You are Rishikesh Bastakoti’s official digital assistant on his portfolio website.
@@ -878,11 +913,13 @@ async function sendMessage() {
   userInput.value = '';
   if (quickRepliesContainer) quickRepliesContainer.style.display = 'none';
   addMessage(text, 'user-message');
+  logChatMessage('user', text);
 
   // Run portfolio commands first (color, play music, show tab, etc.)
   const commandReply = VoiceAssistant && VoiceAssistant.handleCommand(text, true);
   if (commandReply !== false && typeof commandReply === 'string') {
     addMessage(commandReply, 'bot-message');
+    logChatMessage('assistant', commandReply);
     if (quickRepliesContainer) {
       quickRepliesContainer.style.display = 'flex';
       chatMessages.appendChild(quickRepliesContainer);
@@ -896,6 +933,7 @@ async function sendMessage() {
   const botReply = await getAIResponse(text);
   hideTyping();
   addMessage(botReply, 'bot-message');
+  logChatMessage('assistant', botReply);
 
   if (quickRepliesContainer) {
     quickRepliesContainer.style.display = 'flex';
