@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard – Rishi</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 20px auto; }
+    .token-area { margin-bottom: 16px; }
+    input[type="password"] { width: 260px; padding: 6px; }
+    button { padding: 6px 10px; margin-left: 4px; }
+    .section-buttons button { margin-right: 8px; margin-top: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 12px; }
+    th { background: #f0f0f0; }
+    pre { font-size: 12px; background: #f7f7f7; padding: 8px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Admin Dashboard</h1>
+
+  <div class="token-area">
+    <label>
+      Admin token:
+      <input type="password" id="admin-token-input" />
+    </label>
+    <button id="save-token-btn">Use token</button>
+    <span id="status"></span>
+  </div>
+
+  <div class="section-buttons">
+    <button data-endpoint="/api/admin/contact-messages">Load contact messages</button>
+    <button data-endpoint="/api/admin/chat-logs">Load chat logs</button>
+    <button data-endpoint="/api/admin/tab-events">Load tab events</button>
+    <button data-endpoint="/api/admin/quiz-results">Load quiz results</button>
+  </div>
+
+  <h2 id="section-title"></h2>
+  <div id="results"></div>
+
+  <script>
+    let adminToken = '';
+
+    const statusEl = document.getElementById('status');
+    const tokenInput = document.getElementById('admin-token-input');
+
+    document.getElementById('save-token-btn').addEventListener('click', () => {
+      adminToken = tokenInput.value.trim();
+      if (adminToken) {
+        statusEl.textContent = 'Token set (not saved anywhere).';
+      } else {
+        statusEl.textContent = 'Token cleared.';
+      }
+    });
+
+    async function loadEndpoint(endpoint, label) {
+      if (!adminToken) {
+        alert('Set your admin token first.');
+        return;
+      }
+
+      document.getElementById('section-title').textContent = label;
+      const resultsEl = document.getElementById('results');
+      resultsEl.textContent = 'Loading…';
+
+      try {
+        const res = await fetch(endpoint, {
+          headers: { Authorization: 'Bearer ' + adminToken }
+        });
+
+        if (res.status === 401) {
+          resultsEl.textContent = '';
+          statusEl.textContent = 'Unauthorized – check your admin token.';
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          resultsEl.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+          return;
+        }
+
+        if (data.length === 0) {
+          resultsEl.textContent = 'No rows.';
+          return;
+        }
+
+        // Build simple table from first object's keys
+        const keys = Object.keys(data[0]);
+        let html = '<table><thead><tr>';
+        for (const k of keys) html += '<th>' + k + '</th>';
+        html += '</tr></thead><tbody>';
+
+        for (const row of data) {
+          html += '<tr>';
+          for (const k of keys) {
+            html += '<td>' + String(row[k] ?? '') + '</td>';
+          }
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+        resultsEl.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('results').textContent = 'Error loading data.';
+      }
+    }
+
+    document.querySelectorAll('.section-buttons button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const endpoint = btn.getAttribute('data-endpoint');
+        const label = btn.textContent;
+        loadEndpoint(endpoint, label);
+      });
+    });
+  </script>
+</body>
+</html>
