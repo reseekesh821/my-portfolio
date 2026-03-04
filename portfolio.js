@@ -329,12 +329,21 @@ const VoiceAssistant = (function() {
 
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Or say show projects, games, contact, education, hometown, or favorites.";
 
+  let currentUtterance = null;
+
+  function stopSpeaking() {
+    if (!synth) return;
+    synth.cancel();
+    currentUtterance = null;
+  }
+
   function speak(text) {
     if (!synth) return;
+    stopSpeaking();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.9;
     u.pitch = 1;
-    synth.cancel();
+    currentUtterance = u;
     synth.speak(u);
   }
 
@@ -366,6 +375,20 @@ const VoiceAssistant = (function() {
     function reply(msg) {
       if (!forChat) speak(msg);
       return forChat ? msg : true;
+    }
+
+    // Stop speaking / cancel current voice response (but don't touch music)
+    const isStopCommand =
+      (has('stop') && words.length <= 3) ||
+      clean === 'ok stop' ||
+      clean === 'okay stop';
+
+    if (isStopCommand) {
+      if (!forChat) {
+        stopSpeaking();
+        return true;
+      }
+      return reply("Okay, I'll stop.");
     }
 
     // Greetings
@@ -429,8 +452,8 @@ const VoiceAssistant = (function() {
       return reply('Music is already playing.');
     }
 
-    // Pause music — phrases like "pause the music", "stop song", or just "pause"
-    if (hasAny('pause','stop') && (hasAny('music','song','songs') || true)) {
+    // Pause music — phrases like "pause the music", "stop song", or "pause music"
+    if (hasAny('pause','stop') && hasAny('music','song','songs')) {
       if (isPlaying) { togglePlay(); return reply('Music paused.'); }
       return reply('Music is already paused.');
     }
@@ -516,11 +539,11 @@ const VoiceAssistant = (function() {
         return;
       }
       if (handleCommand(transcript)) return;
-      speak("I didn't catch that. Try: Who is Rishikesh, what's the weather, play music, or change color to blue. Say help for more options.");
+      speak("I didn't catch that. Try again or say help.");
     };
 
     recognition.onnomatch = () => {
-      speak("I heard something but couldn't match it. Say help to hear what you can ask.");
+      speak("I heard you but couldn't match it. Say help to hear options.");
     };
 
     recognition.onerror = (e) => {
@@ -529,7 +552,7 @@ const VoiceAssistant = (function() {
 
       if (e.error === 'no-speech' && !noSpeechRetry) {
         noSpeechRetry = true;
-        speak("I didn't hear anything. Try again now — speak right after the beep.");
+        speak("I didn't hear anything. Try again and speak right away.");
         setTimeout(() => {
           if (!recognition) return;
           if (voiceStatus) {
