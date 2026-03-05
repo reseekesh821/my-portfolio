@@ -598,8 +598,25 @@ const VoiceAssistant = (function() {
         if (voiceStatus) voiceStatus.textContent = '"' + transcript + '"';
         return;
       }
+      // 1) Try command handler first so voice commands stay in control
       if (handleCommand(transcript)) return;
-      speak("I didn't catch that. Try again or say help.");
+
+      // 2) If no command matched, fall back to AI chatbot and speak its reply
+      if (voiceStatus) {
+        voiceStatus.textContent = 'Thinking...';
+        voiceStatus.classList.add('active');
+      }
+
+      getAIResponse(transcript)
+        .then((reply) => {
+          if (reply) speak(reply);
+        })
+        .catch(() => {
+          speak("I didn't catch that. Try again or say help.");
+        })
+        .finally(() => {
+          if (voiceStatus) voiceStatus.classList.remove('active');
+        });
     };
 
     recognition.onnomatch = () => {
