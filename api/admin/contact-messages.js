@@ -21,15 +21,25 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
   }
 
+  const MESSAGE_MIN = 10;
+  const MESSAGE_MAX = 500;
+
   if (method === 'POST') {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const { name, email, message } = body;
     if (!name || !email || !message) {
       return res.status(400).json({ error: 'name, email, and message are required' });
     }
+    const msg = String(message).trim();
+    if (msg.length < MESSAGE_MIN) {
+      return res.status(400).json({ error: 'Message must be at least ' + MESSAGE_MIN + ' characters' });
+    }
+    if (msg.length > MESSAGE_MAX) {
+      return res.status(400).json({ error: 'Message must be at most ' + MESSAGE_MAX + ' characters' });
+    }
     const { data, error } = await supabase
       .from('contact_messages')
-      .insert([{ name: String(name).trim(), email: String(email).trim(), message: String(message).trim() }])
+      .insert([{ name: String(name).trim(), email: String(email).trim(), message: msg }])
       .select()
       .single();
 
@@ -49,7 +59,16 @@ export default async function handler(req, res) {
     const updates = {};
     if (body.name !== undefined) updates.name = String(body.name).trim();
     if (body.email !== undefined) updates.email = String(body.email).trim();
-    if (body.message !== undefined) updates.message = String(body.message).trim();
+    if (body.message !== undefined) {
+      const msg = String(body.message).trim();
+      if (msg.length < MESSAGE_MIN) {
+        return res.status(400).json({ error: 'Message must be at least ' + MESSAGE_MIN + ' characters' });
+      }
+      if (msg.length > MESSAGE_MAX) {
+        return res.status(400).json({ error: 'Message must be at most ' + MESSAGE_MAX + ' characters' });
+      }
+      updates.message = msg;
+    }
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: 'At least one field to update (name, email, message) is required' });
     }

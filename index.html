@@ -259,8 +259,9 @@
     </div>
 
     <div class="input-group">
-      <textarea name="message" id="contact-message" rows="5" required placeholder=" " minlength="10"></textarea>
+      <textarea name="message" id="contact-message" rows="5" required placeholder=" " minlength="10" maxlength="500"></textarea>
       <label>Your Message</label>
+      <span id="contact-message-count" class="message-count" aria-live="polite">0 / 500</span>
     </div>
 
     <button type="submit" class="send-btn" id="contact-submit-btn">

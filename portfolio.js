@@ -887,6 +887,20 @@ document.addEventListener('keydown', (e) => {
 
   if (!form) return;
 
+  // Message character counter (10–500)
+  const messageInput = form.querySelector('textarea[name="message"]');
+  const countEl = document.getElementById('contact-message-count');
+  function updateMessageCount() {
+    if (!countEl || !messageInput) return;
+    const len = (messageInput.value || '').length;
+    countEl.textContent = len + ' / 500';
+  }
+  if (messageInput) {
+    messageInput.addEventListener('input', updateMessageCount);
+    messageInput.addEventListener('change', updateMessageCount);
+    updateMessageCount();
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -920,6 +934,11 @@ document.addEventListener('keydown', (e) => {
       if (messageInput) messageInput.focus();
       return;
     }
+    if (message.length > 500) {
+      setStatus('Message must be at most 500 characters.', true);
+      if (messageInput) messageInput.focus();
+      return;
+    }
 
     if (!window.supabaseClient) {
       setStatus('Server is not ready to receive messages. Please try again later.', true);
@@ -942,6 +961,7 @@ document.addEventListener('keydown', (e) => {
       } else {
         setStatus("Thanks! Your message was sent. I'll reply to your email soon.");
         form.reset();
+        if (typeof updateMessageCount === 'function') updateMessageCount();
         setTimeout(clearStatus, 6000);
       }
     } catch (err) {

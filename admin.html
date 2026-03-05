@@ -299,7 +299,7 @@ pre {
       <form id="add-form">
         <label>Name <input type="text" name="name" required /></label>
         <label>Email <input type="email" name="email" required /></label>
-        <label>Message <textarea name="message" required></textarea></label>
+        <label>Message (10–500 characters) <textarea name="message" required minlength="10" maxlength="500" placeholder="At least 10, at most 500 characters"></textarea></label>
       </form>
       <div class="modal-actions">
         <button type="button" id="add-cancel-btn" class="secondary">Cancel</button>
@@ -372,7 +372,14 @@ pre {
         input.name = key;
         input.type = type;
         input.value = row[key] ?? '';
-        if (type === 'textarea') input.rows = 3;
+        if (type === 'textarea') {
+          input.rows = 3;
+          if (key === 'message') {
+            input.minLength = 10;
+            input.maxLength = 500;
+            lab.textContent = label + ' (10–500 characters) ';
+          }
+        }
         lab.appendChild(input);
         editForm.appendChild(lab);
       }
