@@ -172,6 +172,55 @@ tr:hover td {
   background: rgba(30, 64, 175, 0.25);
 }
 
+/* Action buttons in table */
+.actions-cell { white-space: nowrap; }
+.actions-cell button { padding: 4px 10px; font-size: 0.75rem; margin-right: 4px; }
+.actions-cell button.delete-btn { background: var(--danger); color: white; }
+.actions-cell button.delete-btn:hover { background: #dc2626; }
+
+/* Add row button above table */
+.add-row-wrap { margin-bottom: 10px; }
+.add-row-wrap button { background: var(--surface-soft); color: var(--text-main); border: 1px solid var(--border-subtle); }
+.add-row-wrap button:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+}
+.modal h3 { margin: 0 0 14px; font-size: 1rem; }
+.modal label { display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted); }
+.modal input, .modal textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-soft);
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+.modal textarea { min-height: 80px; resize: vertical; }
+.modal-actions { margin-top: 16px; display: flex; gap: 8px; }
+.modal-actions button.secondary { background: var(--surface-soft); color: var(--text-main); border: 1px solid var(--border-subtle); }
+
 /* Text + code */
 
 pre {
@@ -226,13 +275,51 @@ pre {
   </div>
 
   <h2 id="section-title"></h2>
+  <div id="add-row-wrap" class="add-row-wrap" style="display: none;">
+    <button type="button" id="add-row-btn">Add row</button>
+  </div>
   <div id="results"></div>
+
+  <!-- Edit modal -->
+  <div id="edit-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal">
+      <h3 id="edit-modal-title">Edit row</h3>
+      <form id="edit-form"></form>
+      <div class="modal-actions">
+        <button type="button" id="edit-cancel-btn" class="secondary">Cancel</button>
+        <button type="submit" form="edit-form" id="edit-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add row modal (contact messages only) -->
+  <div id="add-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal">
+      <h3>Add contact message</h3>
+      <form id="add-form">
+        <label>Name <input type="text" name="name" required /></label>
+        <label>Email <input type="email" name="email" required /></label>
+        <label>Message <textarea name="message" required></textarea></label>
+      </form>
+      <div class="modal-actions">
+        <button type="button" id="add-cancel-btn" class="secondary">Cancel</button>
+        <button type="submit" form="add-form" id="add-save-btn">Add</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     let adminToken = '';
+    let currentEndpoint = '';
+    let currentLabel = '';
 
     const statusEl = document.getElementById('status');
     const tokenInput = document.getElementById('admin-token-input');
+    const addRowWrap = document.getElementById('add-row-wrap');
+    const editModal = document.getElementById('edit-modal');
+    const editForm = document.getElementById('edit-form');
+    const addModal = document.getElementById('add-modal');
+    const addForm = document.getElementById('add-form');
 
     document.getElementById('save-token-btn').addEventListener('click', () => {
       adminToken = tokenInput.value.trim();
@@ -243,20 +330,143 @@ pre {
       }
     });
 
+    // Editable fields per endpoint (field name -> type: 'text' | 'textarea' | 'number')
+    const editSchemas = {
+      '/api/admin/contact-messages': [
+        { key: 'name', type: 'text', label: 'Name' },
+        { key: 'email', type: 'text', label: 'Email' },
+        { key: 'message', type: 'textarea', label: 'Message' }
+      ],
+      '/api/admin/chat-logs': [
+        { key: 'role', type: 'text', label: 'Role' },
+        { key: 'content', type: 'textarea', label: 'Content' }
+      ],
+      '/api/admin/tab-events': [
+        { key: 'tab_id', type: 'text', label: 'Tab ID' },
+        { key: 'event_type', type: 'text', label: 'Event type' }
+      ],
+      '/api/admin/quiz-results': [
+        { key: 'score', type: 'number', label: 'Score' },
+        { key: 'total_questions', type: 'number', label: 'Total questions' }
+      ]
+    };
+
+    function authHeaders() {
+      return { Authorization: 'Bearer ' + adminToken, 'Content-Type': 'application/json' };
+    }
+
+    function refreshCurrent() {
+      if (currentEndpoint && currentLabel) loadEndpoint(currentEndpoint, currentLabel);
+    }
+
+    function buildEditForm(row) {
+      const schema = editSchemas[currentEndpoint];
+      if (!schema) return;
+      editForm.innerHTML = '';
+      for (const { key, type, label } of schema) {
+        const lab = document.createElement('label');
+        lab.textContent = label + ' ';
+        const input = type === 'textarea'
+          ? document.createElement('textarea')
+          : document.createElement('input');
+        input.name = key;
+        input.type = type;
+        input.value = row[key] ?? '';
+        if (type === 'textarea') input.rows = 3;
+        lab.appendChild(input);
+        editForm.appendChild(lab);
+      }
+    }
+
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const schema = editSchemas[currentEndpoint];
+      if (!schema) return;
+      const rowId = editForm.dataset.editId;
+      if (!rowId) return;
+      const body = { id: Number(rowId) };
+      for (const { key } of schema) {
+        const el = editForm.elements[key];
+        if (el) body[key] = el.type === 'number' ? Number(el.value) : el.value;
+      }
+      try {
+        const res = await fetch(currentEndpoint, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Update failed');
+          return;
+        }
+        editModal.classList.remove('visible');
+        editModal.setAttribute('aria-hidden', 'true');
+        refreshCurrent();
+      } catch (err) {
+        console.error(err);
+        alert('Request failed');
+      }
+    });
+
+    document.getElementById('edit-cancel-btn').addEventListener('click', () => {
+      editModal.classList.remove('visible');
+      editModal.setAttribute('aria-hidden', 'true');
+    });
+
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        name: addForm.elements.name.value.trim(),
+        email: addForm.elements.email.value.trim(),
+        message: addForm.elements.message.value.trim()
+      };
+      try {
+        const res = await fetch(currentEndpoint, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Add failed');
+          return;
+        }
+        addModal.classList.remove('visible');
+        addModal.setAttribute('aria-hidden', 'true');
+        addForm.reset();
+        refreshCurrent();
+      } catch (err) {
+        console.error(err);
+        alert('Request failed');
+      }
+    });
+
+    document.getElementById('add-cancel-btn').addEventListener('click', () => {
+      addModal.classList.remove('visible');
+      addModal.setAttribute('aria-hidden', 'true');
+    });
+
+    document.getElementById('add-row-btn').addEventListener('click', () => {
+      addModal.classList.add('visible');
+      addModal.setAttribute('aria-hidden', 'false');
+    });
+
     async function loadEndpoint(endpoint, label) {
       if (!adminToken) {
         alert('Set your admin token first.');
         return;
       }
+      currentEndpoint = endpoint;
+      currentLabel = label;
 
       document.getElementById('section-title').textContent = label;
       const resultsEl = document.getElementById('results');
       resultsEl.textContent = 'Loading…';
+      addRowWrap.style.display = 'none';
 
       try {
-        const res = await fetch(endpoint, {
-          headers: { Authorization: 'Bearer ' + adminToken }
-        });
+        const res = await fetch(endpoint, { headers: authHeaders() });
 
         if (res.status === 401) {
           resultsEl.textContent = '';
@@ -273,29 +483,79 @@ pre {
 
         if (data.length === 0) {
           resultsEl.textContent = 'No rows.';
+          if (endpoint === '/api/admin/contact-messages') {
+            addRowWrap.style.display = 'block';
+          }
           return;
         }
 
-        // Build simple table from first object's keys
         const keys = Object.keys(data[0]);
         let html = '<table><thead><tr>';
-        for (const k of keys) html += '<th>' + k + '</th>';
-        html += '</tr></thead><tbody>';
+        for (const k of keys) html += '<th>' + escapeHtml(k) + '</th>';
+        html += '<th>Actions</th></tr></thead><tbody>';
 
         for (const row of data) {
           html += '<tr>';
           for (const k of keys) {
-            html += '<td>' + String(row[k] ?? '') + '</td>';
+            html += '<td>' + escapeHtml(String(row[k] ?? '')) + '</td>';
           }
-          html += '</tr>';
+          html += '<td class="actions-cell">';
+          html += '<button type="button" class="edit-row-btn" data-id="' + escapeAttr(row.id) + '" data-row="' + escapeAttr(JSON.stringify(row)) + '">Edit</button>';
+          html += '<button type="button" class="delete-row-btn" data-id="' + escapeAttr(row.id) + '">Delete</button>';
+          html += '</td></tr>';
         }
         html += '</tbody></table>';
         resultsEl.innerHTML = html;
 
+        if (endpoint === '/api/admin/contact-messages') {
+          addRowWrap.style.display = 'block';
+        }
+
+        resultsEl.querySelectorAll('.edit-row-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const row = JSON.parse(btn.getAttribute('data-row'));
+            editForm.dataset.editId = row.id;
+            document.getElementById('edit-modal-title').textContent = 'Edit row';
+            buildEditForm(row);
+            editModal.classList.add('visible');
+            editModal.setAttribute('aria-hidden', 'false');
+          });
+        });
+
+        resultsEl.querySelectorAll('.delete-row-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Delete this row?')) return;
+            const id = btn.getAttribute('data-id');
+            try {
+              const res = await fetch(currentEndpoint + '?id=' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: authHeaders()
+              });
+              const out = await res.json();
+              if (!res.ok) {
+                alert(out.error || 'Delete failed');
+                return;
+              }
+              refreshCurrent();
+            } catch (err) {
+              console.error(err);
+              alert('Request failed');
+            }
+          });
+        });
       } catch (err) {
         console.error(err);
-        document.getElementById('results').textContent = 'Error loading data.';
+        resultsEl.textContent = 'Error loading data.';
       }
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+    function escapeAttr(s) {
+      return escapeHtml(String(s)).replace(/"/g, '&quot;');
     }
 
     document.querySelectorAll('.section-buttons button').forEach(btn => {
