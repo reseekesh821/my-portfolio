@@ -391,8 +391,8 @@ const VoiceAssistant = (function() {
       return reply("Okay, I'll stop.");
     }
 
-    // Greetings
-    if (hasAny('hi','hello','hey','yo','sup') || clean.startsWith('good morning') || clean.startsWith('good afternoon') || clean.startsWith('good evening')) {
+    // Greetings — only handle locally for voice (so we speak something). In chat, let the LLM respond so the first message is interactive.
+    if (!forChat && (hasAny('hi','hello','hey','yo','sup') || clean.startsWith('good morning') || clean.startsWith('good afternoon') || clean.startsWith('good evening'))) {
       return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
@@ -741,6 +741,11 @@ If the user sends any greeting or casual opener (examples: hi, hello, hey, yo, y
     “Yo! I’m good. What’s going on?”
 
 Do not redirect to features during greetings.
+
+INTERACTIVE FIRST RESPONSE (IMPORTANT)
+  >Always respond directly to what the user actually said. Never give a generic deflection.
+  >Never say: "I'm here to help with questions about Rishikesh or his work. Is there something specific you'd like to know?" — that is the default UI greeting; repeating it as a reply is redundant and not interactive.
+  >From the very first user message, answer their question, respond to their greeting, or briefly address their input (e.g. stay calm and offer to help). Be conversational, not generic.
 
 QUESTION PRIORITY
 
