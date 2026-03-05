@@ -913,6 +913,70 @@ h1 {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+.chat-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+}
+
+.chat-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.chat-status-dot.status-online {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+}
+
+.chat-status-dot.status-offline {
+  background: #f97373;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25);
+}
+
+.chat-status-text {
+  font-weight: 500;
+}
+
+.chat-call-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+  color: #0f0c29;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(15, 12, 41, 0.5), 0 8px 18px rgba(0, 210, 255, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.chat-call-btn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 0 1px rgba(15, 12, 41, 0.7), 0 10px 24px rgba(0, 210, 255, 0.4);
+}
+
+.chat-call-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 4px 14px rgba(0, 210, 255, 0.22);
+}
+
+.chat-call-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+[data-theme="light"] .chat-call-btn {
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.15), 0 8px 18px rgba(15, 23, 42, 0.2);
+}
+
 /* --- Accessibility: reduced motion --- */
 @media (prefers-reduced-motion: reduce) {
   html:focus-within { scroll-behavior: auto; }
@@ -938,6 +1002,152 @@ h1 {
   box-shadow: 0 2px 12px rgba(0,0,0,0.15);
   flex-shrink: 0;
   transition: background var(--transition);
+}
+
+.call-screen {
+  display: none;
+  flex: 1;
+  padding: 20px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: radial-gradient(
+    circle at top,
+    color-mix(in srgb, var(--primary-color) 25%, transparent),
+    transparent 55%
+  );
+}
+
+.call-screen.active {
+  display: flex;
+}
+
+[data-theme="light"] .call-screen {
+  background: radial-gradient(
+    circle at top,
+    color-mix(in srgb, var(--primary-color) 18%, transparent),
+    transparent 55%
+  );
+}
+
+.call-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.call-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 999px;
+  background: rgba(15, 12, 41, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 1.6rem;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--primary-color) 85%, transparent),
+    0 0 26px color-mix(in srgb, var(--primary-color) 55%, transparent);
+}
+
+[data-theme="light"] .call-avatar {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.call-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.call-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.call-status-text {
+  font-weight: 500;
+}
+
+.call-timer {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.call-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.call-record-btn,
+.call-end-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+}
+
+.call-record-btn {
+  background: rgba(34, 197, 94, 0.2);
+  color: #bbf7d0;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+}
+
+.call-record-btn.recording {
+  background: #ef4444;
+  color: #fee2e2;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.8), 0 0 16px rgba(248, 113, 113, 0.6);
+}
+
+.call-end-btn {
+  background: #ef4444;
+  color: #fee2e2;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.8), 0 0 18px rgba(248, 113, 113, 0.5);
+}
+
+.call-end-btn i {
+  transform: rotate(135deg);
+}
+
+.call-record-btn:hover,
+.call-end-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.call-record-btn:active,
+.call-end-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.call-record-btn[disabled],
+.call-end-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.chat-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chat-header-title {

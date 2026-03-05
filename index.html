@@ -299,8 +299,42 @@
   <button id="chat-toggle-btn" class="chat-toggle-btn" aria-controls="chat-box" aria-expanded="false" aria-label="Open chat"><i class="fa-solid fa-comment-dots"></i></button>
   <div class="chat-box" id="chat-box">
     <div class="chat-header">
-      <span class="chat-header-title"><i class="fa-solid fa-robot"></i> Rishi's Assistant</span>
-      <button id="close-chat" class="chat-close-btn" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+      <div class="chat-header-left">
+        <span class="chat-header-title"><i class="fa-solid fa-robot"></i> Rishi's Assistant</span>
+        <div class="chat-status">
+          <span id="chat-status-dot" class="chat-status-dot status-offline" aria-hidden="true"></span>
+          <span id="chat-status-text" class="chat-status-text">Offline</span>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button type="button" id="chat-audio-btn" class="chat-call-btn" title="Audio call" aria-label="Audio call">
+          <i class="fa-solid fa-phone"></i>
+        </button>
+        <button type="button" id="chat-video-btn" class="chat-call-btn" title="Video call" aria-label="Video call">
+          <i class="fa-solid fa-video"></i>
+        </button>
+        <button id="close-chat" class="chat-close-btn" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="call-screen" id="call-screen">
+      <div class="call-main">
+        <div class="call-avatar">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="call-name">Rishi's Assistant</div>
+        <div class="call-status-row">
+          <span id="call-status-text" class="call-status-text">Ringing...</span>
+          <span id="call-timer" class="call-timer">00:00</span>
+        </div>
+      </div>
+      <div class="call-actions">
+        <button type="button" id="call-record-btn" class="call-record-btn" title="Speak" aria-label="Speak">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+        <button type="button" id="call-end-btn" class="call-end-btn" title="End call" aria-label="End call">
+          <i class="fa-solid fa-phone"></i>
+        </button>
+      </div>
     </div>
     
     <div class="chat-messages" id="chat-messages">

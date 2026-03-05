@@ -715,11 +715,29 @@ const userInput = document.getElementById('user-input');
 const chatMessages = document.getElementById('chat-messages');
 const typingIndicator = document.getElementById('typing-indicator');
 const quickRepliesContainer = document.getElementById('quick-replies');
+const chatStatusDot = document.getElementById('chat-status-dot');
+const chatStatusText = document.getElementById('chat-status-text');
+const chatAudioBtn = document.getElementById('chat-audio-btn');
+const chatVideoBtn = document.getElementById('chat-video-btn');
+const callScreen = document.getElementById('call-screen');
+const callStatusText = document.getElementById('call-status-text');
+const callTimerEl = document.getElementById('call-timer');
+const callRecordBtn = document.getElementById('call-record-btn');
+const callEndBtn = document.getElementById('call-end-btn');
+const chatInputArea = document.querySelector('.chat-input-area');
+const voiceStatus = document.getElementById('voice-status');
 
 // --- b. CONFIGURATION & STATE ---
 const API_URL = "/api/chat";
 const MAX_HISTORY = 20; // Increased to allow better context retention
 let isCoolingDown = false;
+let isInCall = false;
+let callTimerInterval = null;
+let callStartTime = null;
+const RINGTONE_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/standardringtone.mp3';
+const HANGUP_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/freesound_community-mobile_phone_hanging_up-94525.mp3';
+let ringtoneAudio = null;
+let hangupAudio = null;
 
 // Session ID for Supabase logging (chat, tabs, quiz)
 const CHAT_SESSION_STORAGE_KEY = 'portfolio-chat-session-id';
@@ -1073,6 +1091,8 @@ document.addEventListener('keydown', (e) => {
   });
 })();
 
+initChatPresence();
+
 // --- e. CORE LOGIC ---
 async function sendMessage() {
   if (isCoolingDown) return;
@@ -1117,6 +1137,174 @@ async function sendMessage() {
     isCoolingDown = false;
     sendBtn.disabled = false;
   }, 1000);
+}
+
+function updateChatOnlineStatus(isOnline) {
+  if (!chatStatusDot || !chatStatusText) return;
+  chatStatusDot.classList.toggle('status-online', isOnline);
+  chatStatusDot.classList.toggle('status-offline', !isOnline);
+  chatStatusText.textContent = isOnline ? 'Online' : 'Offline';
+  if (chatAudioBtn) chatAudioBtn.disabled = !isOnline;
+  if (chatVideoBtn) chatVideoBtn.disabled = !isOnline;
+}
+
+function initChatPresence() {
+  if (typeof navigator !== 'undefined') {
+    updateChatOnlineStatus(navigator.onLine);
+    window.addEventListener('online', () => updateChatOnlineStatus(true));
+    window.addEventListener('offline', () => updateChatOnlineStatus(false));
+  } else {
+    updateChatOnlineStatus(true);
+  }
+
+  if (chatAudioBtn) {
+    chatAudioBtn.addEventListener('click', () => {
+      if (chatAudioBtn.disabled) return;
+      startAudioCall();
+    });
+  }
+  if (chatVideoBtn) {
+    chatVideoBtn.addEventListener('click', () => {
+      if (chatVideoBtn.disabled) return;
+      // Placeholder: video call action will be implemented later
+    });
+  }
+}
+
+function playRingtone() {
+  if (typeof Audio === 'undefined') return;
+  try {
+    if (!ringtoneAudio) {
+      ringtoneAudio = new Audio(RINGTONE_URL);
+      ringtoneAudio.loop = true;
+      ringtoneAudio.preload = 'auto';
+      ringtoneAudio.volume = 0.6;
+    }
+    ringtoneAudio.currentTime = 0;
+    ringtoneAudio.play().catch(() => {});
+  } catch (e) {
+    // Ignore ringtone playback errors
+  }
+}
+
+function stopRingtone() {
+  if (!ringtoneAudio) return;
+  try {
+    ringtoneAudio.pause();
+    ringtoneAudio.currentTime = 0;
+  } catch (e) {
+    // Ignore ringtone stop errors
+  }
+}
+
+function playHangup() {
+  if (typeof Audio === 'undefined') return;
+  try {
+    if (!hangupAudio) {
+      hangupAudio = new Audio(HANGUP_URL);
+      hangupAudio.preload = 'auto';
+      hangupAudio.volume = 0.7;
+    }
+    hangupAudio.currentTime = 0;
+    hangupAudio.play().catch(() => {});
+  } catch (e) {
+    // Ignore hangup playback errors
+  }
+}
+
+function startAudioCall() {
+  if (!VoiceAssistant || isInCall || !callScreen || !callStatusText || !callTimerEl) return;
+  isInCall = true;
+  callScreen.classList.add('active');
+  callStatusText.textContent = 'Ringing...';
+  callTimerEl.textContent = '00:00';
+  if (callRecordBtn) callRecordBtn.disabled = true;
+  if (callEndBtn) callEndBtn.disabled = false;
+
+   // Start ringtone while the call is ringing
+  playRingtone();
+
+  // Hide chat UI behind the call screen
+  if (chatMessages) chatMessages.style.display = 'none';
+  if (typingIndicator) typingIndicator.style.display = 'none';
+  if (quickRepliesContainer) quickRepliesContainer.style.display = 'none';
+  if (voiceStatus) voiceStatus.style.display = 'none';
+  if (chatInputArea) chatInputArea.style.display = 'none';
+
+  // Simulate ringing for ~9 seconds (~two full rounds), then start the call
+  setTimeout(() => {
+    if (!isInCall) return;
+    stopRingtone();
+    callStatusText.textContent = 'On call';
+    callStartTime = Date.now();
+    callTimerInterval = setInterval(() => {
+      if (!isInCall || !callTimerEl || !callStartTime) return;
+      const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+      const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const secs = String(elapsed % 60).padStart(2, '0');
+      callTimerEl.textContent = `${mins}:${secs}`;
+    }, 1000);
+    if (callRecordBtn) callRecordBtn.disabled = false;
+    VoiceAssistant.speak("Hello, it's me Rishikesh Bastakoti. How can I help you today?");
+  }, 9000);
+
+  if (callRecordBtn) {
+    callRecordBtn.classList.remove('recording');
+  }
+
+  if (callRecordBtn && !callRecordBtn.__bound) {
+    callRecordBtn.addEventListener('click', () => {
+      if (!isInCall || callRecordBtn.disabled) return;
+      const voiceBtn = document.getElementById('voice-btn');
+      if (voiceBtn) {
+        callRecordBtn.classList.add('recording');
+        voiceBtn.click();
+        setTimeout(() => {
+          if (callRecordBtn) callRecordBtn.classList.remove('recording');
+        }, 3000);
+      }
+    });
+    callRecordBtn.__bound = true;
+  }
+
+  if (callEndBtn && !callEndBtn.__bound) {
+    callEndBtn.addEventListener('click', () => {
+      endAudioCall();
+    });
+    callEndBtn.__bound = true;
+  }
+}
+
+function endAudioCall() {
+  if (!isInCall) return;
+  isInCall = false;
+  stopRingtone();
+  playHangup();
+  if (callTimerInterval) {
+    clearInterval(callTimerInterval);
+    callTimerInterval = null;
+  }
+  callStartTime = null;
+  if (callScreen) callScreen.classList.remove('active');
+  if (callStatusText) callStatusText.textContent = '';
+  if (callTimerEl) callTimerEl.textContent = '';
+  if (callRecordBtn) {
+    callRecordBtn.disabled = true;
+    callRecordBtn.classList.remove('recording');
+  }
+  if (callEndBtn) callEndBtn.disabled = true;
+
+  // Restore chat UI
+  if (chatMessages) chatMessages.style.display = 'flex';
+  if (quickRepliesContainer) quickRepliesContainer.style.display = 'flex';
+  if (chatInputArea) chatInputArea.style.display = 'flex';
+  // voiceStatus is controlled by voice assistant; leave hidden until used again
+  // Refresh online status so the audio button reflects current connectivity
+  if (typeof navigator !== 'undefined') {
+    updateChatOnlineStatus(navigator.onLine);
+  } else {
+    updateChatOnlineStatus(true);
+  }
 }
 
 async function getAIResponse(userMessage) {
