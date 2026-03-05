@@ -421,11 +421,8 @@ const VoiceAssistant = (function() {
   function switchTab(targetId) {
     const tab = document.querySelector(`.tabs li[data-target="${targetId}"]`);
     if (!tab) return false;
-    tabs.forEach((t) => t.classList.remove('active'));
-    tabContents.forEach((content) => content.classList.remove('active'));
-    tab.classList.add('active');
-    const el = document.getElementById(targetId);
-    if (el) el.classList.add('active');
+    // Reuse the main tab logic so analytics + special behaviors (like News fetching) run
+    setActiveTab(tab);
     return true;
   }
 
@@ -535,14 +532,14 @@ const VoiceAssistant = (function() {
     }
 
     // Tab switching
-    const tabMap = { intro: 'intro', projects: 'projects', education: 'education', hometown: 'hometown', favorites: 'favorites', games: 'games', contact: 'contact' };
+    const tabMap = { intro: 'intro', projects: 'projects', education: 'education', hometown: 'hometown', favorites: 'favorites', games: 'games', news: 'news', contact: 'contact' };
     for (const [keyword, id] of Object.entries(tabMap)) {
       if (t.includes(keyword) && (t.includes('show') || t.includes('go') || t.includes('open') || t.includes('switch') || t.includes('take me'))) {
         if (switchTab(id)) return reply(`Opening ${keyword}.`);
       }
     }
-    if (/(show|go\s*to|open|switch to)\s*(intro|projects|education|hometown|favorites|games|contact)/.test(t)) {
-      const id = t.match(/(intro|projects|education|hometown|favorites|games|contact)/)[1];
+    if (/(show|go\s*to|open|switch to)\s*(intro|projects|education|hometown|favorites|games|news|contact)/.test(t)) {
+      const id = t.match(/(intro|projects|education|hometown|favorites|games|news|contact)/)[1];
       if (switchTab(id)) return reply(`Opening ${id}.`);
     }
 
