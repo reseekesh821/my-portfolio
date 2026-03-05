@@ -463,19 +463,19 @@ const VoiceAssistant = (function() {
       words.some((w) => /rishi|rishikesh|rishy|reeshi|resh/i.test(w)) ||
       hasAny('rishi', 'rishikesh');
     const whoPlusRish = (has('who') || lower.includes('who is')) && /rish|resh/i.test(lower);
-    const aboutPlusRish = lower.includes('about') && /rish|resh|rishi|him/i.test(lower);
-    const shortWhoIs = has('who') && (has('is') || lower.includes('who is')) && words.length <= 6;
-    const tellAbout = (lower.includes('tell me about') || lower.includes('about him') || lower.includes('about rishi')) && words.length <= 7;
-    if (hasRishiAnywhere || whoPlusRish || aboutPlusRish || shortWhoIs || tellAbout) {
+    const aboutPlusRish = lower.includes('about') && /rish|resh|rishi|about him/i.test(lower);
+    // Only answer with ABOUT_RISHI if the user clearly mentioned Rishikesh / Rishi,
+    // not for generic "who is X" questions like "who is Bill Gates"
+    if (hasRishiAnywhere || whoPlusRish || aboutPlusRish) {
       return reply(ABOUT_RISHI);
     }
 
-    // Weather — handle phrases like "Kathmandu weather", "weather in Nepal", or even short follow‑ups
+    // Weather — handle phrases like "what's the weather", "weather in Kathmandu", but avoid generic
     const isWeatherIntent =
-      clean.includes('weather') ||
-      clean.includes('whether') || // STT sometimes mishears "weather" as "whether"
-      has('temperature') ||
-      ((hasAny('kathmandu', 'nepal') || has('weather')) && words.length <= 3);
+      /what(?:'s| is)\s+the?\s*weather/.test(lower) ||
+      /(weather)\s+in\s+(kathmandu|nepal)/.test(lower) ||
+      (has('weather') && hasAny('kathmandu', 'nepal', 'outside', 'today', 'now')) ||
+      (clean.includes('whether') && hasAny('kathmandu', 'nepal')); // STT sometimes mishears "weather" as "whether"
     if (isWeatherIntent) {
       if (lastWeather.temp != null) {
         return reply(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C, wind ${Math.round(lastWeather.wind)} km/h.`);
@@ -490,19 +490,23 @@ const VoiceAssistant = (function() {
       return reply("Checking weather for Kathmandu…");
     }
 
-    // Time — "what time is it", "Kathmandu time", "time in Nepal"
+    // Time — "what time is it", "current time", "time in Kathmandu"; avoid generic uses like "time complexity"
     const isTimeIntent =
-      has('time') ||
-      clean.includes('what time') ||
-      clean.includes('current time') ||
-      ((hasAny('kathmandu', 'nepal') && has('time')));
+      /what(?:'s| is)\s+the?\s*time\b/.test(lower) ||
+      /current\s+time\b/.test(lower) ||
+      /(time)\s+in\s+(kathmandu|nepal)/.test(lower);
     if (isTimeIntent) {
       const { timeStr, dateStr } = getNepalTimeForVoice();
       return reply(`In Kathmandu it's ${timeStr}. ${dateStr}.`);
     }
 
-    // Help
-    if (has('help') || clean.includes('what can you do') || clean.includes('commands') || clean.includes('what should i say')) {
+    // Help — only when user clearly asks for commands/help, not "help with arrays" (let AI handle that)
+    if (
+      (has('help') && words.length <= 4) ||
+      lower.includes('what can you do') ||
+      lower.includes('show commands') ||
+      lower.includes('what should i say')
+    ) {
       return reply(HELP_PHRASE);
     }
 
@@ -518,13 +522,14 @@ const VoiceAssistant = (function() {
       return reply('Music is already paused.');
     }
 
-    // Color / theme (e.g. "change color to red", "make it blue theme")
+    // Color / theme (e.g. "change color to red", "make it blue theme").
+    // Require an action verb to avoid hijacking questions like "what is your favorite color".
     const colorNames = Object.keys(THEMES);
     let pickedColor = null;
     for (const c of colorNames) {
       if (has(c)) { pickedColor = c; break; }
     }
-    if (pickedColor && (has('color') || has('theme') || hasAny('change','make','set','switch'))) {
+    if (pickedColor && hasAny('change','make','set','switch')) {
       const color = pickedColor.toLowerCase();
       if (THEMES[color] && applyTheme(color)) {
         return reply(`Theme changed to ${color}.`);
