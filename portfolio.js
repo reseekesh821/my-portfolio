@@ -54,6 +54,10 @@ function setActiveTab(tabEl, { focus = false } = {}) {
     logTabEvent(targetId);
   }
 
+  if (targetId === "news") {
+    fetchNews();
+  }
+
   if (focus) tabEl.focus();
 }
 
@@ -85,6 +89,65 @@ tabs.forEach((tab, idx) => {
 // Ensure initial ARIA state matches the active tab
 const initialActive = document.querySelector(".tabs li.active") || tabs[0];
 if (initialActive) setActiveTab(initialActive);
+
+// 1b. News (fetch when News tab is opened)
+let newsLoadedOnce = false;
+
+async function fetchNews() {
+  const listEl = document.getElementById("news-list");
+  if (!listEl) return;
+  listEl.innerHTML = "<p class=\"news-loading\">Loading news…</p>";
+  listEl.setAttribute("aria-busy", "true");
+
+  try {
+    const base = window.location.origin;
+    const res = await fetch(`${base}/api/news`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      listEl.innerHTML = "<p class=\"news-error\">Unable to load news. Try again later.</p>";
+      listEl.setAttribute("aria-busy", "false");
+      return;
+    }
+
+    const articles = data.articles || [];
+    if (articles.length === 0) {
+      listEl.innerHTML = "<p class=\"news-empty\">No headlines right now.</p>";
+      listEl.setAttribute("aria-busy", "false");
+      return;
+    }
+
+    listEl.innerHTML = articles
+      .map(
+        (a) => {
+          const dateStr = a.publishedAt
+            ? new Date(a.publishedAt).toLocaleDateString(undefined, { dateStyle: "short" })
+            : "";
+          const meta = [a.source, dateStr].filter(Boolean).join(" · ");
+          return `<article class="news-item">
+            <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer" class="news-link">
+              <span class="news-title">${escapeHtml(a.title)}</span>
+              ${a.description ? `<span class="news-desc">${escapeHtml(a.description)}</span>` : ""}
+              ${meta ? `<span class="news-meta">${escapeHtml(meta)}</span>` : ""}
+            </a>
+          </article>`;
+        }
+      )
+      .join("");
+    listEl.setAttribute("aria-busy", "false");
+    newsLoadedOnce = true;
+  } catch (err) {
+    console.error("fetchNews error:", err);
+    listEl.innerHTML = "<p class=\"news-error\">Could not load news. Check your connection.</p>";
+    listEl.setAttribute("aria-busy", "false");
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 // 2. Real-Time Nepal Clock & Date
 function updateNepalTime() {

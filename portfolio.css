@@ -1607,3 +1607,68 @@ h3 i, strong i, p strong i {
   object-fit: cover;  
   width: 100%;        
 }
+
+/* --- News tab --- */
+.news-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+
+.news-item {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.news-item:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.news-link {
+  display: block;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.news-link:hover {
+  color: var(--primary-color);
+}
+
+.news-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.news-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.news-meta {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.news-loading,
+.news-error,
+.news-empty {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+  padding: 1rem 0;
+}

@@ -36,6 +36,7 @@
       <li id="tab-hometown" role="tab" aria-controls="hometown" aria-selected="false" tabindex="-1" data-target="hometown"><i class="fa-solid fa-map-location-dot"></i> Hometown</li>
       <li id="tab-favorites" role="tab" aria-controls="favorites" aria-selected="false" tabindex="-1" data-target="favorites"><i class="fa-solid fa-heart"></i> Favorites</li>
       <li id="tab-games" role="tab" aria-controls="games" aria-selected="false" tabindex="-1" data-target="games"><i class="fa-solid fa-gamepad"></i> Games</li>
+      <li id="tab-news" role="tab" aria-controls="news" aria-selected="false" tabindex="-1" data-target="news"><i class="fa-solid fa-newspaper"></i> News</li>
       <li id="tab-contact" role="tab" aria-controls="contact" aria-selected="false" tabindex="-1" data-target="contact"><i class="fa-solid fa-address-book"></i> Contact</li>
     </ul>
     
@@ -212,6 +213,12 @@
         </div>
         <div class="game-result hidden" id="quiz-result"></div>
       </div>
+    </div>
+
+    <div id="news" class="tab-content" role="tabpanel" aria-labelledby="tab-news" tabindex="0">
+      <h3><i class="fa-solid fa-newspaper"></i> News</h3>
+      <p>Top headlines from around the world.</p>
+      <div id="news-list" class="news-list" aria-live="polite"></div>
     </div>
 
     <div id="contact" class="tab-content" role="tabpanel" aria-labelledby="tab-contact" tabindex="0">
