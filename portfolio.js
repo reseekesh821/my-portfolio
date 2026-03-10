@@ -1455,6 +1455,15 @@ function endAudioCall() {
 
 // --- VIDEO CALL (Tavus) ---
 
+function destroyDailyFrame() {
+  if (dailyCallFrame) {
+    try { dailyCallFrame.leave(); } catch (e) {}
+    try { dailyCallFrame.destroy(); } catch (e) {}
+    dailyCallFrame = null;
+  }
+  if (videoCallFrame) videoCallFrame.innerHTML = '';
+}
+
 async function startVideoCall() {
   if (isInVideoCall || isInCall) return;
   if (!videoCallScreen || !videoCallFrame || !videoCallConnecting) return;
@@ -1462,6 +1471,9 @@ async function startVideoCall() {
     console.error('Daily.js SDK not loaded');
     return;
   }
+
+  // Always clean up any leftover Daily frame first
+  destroyDailyFrame();
 
   isInVideoCall = true;
   isVideoMuted = false;
@@ -1565,17 +1577,8 @@ function endVideoCall() {
   stopRingtone();
   playHangup();
 
-  if (dailyCallFrame) {
-    try {
-      dailyCallFrame.leave();
-      dailyCallFrame.destroy();
-    } catch (e) {
-      // Ignore destroy errors
-    }
-    dailyCallFrame = null;
-  }
+  destroyDailyFrame();
 
-  if (videoCallFrame) videoCallFrame.innerHTML = '';
   if (videoCallScreen) videoCallScreen.classList.remove('active');
   if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
   if (videoCallEndBtn) videoCallEndBtn.disabled = true;
