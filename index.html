@@ -336,6 +336,21 @@
         </button>
       </div>
     </div>
+    <div class="video-call-screen" id="video-call-screen">
+      <div class="video-call-connecting" id="video-call-connecting">
+        <div class="call-avatar video-call-avatar-icon">
+          <i class="fa-solid fa-video"></i>
+        </div>
+        <div class="call-name">Rishi's Assistant</div>
+        <span class="video-call-status-text" id="video-call-status">Connecting video...</span>
+      </div>
+      <iframe id="video-call-iframe" class="video-call-iframe" allow="camera;microphone;display-capture" allowfullscreen></iframe>
+      <div class="video-call-actions" id="video-call-actions">
+        <button type="button" id="video-call-end-btn" class="call-end-btn" title="End video call" aria-label="End video call">
+          <i class="fa-solid fa-phone"></i>
+        </button>
+      </div>
+    </div>
     
     <div class="chat-messages" id="chat-messages">
       <div class="message bot-message chat-welcome">

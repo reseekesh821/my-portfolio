@@ -1138,6 +1138,101 @@ h1 {
   box-shadow: none;
 }
 
+.call-record-btn.muted {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.5);
+}
+
+/* --- Video Call Screen (Tavus) --- */
+
+.video-call-screen {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  position: relative;
+  background: #0a0a0f;
+  overflow: hidden;
+}
+
+.video-call-screen.active {
+  display: flex;
+}
+
+.video-call-connecting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(
+    circle at top,
+    color-mix(in srgb, var(--primary-color) 25%, transparent),
+    #0a0a0f 55%
+  );
+  transition: opacity 0.4s ease;
+}
+
+.video-call-connecting.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.video-call-avatar-icon {
+  width: 70px;
+  height: 70px;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 85%, transparent), 0 0 26px color-mix(in srgb, var(--primary-color) 55%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 40%, transparent), 0 0 40px color-mix(in srgb, var(--primary-color) 30%, transparent); }
+  100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 85%, transparent), 0 0 26px color-mix(in srgb, var(--primary-color) 55%, transparent); }
+}
+
+.video-call-status-text {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.video-call-iframe {
+  width: 100%;
+  flex: 1;
+  border: none;
+  background: #000;
+  z-index: 1;
+}
+
+.video-call-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7) 40%);
+}
+
+[data-theme="light"] .video-call-screen {
+  background: #f0f2f5;
+}
+
+[data-theme="light"] .video-call-connecting {
+  background: radial-gradient(
+    circle at top,
+    color-mix(in srgb, var(--primary-color) 18%, transparent),
+    #f0f2f5 55%
+  );
+}
+
 .chat-header-left {
   display: flex;
   flex-direction: column;

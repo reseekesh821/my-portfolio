@@ -757,6 +757,12 @@ const callRecordBtn = document.getElementById('call-record-btn');
 const callEndBtn = document.getElementById('call-end-btn');
 const chatInputArea = document.querySelector('.chat-input-area');
 const voiceStatus = document.getElementById('voice-status');
+const videoCallScreen = document.getElementById('video-call-screen');
+const videoCallConnecting = document.getElementById('video-call-connecting');
+const videoCallIframe = document.getElementById('video-call-iframe');
+const videoCallEndBtn = document.getElementById('video-call-end-btn');
+const videoCallStatus = document.getElementById('video-call-status');
+const videoCallActions = document.getElementById('video-call-actions');
 
 // --- b. CONFIGURATION & STATE ---
 const API_URL = "/api/chat";
@@ -766,6 +772,7 @@ let isInCall = false;
 let callTimerInterval = null;
 let callStartTime = null;
 let isMuted = false;
+let isInVideoCall = false;
 const RINGTONE_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/standardringtone.mp3';
 const HANGUP_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/freesound_community-mobile_phone_hanging_up-94525.mp3';
 let ringtoneAudio = null;
@@ -1198,7 +1205,12 @@ function initChatPresence() {
   if (chatVideoBtn) {
     chatVideoBtn.addEventListener('click', () => {
       if (chatVideoBtn.disabled) return;
-      // Placeholder: video call action will be implemented later
+      startVideoCall();
+    });
+  }
+  if (videoCallEndBtn) {
+    videoCallEndBtn.addEventListener('click', () => {
+      endVideoCall();
     });
   }
 }
@@ -1354,6 +1366,92 @@ function endAudioCall() {
   if (chatInputArea) chatInputArea.style.display = 'flex';
   // voiceStatus is controlled by voice assistant; leave hidden until used again
   // Refresh online status so the audio button reflects current connectivity
+  if (typeof navigator !== 'undefined') {
+    updateChatOnlineStatus(navigator.onLine);
+  } else {
+    updateChatOnlineStatus(true);
+  }
+}
+
+// --- VIDEO CALL (Tavus) ---
+
+async function startVideoCall() {
+  if (isInVideoCall || isInCall) return;
+  if (!videoCallScreen || !videoCallIframe || !videoCallConnecting) return;
+
+  isInVideoCall = true;
+  videoCallScreen.classList.add('active');
+  if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
+  if (videoCallStatus) videoCallStatus.textContent = 'Connecting video...';
+  if (videoCallEndBtn) videoCallEndBtn.disabled = false;
+
+  // Hide normal chat UI
+  if (chatMessages) chatMessages.style.display = 'none';
+  if (typingIndicator) typingIndicator.style.display = 'none';
+  if (quickRepliesContainer) quickRepliesContainer.style.display = 'none';
+  if (voiceStatus) voiceStatus.style.display = 'none';
+  if (chatInputArea) chatInputArea.style.display = 'none';
+
+  // Play ringtone while we wait for the API
+  playRingtone();
+
+  try {
+    const res = await fetch('/api/tavus-session', { method: 'POST' });
+    const data = await res.json();
+
+    if (!res.ok || !data.conversation_url) {
+      throw new Error(data.error || 'No conversation URL');
+    }
+
+    stopRingtone();
+
+    // Load the Tavus conversation into the iframe
+    videoCallIframe.src = data.conversation_url;
+    if (videoCallStatus) videoCallStatus.textContent = 'Loading avatar...';
+
+    // When iframe loads, hide the connecting overlay
+    videoCallIframe.onload = () => {
+      if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
+    };
+
+    // Fallback: hide connecting overlay after 8s even if onload doesn't fire
+    setTimeout(() => {
+      if (isInVideoCall && videoCallConnecting) {
+        videoCallConnecting.classList.add('hidden');
+      }
+    }, 8000);
+
+  } catch (err) {
+    console.error('Video call error:', err);
+    stopRingtone();
+    if (videoCallStatus) videoCallStatus.textContent = 'Could not connect. Try again.';
+    setTimeout(() => {
+      endVideoCall();
+    }, 2500);
+  }
+}
+
+function endVideoCall() {
+  if (!isInVideoCall) return;
+  isInVideoCall = false;
+  stopRingtone();
+  playHangup();
+
+  // Clear iframe
+  if (videoCallIframe) {
+    videoCallIframe.src = 'about:blank';
+    videoCallIframe.onload = null;
+  }
+
+  if (videoCallScreen) videoCallScreen.classList.remove('active');
+  if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
+  if (videoCallEndBtn) videoCallEndBtn.disabled = true;
+
+  // Restore chat UI
+  if (chatMessages) chatMessages.style.display = 'flex';
+  if (quickRepliesContainer) quickRepliesContainer.style.display = 'flex';
+  if (chatInputArea) chatInputArea.style.display = 'flex';
+
   if (typeof navigator !== 'undefined') {
     updateChatOnlineStatus(navigator.onLine);
   } else {
