@@ -555,14 +555,15 @@ const VoiceAssistant = (function() {
   let recognition = null;
   let noSpeechRetry = false;
   let wasPlayingBeforeMic = false;
+  let isCallListening = false;
 
   function getRecognition() {
     if (!SpeechRecognition) return null;
     if (recognition) return recognition;
 
     recognition = new SpeechRecognition();
-    // Keep it simple and stable: one short utterance each time
-    recognition.continuous = false;
+    // Allow continuous listening; we only auto-restart during calls
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
     recognition.maxAlternatives = 1;
@@ -586,6 +587,15 @@ const VoiceAssistant = (function() {
       // After listening, if music was playing before and got paused, resume it
       if (wasPlayingBeforeMic && isPlaying && audio.paused) {
         audio.play().catch(() => {});
+      }
+
+      // During an active call, keep recognition running so the user can speak naturally
+      if (isCallListening && typeof isInCall !== 'undefined' && isInCall) {
+        try {
+          recognition.start();
+        } catch (e) {
+          // Ignore "already started" or transient errors
+        }
       }
     };
 
@@ -664,6 +674,27 @@ const VoiceAssistant = (function() {
     return recognition;
   }
 
+  function beginContinuousListening() {
+    isCallListening = true;
+    const rec = getRecognition();
+    if (!rec) return;
+    try {
+      rec.start();
+    } catch (e) {
+      // Safe to ignore if already started
+    }
+  }
+
+  function stopContinuousListening() {
+    isCallListening = false;
+    if (!recognition) return;
+    try {
+      recognition.stop();
+    } catch (e) {
+      // Ignore if already stopped
+    }
+  }
+
   async function startListening() {
     if (!SpeechRecognition) {
       speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
@@ -699,7 +730,7 @@ const VoiceAssistant = (function() {
     });
   }
 
-  return { speak, handleCommand, applyTheme };
+  return { speak, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening };
 })();
 
 
@@ -734,6 +765,7 @@ let isCoolingDown = false;
 let isInCall = false;
 let callTimerInterval = null;
 let callStartTime = null;
+let isMuted = false;
 const RINGTONE_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/standardringtone.mp3';
 const HANGUP_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/freesound_community-mobile_phone_hanging_up-94525.mp3';
 let ringtoneAudio = null;
@@ -1244,8 +1276,17 @@ function startAudioCall() {
       const secs = String(elapsed % 60).padStart(2, '0');
       callTimerEl.textContent = `${mins}:${secs}`;
     }, 1000);
-    if (callRecordBtn) callRecordBtn.disabled = false;
+    if (callRecordBtn) {
+      callRecordBtn.disabled = false;
+      callRecordBtn.classList.remove('recording', 'muted');
+      callRecordBtn.textContent = 'Mute';
+      callRecordBtn.setAttribute('aria-label', 'Mute microphone');
+    }
+    isMuted = false;
     VoiceAssistant.speak("Hello, it's me Rishikesh Bastakoti. How can I help you today?");
+    if (VoiceAssistant && VoiceAssistant.beginContinuousListening) {
+      VoiceAssistant.beginContinuousListening();
+    }
   }, 9000);
 
   if (callRecordBtn) {
@@ -1255,13 +1296,21 @@ function startAudioCall() {
   if (callRecordBtn && !callRecordBtn.__bound) {
     callRecordBtn.addEventListener('click', () => {
       if (!isInCall || callRecordBtn.disabled) return;
-      const voiceBtn = document.getElementById('voice-btn');
-      if (voiceBtn) {
-        callRecordBtn.classList.add('recording');
-        voiceBtn.click();
-        setTimeout(() => {
-          if (callRecordBtn) callRecordBtn.classList.remove('recording');
-        }, 3000);
+      isMuted = !isMuted;
+      if (isMuted) {
+        if (VoiceAssistant && VoiceAssistant.stopContinuousListening) {
+          VoiceAssistant.stopContinuousListening();
+        }
+        callRecordBtn.classList.add('muted');
+        callRecordBtn.textContent = 'Unmute';
+        callRecordBtn.setAttribute('aria-label', 'Unmute microphone');
+      } else {
+        if (VoiceAssistant && VoiceAssistant.beginContinuousListening) {
+          VoiceAssistant.beginContinuousListening();
+        }
+        callRecordBtn.classList.remove('muted');
+        callRecordBtn.textContent = 'Mute';
+        callRecordBtn.setAttribute('aria-label', 'Mute microphone');
       }
     });
     callRecordBtn.__bound = true;
@@ -1278,6 +1327,9 @@ function startAudioCall() {
 function endAudioCall() {
   if (!isInCall) return;
   isInCall = false;
+  if (VoiceAssistant && VoiceAssistant.stopContinuousListening) {
+    VoiceAssistant.stopContinuousListening();
+  }
   stopRingtone();
   playHangup();
   if (callTimerInterval) {
@@ -1290,7 +1342,9 @@ function endAudioCall() {
   if (callTimerEl) callTimerEl.textContent = '';
   if (callRecordBtn) {
     callRecordBtn.disabled = true;
-    callRecordBtn.classList.remove('recording');
+    callRecordBtn.classList.remove('recording', 'muted');
+    callRecordBtn.textContent = 'Record';
+    callRecordBtn.setAttribute('aria-label', 'Record voice message');
   }
   if (callEndBtn) callEndBtn.disabled = true;
 
