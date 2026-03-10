@@ -1462,6 +1462,10 @@ function destroyDailyFrame() {
     dailyCallFrame = null;
   }
   if (videoCallFrame) videoCallFrame.innerHTML = '';
+  // Also nuke any orphaned Daily iframes in the entire document
+  document.querySelectorAll('iframe[id^="daily-"], iframe[allow*="camera"]').forEach(function(el) {
+    try { el.remove(); } catch (e) {}
+  });
 }
 
 async function startVideoCall() {
@@ -1506,6 +1510,7 @@ async function startVideoCall() {
     if (videoCallStatus) videoCallStatus.textContent = 'Connecting...';
 
     dailyCallFrame = window.Daily.createFrame(videoCallFrame, {
+      allowMultipleCallInstances: true,
       showLeaveButton: false,
       showFullscreenButton: false,
       showUserNameChangeUI: false,
