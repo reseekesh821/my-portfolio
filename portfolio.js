@@ -1503,7 +1503,9 @@ async function startVideoCall() {
     const data = await res.json();
 
     if (!res.ok || !data.conversation_url) {
-      throw new Error(data.error || 'No conversation URL');
+      const detail = data.detail || data.error || 'No conversation URL';
+      console.error('Tavus session response:', data);
+      throw new Error(detail);
     }
 
     stopRingtone();

@@ -36,7 +36,9 @@ export default async function handler(req, res) {
       const text = await response.text();
       console.error("Tavus API error:", response.status, text);
       return res.status(response.status).json({
-        error: "Could not start video call"
+        error: "Could not start video call",
+        status: response.status,
+        detail: text
       });
     }
 
