@@ -8,8 +8,14 @@ export default async function handler(req, res) {
   const personaId = process.env.TAVUS_PERSONA_ID;
 
   if (!apiKey || !replicaId || !personaId) {
+    console.error("Missing Tavus env vars:", {
+      hasApiKey: !!apiKey,
+      hasReplicaId: !!replicaId,
+      hasPersonaId: !!personaId
+    });
     return res.status(500).json({
-      error: "Server configuration error (Missing Tavus credentials)"
+      error: "Server configuration error (Missing Tavus credentials)",
+      detail: `apiKey=${!!apiKey}, replicaId=${!!replicaId}, personaId=${!!personaId}`
     });
   }
 

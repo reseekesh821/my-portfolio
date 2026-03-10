@@ -1199,12 +1199,19 @@ h1 {
   font-weight: 500;
 }
 
-.video-call-iframe {
+.video-call-frame {
   width: 100%;
   flex: 1;
-  border: none;
-  background: #000;
+  position: relative;
   z-index: 1;
+  background: #000;
+  overflow: hidden;
+}
+
+.video-call-frame iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
 }
 
 .video-call-actions {

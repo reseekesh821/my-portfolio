@@ -390,7 +390,7 @@ const VoiceAssistant = (function() {
 
   const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028. He's from Kathmandu, Nepal, and is building a career in software development. He's built a full-stack QuickLoan app with React and FastAPI, and a Python Budget Tracker. He loves web development, algorithms, and in his free time enjoys the song Teemi Ra Maa by Dixita Karki, the movie Interstellar, and the city of Pokhara.";
 
-  const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Or say show projects, games, contact, education, hometown, or favorites.";
+  const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
 
   let currentUtterance = null;
 
@@ -415,7 +415,30 @@ const VoiceAssistant = (function() {
     if (!theme) return false;
     document.documentElement.style.setProperty('--primary-color', theme.primary);
     document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    syncDailyTheme(theme.primary);
     return true;
+  }
+
+  function syncDailyTheme(accentColor) {
+    if (typeof dailyCallFrame !== 'undefined' && dailyCallFrame && dailyCallFrame.setTheme) {
+      try {
+        dailyCallFrame.setTheme({
+          colors: {
+            accent: accentColor,
+            background: '#0a0a0f',
+            backgroundAccent: '#0a0a0f',
+            baseText: '#ffffff',
+            border: 'transparent',
+            mainAreaBg: '#0a0a0f',
+            mainAreaBgAccent: '#111118',
+            mainAreaText: '#ffffff',
+            supportiveText: '#aaaaaa'
+          }
+        });
+      } catch (e) {
+        // Ignore if call frame isn't ready
+      }
+    }
   }
 
   function switchTab(targetId) {
@@ -533,6 +556,44 @@ const VoiceAssistant = (function() {
       const color = pickedColor.toLowerCase();
       if (THEMES[color] && applyTheme(color)) {
         return reply(`Theme changed to ${color}.`);
+      }
+    }
+
+    // Video call — "start video call", "video call", "call video", "end video call", "hang up video"
+    const wantsVideoCall =
+      (hasAny('start', 'make', 'begin', 'open') && hasAny('video') && hasAny('call')) ||
+      (has('video') && has('call') && words.length <= 4);
+    if (wantsVideoCall) {
+      if (typeof startVideoCall === 'function' && typeof isInVideoCall !== 'undefined' && !isInVideoCall) {
+        startVideoCall();
+        return reply('Starting video call.');
+      }
+      if (typeof isInVideoCall !== 'undefined' && isInVideoCall) {
+        return reply('Video call is already active.');
+      }
+    }
+    const wantsEndVideoCall =
+      (hasAny('end', 'stop', 'close', 'hang') && hasAny('video') && hasAny('call', 'up')) ||
+      (has('hang') && has('up') && typeof isInVideoCall !== 'undefined' && isInVideoCall);
+    if (wantsEndVideoCall) {
+      if (typeof endVideoCall === 'function' && typeof isInVideoCall !== 'undefined' && isInVideoCall) {
+        endVideoCall();
+        return reply('Ending video call.');
+      }
+      return reply('No video call is active right now.');
+    }
+
+    // Audio call — "start audio call", "call me", "audio call"
+    const wantsAudioCall =
+      (hasAny('start', 'make', 'begin') && has('audio') && has('call')) ||
+      (has('call') && has('me') && !has('video'));
+    if (wantsAudioCall) {
+      if (typeof startAudioCall === 'function' && typeof isInCall !== 'undefined' && !isInCall) {
+        startAudioCall();
+        return reply('Starting audio call.');
+      }
+      if (typeof isInCall !== 'undefined' && isInCall) {
+        return reply('Audio call is already active.');
       }
     }
 
@@ -759,10 +820,13 @@ const chatInputArea = document.querySelector('.chat-input-area');
 const voiceStatus = document.getElementById('voice-status');
 const videoCallScreen = document.getElementById('video-call-screen');
 const videoCallConnecting = document.getElementById('video-call-connecting');
-const videoCallIframe = document.getElementById('video-call-iframe');
+const videoCallFrame = document.getElementById('video-call-frame');
 const videoCallEndBtn = document.getElementById('video-call-end-btn');
+const videoCallMuteBtn = document.getElementById('video-call-mute-btn');
 const videoCallStatus = document.getElementById('video-call-status');
 const videoCallActions = document.getElementById('video-call-actions');
+let dailyCallFrame = null;
+let isVideoMuted = false;
 
 // --- b. CONFIGURATION & STATE ---
 const API_URL = "/api/chat";
@@ -1213,6 +1277,22 @@ function initChatPresence() {
       endVideoCall();
     });
   }
+  if (videoCallMuteBtn) {
+    videoCallMuteBtn.addEventListener('click', () => {
+      if (!isInVideoCall || !dailyCallFrame) return;
+      isVideoMuted = !isVideoMuted;
+      dailyCallFrame.setLocalAudio(!isVideoMuted);
+      if (isVideoMuted) {
+        videoCallMuteBtn.classList.add('muted');
+        videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+        videoCallMuteBtn.setAttribute('aria-label', 'Unmute microphone');
+      } else {
+        videoCallMuteBtn.classList.remove('muted');
+        videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+        videoCallMuteBtn.setAttribute('aria-label', 'Mute microphone');
+      }
+    });
+  }
 }
 
 function playRingtone() {
@@ -1377,22 +1457,29 @@ function endAudioCall() {
 
 async function startVideoCall() {
   if (isInVideoCall || isInCall) return;
-  if (!videoCallScreen || !videoCallIframe || !videoCallConnecting) return;
+  if (!videoCallScreen || !videoCallFrame || !videoCallConnecting) return;
+  if (typeof window.Daily === 'undefined') {
+    console.error('Daily.js SDK not loaded');
+    return;
+  }
 
   isInVideoCall = true;
+  isVideoMuted = false;
   videoCallScreen.classList.add('active');
   if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
-  if (videoCallStatus) videoCallStatus.textContent = 'Connecting video...';
+  if (videoCallStatus) videoCallStatus.textContent = 'Ringing...';
   if (videoCallEndBtn) videoCallEndBtn.disabled = false;
+  if (videoCallMuteBtn) {
+    videoCallMuteBtn.classList.remove('muted');
+    videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+  }
 
-  // Hide normal chat UI
   if (chatMessages) chatMessages.style.display = 'none';
   if (typingIndicator) typingIndicator.style.display = 'none';
   if (quickRepliesContainer) quickRepliesContainer.style.display = 'none';
   if (voiceStatus) voiceStatus.style.display = 'none';
   if (chatInputArea) chatInputArea.style.display = 'none';
 
-  // Play ringtone while we wait for the API
   playRingtone();
 
   try {
@@ -1404,50 +1491,99 @@ async function startVideoCall() {
     }
 
     stopRingtone();
+    if (videoCallStatus) videoCallStatus.textContent = 'Connecting...';
 
-    // Load the Tavus conversation into the iframe
-    videoCallIframe.src = data.conversation_url;
-    if (videoCallStatus) videoCallStatus.textContent = 'Loading avatar...';
+    dailyCallFrame = window.Daily.createFrame(videoCallFrame, {
+      showLeaveButton: false,
+      showFullscreenButton: false,
+      showUserNameChangeUI: false,
+      showLocalVideo: false,
+      showParticipantsBar: false,
+      activeSpeakerMode: true,
+      userName: 'You',
+      startVideoOff: true,
+      iframeStyle: {
+        width: '100%',
+        height: '100%',
+        border: 'none',
+        borderRadius: '0'
+      },
+      theme: {
+        colors: {
+          accent: '#00d2ff',
+          background: '#0a0a0f',
+          backgroundAccent: '#0a0a0f',
+          baseText: '#ffffff',
+          border: 'transparent',
+          mainAreaBg: '#0a0a0f',
+          mainAreaBgAccent: '#111118',
+          mainAreaText: '#ffffff',
+          supportiveText: '#aaaaaa'
+        }
+      }
+    });
 
-    // When iframe loads, hide the connecting overlay
-    videoCallIframe.onload = () => {
+    dailyCallFrame.on('joined-meeting', () => {
       if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
-    };
+    });
 
-    // Fallback: hide connecting overlay after 8s even if onload doesn't fire
+    dailyCallFrame.on('participant-joined', () => {
+      if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
+    });
+
+    dailyCallFrame.on('left-meeting', () => {
+      endVideoCall();
+    });
+
+    dailyCallFrame.on('error', (e) => {
+      console.error('Daily error:', e);
+      endVideoCall();
+    });
+
+    await dailyCallFrame.join({ url: data.conversation_url });
+
+    // Fallback: hide connecting overlay after 10s
     setTimeout(() => {
       if (isInVideoCall && videoCallConnecting) {
         videoCallConnecting.classList.add('hidden');
       }
-    }, 8000);
+    }, 10000);
 
   } catch (err) {
     console.error('Video call error:', err);
     stopRingtone();
-    if (videoCallStatus) videoCallStatus.textContent = 'Could not connect. Try again.';
+    if (videoCallStatus) videoCallStatus.textContent = 'Could not connect: ' + (err.message || 'Unknown error');
     setTimeout(() => {
       endVideoCall();
-    }, 2500);
+    }, 4000);
   }
 }
 
 function endVideoCall() {
-  if (!isInVideoCall) return;
+  if (!isInVideoCall && !dailyCallFrame) return;
   isInVideoCall = false;
   stopRingtone();
   playHangup();
 
-  // Clear iframe
-  if (videoCallIframe) {
-    videoCallIframe.src = 'about:blank';
-    videoCallIframe.onload = null;
+  if (dailyCallFrame) {
+    try {
+      dailyCallFrame.leave();
+      dailyCallFrame.destroy();
+    } catch (e) {
+      // Ignore destroy errors
+    }
+    dailyCallFrame = null;
   }
 
+  if (videoCallFrame) videoCallFrame.innerHTML = '';
   if (videoCallScreen) videoCallScreen.classList.remove('active');
   if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
   if (videoCallEndBtn) videoCallEndBtn.disabled = true;
+  if (videoCallMuteBtn) {
+    videoCallMuteBtn.classList.remove('muted');
+    videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+  }
 
-  // Restore chat UI
   if (chatMessages) chatMessages.style.display = 'flex';
   if (quickRepliesContainer) quickRepliesContainer.style.display = 'flex';
   if (chatInputArea) chatInputArea.style.display = 'flex';

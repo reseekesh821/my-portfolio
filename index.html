@@ -292,6 +292,7 @@
       <li><strong>Time:</strong> "What time is it?" "Time in Kathmandu"</li>
       <li><strong>Music:</strong> "Play music" "Pause"</li>
       <li><strong>Colors:</strong> "Change color to blue/red/green/purple/orange/pink/teal/yellow"</li>
+      <li><strong>Calls:</strong> "Start video call" "End video call" "Call me"</li>
       <li><strong>Navigate:</strong> "Show projects" "Open contact" "Go to games" "Go to favorites" "Open news"</li>
       <li><strong>Help:</strong> "What can you do?" "Help"</li>
     </ul>
@@ -344,8 +345,11 @@
         <div class="call-name">Rishi's Assistant</div>
         <span class="video-call-status-text" id="video-call-status">Connecting video...</span>
       </div>
-      <iframe id="video-call-iframe" class="video-call-iframe" allow="camera;microphone;display-capture" allowfullscreen></iframe>
+      <div id="video-call-frame" class="video-call-frame"></div>
       <div class="video-call-actions" id="video-call-actions">
+        <button type="button" id="video-call-mute-btn" class="call-record-btn" title="Mute" aria-label="Mute microphone">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
         <button type="button" id="video-call-end-btn" class="call-end-btn" title="End video call" aria-label="End video call">
           <i class="fa-solid fa-phone"></i>
         </button>
@@ -383,6 +387,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pbGh5ZHpudXJzdHNwdHdnYXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MzcwNzUsImV4cCI6MjA4ODIxMzA3NX0.48PlDEyLRmbU9NvoJISI3RxBgrLFexixxI1JJi9cRu4';
   window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
-<script src="portfolio.js?v=26.0_FINAL_STABLE"></script>
+<script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script>
+<script src="portfolio.js?v=27.0_VIDEO_CALL"></script>
 </body>
 </html>
