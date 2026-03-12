@@ -169,6 +169,7 @@ body {
   position: absolute;
   top: 16px;
   right: 16px;
+  z-index: 3;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -209,6 +210,24 @@ body {
 [data-theme="light"] .theme-toggle #theme-icon-light { display: inline-block !important; }
 
 /* --- Profile & Cover --- */
+/* Moving wallpaper behind profile (video fills cover box only) */
+.cover-video-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.cover-video-bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
 .cover {
   height: 200px;
   position: relative;
@@ -241,7 +260,8 @@ body {
   content: '';
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: radial-gradient(circle, transparent 40%, rgba(15, 12, 41, 0.6) 100%);
+  z-index: 1;
+  background: radial-gradient(circle, transparent 40%, rgba(15, 12, 41, 0.65) 100%);
   border-radius: 15px 15px 0 0;
   pointer-events: none;
 }

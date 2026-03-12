@@ -1503,9 +1503,13 @@ async function startVideoCall() {
     const data = await res.json();
 
     if (!res.ok || !data.conversation_url) {
-      const detail = data.detail || data.error || 'No conversation URL';
       console.error('Tavus session response:', data);
-      throw new Error(detail);
+      const raw = data.detail || data.error || '';
+      let friendlyMsg = 'Unable to connect right now. Try again later.';
+      if (raw.includes('out of') && raw.includes('credits')) {
+        friendlyMsg = 'Video call is temporarily unavailable. Please try again later.';
+      }
+      throw new Error(friendlyMsg);
     }
 
     stopRingtone();
