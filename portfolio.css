@@ -312,6 +312,146 @@ body {
   background: transparent;
 }
 
+/* Story mode tour button — matches subtitle / tab accent styling */
+.tour-start-btn {
+  margin: 10px auto 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 100px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
+  font-family: var(--font-main);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--primary-color) 12%, transparent);
+  transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition), transform 0.15s ease;
+}
+
+.tour-start-btn:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--primary-color) 22%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 55%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--primary-color) 25%, transparent);
+}
+
+[data-theme="light"] .tour-start-btn {
+  background: color-mix(in srgb, var(--primary-color) 12%, #fff);
+  color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 35%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--primary-color) 10%, transparent);
+}
+
+[data-theme="light"] .tour-start-btn:hover {
+  background: color-mix(in srgb, var(--primary-color) 18%, #fff);
+  border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
+}
+
+/* Story mode overlay */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.tour-overlay:not(.hidden) {
+  pointer-events: auto;
+}
+
+.tour-overlay.hidden {
+  display: none;
+}
+
+.tour-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  pointer-events: auto;
+}
+
+.tour-tooltip {
+  position: absolute;
+  max-width: 320px;
+  background: rgba(15, 23, 42, 0.98);
+  color: var(--text-main);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+  font-size: 0.9rem;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  font-family: var(--font-main);
+  /* Default center position so it is always visible,
+     JS will override top/left when positioning near sections */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+[data-theme="light"] .tour-tooltip {
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+}
+
+.tour-step-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary-color);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.tour-step-text {
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.tour-step-progress {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-bottom: 10px;
+  color: var(--text-dim);
+}
+
+.tour-step-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tour-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: color-mix(in srgb, var(--primary-color) 15%, #020617);
+  color: #e5e7eb;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-weight: 500;
+}
+
+.tour-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tour-exit {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-dim);
+}
+
 h1 {
   font-family: var(--font-main);
   font-size: 2.25rem;

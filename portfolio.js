@@ -1680,3 +1680,118 @@ window.handleQuickReply = function(text) {
   sendMessage();
 };
 
+// --- STORY MODE TOUR ---
+const tourSteps = [
+  { id: 'intro', label: 'Step 1 – Intro', targetSelector: '#intro', tabSelector: '#tab-intro', text: "This is the introduction where I share who I am, my background, and what I'm working on.", tooltipPosition: 'bottom' },
+  { id: 'projects', label: 'Step 2 – Projects', targetSelector: '#projects', tabSelector: '#tab-projects', text: 'Here are some of my favorite projects, with descriptions and the technologies I use.', tooltipPosition: 'bottom' },
+  { id: 'games', label: 'Step 3 – Games', targetSelector: '#games', tabSelector: '#tab-games', text: 'This tab includes fun little games and experiments that I built while learning.', tooltipPosition: 'bottom' },
+  { id: 'contact', label: 'Step 4 – Contact', targetSelector: '#contact', tabSelector: '#tab-contact', text: 'Finally, here is how you can get in touch with me.', tooltipPosition: 'top' }
+];
+
+let currentTourIndex = 0;
+let isTourActive = false;
+
+const tourOverlay = document.getElementById('tour-overlay');
+const tourTooltip = tourOverlay ? tourOverlay.querySelector('.tour-tooltip') : null;
+const tourLabel = tourOverlay ? tourOverlay.querySelector('.tour-step-label') : null;
+const tourText = tourOverlay ? tourOverlay.querySelector('.tour-step-text') : null;
+const tourProgress = tourOverlay ? tourOverlay.querySelector('.tour-step-progress') : null;
+const tourStartBtn = document.getElementById('tour-start-btn');
+const tourPrevBtn = document.getElementById('tour-prev-btn');
+const tourNextBtn = document.getElementById('tour-next-btn');
+const tourExitBtn = document.getElementById('tour-exit-btn');
+
+function activateTabForStep(step) {
+  if (!step.tabSelector) return;
+  const tab = document.querySelector(step.tabSelector);
+  if (tab) tab.click();
+}
+
+function positionTooltip(step, targetEl) {
+  if (!tourTooltip || !targetEl) return;
+  // Overlay is position:fixed so tooltip uses viewport coords only (no scroll)
+  const rect = targetEl.getBoundingClientRect();
+  const margin = 12;
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  const tw = tourTooltip.offsetWidth;
+  const th = tourTooltip.offsetHeight;
+  let top, left;
+  switch (step.tooltipPosition) {
+    case 'top':
+      top = rect.top - th - margin;
+      left = rect.left + (rect.width / 2) - (tw / 2);
+      break;
+    case 'right':
+      top = rect.top + (rect.height / 2) - (th / 2);
+      left = rect.right + margin;
+      break;
+    case 'left':
+      top = rect.top + (rect.height / 2) - (th / 2);
+      left = rect.left - tw - margin;
+      break;
+    case 'bottom':
+    default:
+      top = rect.bottom + margin;
+      left = rect.left + (rect.width / 2) - (tw / 2);
+      break;
+  }
+  left = Math.max(16, Math.min(vw - tw - 16, left));
+  top = Math.max(16, Math.min(vh - th - 16, top));
+  tourTooltip.style.top = top + 'px';
+  tourTooltip.style.left = left + 'px';
+  tourTooltip.style.transform = 'none';
+}
+
+function showTourStep(index) {
+  if (!tourOverlay || !tourTooltip) return;
+  const total = tourSteps.length;
+  if (index < 0) index = 0;
+  if (index >= total) { endTour(); return; }
+  currentTourIndex = index;
+  const step = tourSteps[index];
+  activateTabForStep(step);
+  const targetEl = document.querySelector(step.targetSelector);
+  if (targetEl) {
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function() { positionTooltip(step, targetEl); }, 350);
+  }
+  if (tourLabel) tourLabel.textContent = step.label;
+  if (tourText) tourText.textContent = step.text;
+  if (tourProgress) tourProgress.textContent = 'Step ' + (index + 1) + ' of ' + total;
+  if (tourPrevBtn) tourPrevBtn.disabled = index === 0;
+  if (tourNextBtn) tourNextBtn.textContent = index === total - 1 ? 'Finish' : 'Next';
+}
+
+function startTour() {
+  if (!tourOverlay) return;
+  isTourActive = true;
+  tourOverlay.classList.remove('hidden');
+  tourOverlay.setAttribute('aria-hidden', 'false');
+  showTourStep(0);
+}
+
+function endTour() {
+  if (!tourOverlay) return;
+  isTourActive = false;
+  tourOverlay.classList.add('hidden');
+  tourOverlay.setAttribute('aria-hidden', 'true');
+  const introTab = document.querySelector('#tab-intro');
+  if (introTab) introTab.click();
+}
+
+if (tourStartBtn) tourStartBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); startTour(); });
+if (tourNextBtn) {
+  tourNextBtn.addEventListener('click', function() {
+    if (!isTourActive) return;
+    if (currentTourIndex >= tourSteps.length - 1) endTour();
+    else showTourStep(currentTourIndex + 1);
+  });
+}
+if (tourPrevBtn) tourPrevBtn.addEventListener('click', function() { if (isTourActive) showTourStep(currentTourIndex - 1); });
+if (tourExitBtn) tourExitBtn.addEventListener('click', endTour);
+document.addEventListener('keydown', function(e) {
+  if (!isTourActive) return;
+  if (e.key === 'Escape') endTour();
+});
+

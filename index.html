@@ -31,6 +31,7 @@
   <div class="text-center">
     <h1>Rishikesh Bastakoti</h1>
     <p class="subtitle">Computer Science Student | Aspiring Software Developer</p>
+    <button type="button" id="tour-start-btn" class="tour-start-btn">Walk me through this site</button>
   </div>
   
   <div class="main">
@@ -393,6 +394,19 @@
   window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script>
+<div id="tour-overlay" class="tour-overlay hidden" aria-hidden="true">
+  <div class="tour-backdrop"></div>
+  <div class="tour-tooltip" role="dialog" aria-modal="true">
+    <div class="tour-step-label"></div>
+    <div class="tour-step-text"></div>
+    <div class="tour-step-progress"></div>
+    <div class="tour-step-actions">
+      <button type="button" id="tour-prev-btn" class="tour-btn" disabled>Previous</button>
+      <button type="button" id="tour-next-btn" class="tour-btn">Next</button>
+      <button type="button" id="tour-exit-btn" class="tour-btn tour-exit">Exit</button>
+    </div>
+  </div>
+</div>
 <script src="portfolio.js?v=27.0_VIDEO_CALL"></script>
 </body>
 </html>
