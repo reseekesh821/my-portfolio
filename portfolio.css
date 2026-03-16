@@ -11,9 +11,9 @@
   --radius-sm: 12px;
   --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
   --transition: 0.25s ease;
-  /* Dark (default) */
-  --bg-body: #0a0a12;
-  --bg-body-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 210, 255, 0.12), transparent), linear-gradient(180deg, #0f0c29 0%, #1a1a2e 50%, #0a0a12 100%);
+  /* Dark (default) — slightly softer than pure black */
+  --bg-body: #0d0d14;
+  --bg-body-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 210, 255, 0.08), transparent), linear-gradient(180deg, #12121a 0%, #1a1a2e 45%, #0d0d14 100%);
   --text-main: #e8e8ed;
   --text-muted: #b0b5c1;
   --text-dim: #8892a0;
@@ -79,8 +79,8 @@ body {
   width: 95%;
   margin: 0 auto;
   background: var(--card-bg);
-  border: 2px solid var(--primary-color);
-  box-shadow: var(--shadow), 0 0 40px -10px color-mix(in srgb, var(--primary-color) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
+  box-shadow: var(--shadow), 0 0 60px -15px color-mix(in srgb, var(--primary-color) 25%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius);
@@ -97,9 +97,9 @@ body {
 /* --- Navigation Tabs --- */
 .tabs {
   list-style-type: none;
-  padding: 0 12px;
+  padding: 0 16px;
   margin: 0;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: flex-start;
   background: var(--surface);
@@ -108,7 +108,7 @@ body {
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  gap: 4px;
+  gap: 2px;
   transition: background var(--transition), border-color var(--transition);
 }
 
@@ -117,7 +117,7 @@ body {
 }
 
 .tabs li {
-  padding: 14px 18px;
+  padding: 16px 20px;
   cursor: pointer;
   font-weight: 500;
   color: var(--text-dim);
@@ -125,6 +125,9 @@ body {
   font-family: var(--font-main);
   font-size: 0.9rem;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .tabs li:hover {
@@ -138,20 +141,22 @@ body {
 
 .tabs li.active {
   color: var(--primary-color);
-  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
-  border-bottom: 2px solid var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  border-bottom: 3px solid var(--primary-color);
   font-weight: 600;
+  margin-bottom: -1px;
 }
 
 [data-theme="light"] .tabs li.active {
-  background: color-mix(in srgb, var(--primary-color) 12%, #fff);
-  border-bottom: 2px solid var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 14%, #fff);
+  border-bottom: 3px solid var(--primary-color);
   color: var(--primary-color);
+  margin-bottom: -1px;
 }
 
 .tab-content {
   display: none;
-  padding: 28px 32px;
+  padding: 32px 36px;
   animation: fadeIn 0.4s ease;
 }
 
@@ -229,16 +234,16 @@ body {
 }
 
 .cover {
-  height: 200px;
+  height: 230px;
   position: relative;
-  margin-bottom: 80px;
+  margin-bottom: 88px;
   background: linear-gradient(145deg, color-mix(in srgb, var(--primary-color) 18%, #16213e) 0%, color-mix(in srgb, var(--secondary-color) 12%, #1a1a3e) 50%, #0f172a 100%);
   background-image:
     linear-gradient(color-mix(in srgb, var(--primary-color) 8%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 8%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
-  border-bottom: 2px solid var(--primary-color);
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--primary-color) 25%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--primary-color) 50%, transparent);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--primary-color) 20%, transparent);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -261,27 +266,27 @@ body {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   z-index: 1;
-  background: radial-gradient(circle, transparent 40%, rgba(15, 12, 41, 0.65) 100%);
-  border-radius: 15px 15px 0 0;
+  background: linear-gradient(180deg, rgba(13, 13, 20, 0.3) 0%, rgba(13, 13, 20, 0.75) 100%);
+  border-radius: var(--radius) var(--radius) 0 0;
   pointer-events: none;
 }
 
 [data-theme="light"] .cover::after {
-  background: radial-gradient(circle, transparent 50%, rgba(255, 255, 255, 0.4) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.6) 100%);
 }
 
-/* Profile Picture Styles (Kept unchanged) */
+/* Profile picture — slightly larger, clearer ring */
 .cover .profile-pic {
-  width: 130px;
-  height: 130px;
+  width: 140px;
+  height: 140px;
   padding: 4px;
   background: linear-gradient(145deg, #1e293b, #0f172a);
   border-radius: 50%;
   position: absolute;
-  bottom: -65px;
+  bottom: -70px;
   left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 12px 40px color-mix(in srgb, var(--primary-color) 40%, transparent), 0 0 0 1px rgba(255,255,255,0.1);
+  box-shadow: 0 14px 48px color-mix(in srgb, var(--primary-color) 35%, transparent), 0 0 0 1px rgba(255,255,255,0.12);
   transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.35s, border-color var(--transition);
   display: flex;
   justify-content: center;
@@ -476,11 +481,11 @@ h1 {
   display: inline-block;
   background: color-mix(in srgb, var(--primary-color) 14%, transparent);
   color: var(--primary-color);
-  padding: 10px 22px;
+  padding: 10px 24px;
   border-radius: 100px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
   border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
   margin-bottom: 28px;
@@ -497,10 +502,10 @@ h1 {
 
 .tab-content > h3 {
   margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 1.25rem;
+  margin-bottom: 10px;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .tab-content > h3 + p {
@@ -508,22 +513,23 @@ h1 {
 }
 
 .tab-content p {
-  margin: 0 0 15px 0;
+  margin: 0 0 16px 0;
   text-align: left;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
+  line-height: 1.65;
   transition: color var(--transition);
 }
 
 .tab-content > h3 { color: var(--text-main); transition: color var(--transition); }
 
 .info-block {
-  background: rgba(0, 210, 255, 0.03);
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border-left: 3px solid var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 4%, transparent);
+  padding: 22px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 22px;
   border: 1px solid var(--border);
+  border-left: 4px solid var(--primary-color);
   transition: background var(--transition), border-color var(--transition);
 }
 
@@ -741,15 +747,15 @@ h1 {
   color: var(--text-muted);
 }
 
-/* --- Spotify Player Styles --- */
+/* --- Spotify Player Styles (accent aligned to theme) --- */
 .spotify-player {
-  background: linear-gradient(to bottom, #333333, #121212);
-  padding: 20px;
-  border-radius: 12px;
+  background: linear-gradient(to bottom, #2a2a2a, #141414);
+  padding: 22px;
+  border-radius: var(--radius-sm);
   text-align: center;
-  margin-top: 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.1);
+  margin-top: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
   max-width: 350px;
   margin-left: auto;
   margin-right: auto;
@@ -790,7 +796,7 @@ h1 {
 }
 
 .progress {
-  background-color: #1db954;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
   border-radius: 5px;
   height: 100%;
   width: 0%;
