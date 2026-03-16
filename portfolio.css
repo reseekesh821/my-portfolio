@@ -70,7 +70,7 @@ body {
   font-weight: 400;
   color: var(--text-main);
   margin: 0;
-  padding: 24px 0;
+  padding: 28px 0;
   transition: background var(--transition), color var(--transition);
 }
 
@@ -384,14 +384,14 @@ body {
 .tour-tooltip {
   position: absolute;
   max-width: 320px;
-  background: rgba(15, 23, 42, 0.98);
+  background: var(--card-bg);
   color: var(--text-main);
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
   pointer-events: auto;
   font-size: 0.9rem;
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
   font-family: var(--font-main);
   /* Default center position so it is always visible,
      JS will override top/left when positioning near sections */
@@ -512,6 +512,11 @@ h1 {
   margin-top: 0;
 }
 
+.tab-content .intro-lead {
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
 .tab-content p {
   margin: 0 0 16px 0;
   text-align: left;
@@ -604,12 +609,12 @@ h1 {
 .hidden { display: none !important; }
 
 .game-card {
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--primary-color) 4%, transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 24px;
-  margin-top: 20px;
-  transition: background var(--transition), border-color var(--transition);
+  padding: 26px;
+  margin-top: 22px;
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
 [data-theme="light"] .game-card {
@@ -970,11 +975,11 @@ h1 {
   margin-bottom: 8px;
   width: 300px;
   max-width: 90vw;
-  background: rgba(15, 12, 41, 0.98);
-  border: 1px solid rgba(0, 210, 255, 0.3);
-  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
+  border-radius: var(--radius-sm);
   padding: 16px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow);
   font-size: 13px;
   line-height: 1.5;
   animation: fadeIn 0.25s ease;
@@ -1053,20 +1058,20 @@ h1 {
   width: 340px;
   max-width: calc(100vw - 24px);
   height: 480px;
-  background: rgba(15, 12, 41, 0.97);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 70%, transparent);
-  border-radius: 20px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  box-shadow: var(--shadow), 0 0 40px -10px color-mix(in srgb, var(--primary-color) 20%, transparent);
   transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
 [data-theme="light"] .chat-box {
-  background: rgba(255, 255, 255, 0.98);
-  border-color: color-mix(in srgb, var(--primary-color) 70%, transparent);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  background: var(--card-bg);
+  border-color: color-mix(in srgb, var(--primary-color) 45%, transparent);
+  box-shadow: var(--shadow), 0 0 30px -8px color-mix(in srgb, var(--primary-color) 15%, transparent);
 }
 
 .chat-box.open {
@@ -1665,10 +1670,10 @@ h1 {
 }
 
 .project-card:hover {
-  transform: translateY(-8px);
-  background: rgba(22, 33, 62, 0.9);
-  border-color: var(--primary-color);
-  box-shadow: 0 15px 30px -10px rgba(0, 210, 255, 0.3);
+  transform: translateY(-6px);
+  background: rgba(22, 33, 62, 0.92);
+  border-color: color-mix(in srgb, var(--primary-color) 70%, transparent);
+  box-shadow: 0 12px 28px -8px color-mix(in srgb, var(--primary-color) 30%, transparent);
 }
 
 .project-card::before {
@@ -1868,29 +1873,32 @@ h3 i, strong i, p strong i {
 .contact-grid {
   display: flex;
   flex-direction: row;
-  gap: 10px;
-  margin-top: 25px;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
 }
 
 .social-btn {
   flex: 1;
+  min-width: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 5px;
-  border-radius: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   color: #fff;
   font-weight: 600;
   font-size: 13px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
 .social-btn:hover {
-  transform: translateY(-3px);
-  filter: brightness(110%);
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .resume-btn {
@@ -1925,10 +1933,10 @@ h3 i, strong i, p strong i {
 /* --- MODERN CONTACT FORM --- */
 .form-container {
   margin-top: 40px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 25px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--primary-color) 4%, transparent);
+  padding: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .contact-form {
@@ -2105,15 +2113,21 @@ h3 i, strong i, p strong i {
 }
 
 .news-item:hover {
-  border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: color-mix(in srgb, var(--primary-color) 45%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .news-link {
   display: block;
-  padding: 14px 16px;
+  padding: 14px 16px 14px 19px;
   text-decoration: none;
   color: var(--text-main);
+  border-left: 3px solid transparent;
+  transition: border-left-color var(--transition), color var(--transition);
+}
+
+.news-item:hover .news-link {
+  border-left-color: var(--primary-color);
 }
 
 .news-link:hover {
