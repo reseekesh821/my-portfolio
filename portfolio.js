@@ -393,6 +393,8 @@ const VoiceAssistant = (function() {
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
 
   let currentUtterance = null;
+  let isRecognizing = false;
+  let resumeRecognitionAfterSpeech = false;
 
   function stopSpeaking() {
     if (!synth) return;
@@ -403,9 +405,29 @@ const VoiceAssistant = (function() {
   function speak(text) {
     if (!synth) return;
     stopSpeaking();
+
+    // Prevent the assistant from "hearing itself" and looping:
+    // pause recognition while TTS is speaking, then optionally resume.
+    resumeRecognitionAfterSpeech = false;
+    if (recognition && isRecognizing && !isCallListening) {
+      try {
+        resumeRecognitionAfterSpeech = true;
+        recognition.stop();
+      } catch (e) {}
+    }
+
     const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.9;
+    u.rate = 0.95;
     u.pitch = 1;
+    u.onend = () => {
+      currentUtterance = null;
+      if (resumeRecognitionAfterSpeech && recognition && !isCallListening) {
+        resumeRecognitionAfterSpeech = false;
+        try {
+          recognition.start();
+        } catch (e) {}
+      }
+    };
     currentUtterance = u;
     synth.speak(u);
   }
@@ -453,7 +475,7 @@ const VoiceAssistant = (function() {
 
     // Greetings — only handle locally for voice (so we speak something). In chat, let the LLM respond so the first message is interactive.
     if (!forChat && (hasAny('hi','hello','hey','yo','sup') || clean.startsWith('good morning') || clean.startsWith('good afternoon') || clean.startsWith('good evening'))) {
-      return reply("Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
+      return reply("Hiii. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
     }
 
     // About Rishikesh — maximum forgiveness: catch every possible mishearing
@@ -600,13 +622,15 @@ const VoiceAssistant = (function() {
     if (recognition) return recognition;
 
     recognition = new SpeechRecognition();
-    // Allow continuous listening; we only auto-restart during calls
-    recognition.continuous = true;
+    // Default: single-turn listening to avoid "assistant talks to itself" loops.
+    // During calls we restart on end to simulate continuous listening.
+    recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
+      isRecognizing = true;
       if (voiceBtn) voiceBtn.classList.add('listening');
       if (voiceStatus) {
         voiceStatus.textContent = 'Listening... speak now';
@@ -619,6 +643,7 @@ const VoiceAssistant = (function() {
     };
 
     recognition.onend = () => {
+      isRecognizing = false;
       if (voiceBtn) voiceBtn.classList.remove('listening');
       if (voiceStatus) voiceStatus.classList.remove('active');
 
@@ -651,6 +676,12 @@ const VoiceAssistant = (function() {
         if (voiceStatus) voiceStatus.textContent = '"' + transcript + '"';
         return;
       }
+
+      // Stop mic for single-turn interactions (prevents TTS feedback loops).
+      if (!isCallListening) {
+        try { recognition.stop(); } catch (e) {}
+      }
+
       // 1) Try command handler first so voice commands stay in control
       if (handleCommand(transcript)) return;
 
@@ -677,6 +708,7 @@ const VoiceAssistant = (function() {
     };
 
     recognition.onerror = (e) => {
+      isRecognizing = false;
       if (voiceBtn) voiceBtn.classList.remove('listening');
       if (voiceStatus) voiceStatus.classList.remove('active');
 
