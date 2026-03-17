@@ -1375,7 +1375,7 @@ h1 {
   flex: 1;
   position: relative;
   z-index: 1;
-  background: #000;
+  background: transparent;
   overflow: hidden;
 }
 
@@ -1396,8 +1396,8 @@ h1 {
 .video-call-frame .anam-video-bg {
   object-fit: cover;
   object-position: center;
-  filter: blur(18px) saturate(1.05) brightness(0.75);
-  transform: scale(1.12);
+  filter: blur(22px) saturate(1.08) brightness(0.9);
+  transform: scale(1.25);
   z-index: 0;
 }
 
@@ -1425,7 +1425,8 @@ h1 {
   left: 0;
   right: 0;
   z-index: 3;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7) 40%);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.18) 40%);
+  backdrop-filter: blur(6px);
 }
 
 [data-theme="light"] .video-call-screen {
