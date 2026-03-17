@@ -415,30 +415,7 @@ const VoiceAssistant = (function() {
     if (!theme) return false;
     document.documentElement.style.setProperty('--primary-color', theme.primary);
     document.documentElement.style.setProperty('--secondary-color', theme.secondary);
-    syncDailyTheme(theme.primary);
     return true;
-  }
-
-  function syncDailyTheme(accentColor) {
-    if (typeof dailyCallFrame !== 'undefined' && dailyCallFrame && dailyCallFrame.setTheme) {
-      try {
-        dailyCallFrame.setTheme({
-          colors: {
-            accent: accentColor,
-            background: '#0a0a0f',
-            backgroundAccent: '#0a0a0f',
-            baseText: '#ffffff',
-            border: 'transparent',
-            mainAreaBg: '#0a0a0f',
-            mainAreaBgAccent: '#111118',
-            mainAreaText: '#ffffff',
-            supportiveText: '#aaaaaa'
-          }
-        });
-      } catch (e) {
-        // Ignore if call frame isn't ready
-      }
-    }
   }
 
   function switchTab(targetId) {
@@ -825,7 +802,8 @@ const videoCallEndBtn = document.getElementById('video-call-end-btn');
 const videoCallMuteBtn = document.getElementById('video-call-mute-btn');
 const videoCallStatus = document.getElementById('video-call-status');
 const videoCallActions = document.getElementById('video-call-actions');
-let dailyCallFrame = null;
+let anamClient = null;
+let anamSdk = null;
 let isVideoMuted = false;
 
 // --- b. CONFIGURATION & STATE ---
@@ -1279,9 +1257,16 @@ function initChatPresence() {
   }
   if (videoCallMuteBtn) {
     videoCallMuteBtn.addEventListener('click', () => {
-      if (!isInVideoCall || !dailyCallFrame) return;
+      if (!isInVideoCall || !anamClient) return;
       isVideoMuted = !isVideoMuted;
-      dailyCallFrame.setLocalAudio(!isVideoMuted);
+      if (anamClient && typeof anamClient.muteInputAudio === 'function') {
+        try {
+          if (isVideoMuted) anamClient.muteInputAudio();
+          else anamClient.unmuteInputAudio();
+        } catch (e) {
+          // Ignore if not ready
+        }
+      }
       if (isVideoMuted) {
         videoCallMuteBtn.classList.add('muted');
         videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
@@ -1453,31 +1438,26 @@ function endAudioCall() {
   }
 }
 
-// --- VIDEO CALL (Tavus) ---
+// --- VIDEO CALL (Anam) ---
 
-function destroyDailyFrame() {
-  if (dailyCallFrame) {
-    try { dailyCallFrame.leave(); } catch (e) {}
-    try { dailyCallFrame.destroy(); } catch (e) {}
-    dailyCallFrame = null;
+function destroyVideoCallSession() {
+  // Stop Anam if active
+  if (anamClient && typeof anamClient.stopStreaming === 'function') {
+    try {
+      anamClient.stopStreaming();
+    } catch (e) {}
   }
+  anamClient = null;
+  anamSdk = null;
+
   if (videoCallFrame) videoCallFrame.innerHTML = '';
-  // Also nuke any orphaned Daily iframes in the entire document
-  document.querySelectorAll('iframe[id^="daily-"], iframe[allow*="camera"]').forEach(function(el) {
-    try { el.remove(); } catch (e) {}
-  });
 }
 
 async function startVideoCall() {
   if (isInVideoCall || isInCall) return;
   if (!videoCallScreen || !videoCallFrame || !videoCallConnecting) return;
-  if (typeof window.Daily === 'undefined') {
-    console.error('Daily.js SDK not loaded');
-    return;
-  }
 
-  // Always clean up any leftover Daily frame first
-  destroyDailyFrame();
+  destroyVideoCallSession();
 
   isInVideoCall = true;
   isVideoMuted = false;
@@ -1499,12 +1479,13 @@ async function startVideoCall() {
   playRingtone();
 
   try {
-    const res = await fetch('/api/tavus-session', { method: 'POST' });
+    // 1) Create Anam session token (server-side exchange for security)
+    const res = await fetch('/api/anam-session', { method: 'POST' });
     const data = await res.json();
 
-    if (!res.ok || !data.conversation_url) {
-      console.error('Tavus session response:', data);
-      const raw = data.detail || data.error || '';
+    if (!res.ok || !data.session_token) {
+      console.error('Anam session response:', data);
+      const raw = (data.detail && JSON.stringify(data.detail)) || data.error || '';
       let friendlyMsg = 'Unable to connect right now. Try again later.';
       if (raw.includes('out of') && raw.includes('credits')) {
         friendlyMsg = 'Video call is temporarily unavailable. Please try again later.';
@@ -1515,55 +1496,31 @@ async function startVideoCall() {
     stopRingtone();
     if (videoCallStatus) videoCallStatus.textContent = 'Connecting...';
 
-    dailyCallFrame = window.Daily.createFrame(videoCallFrame, {
-      allowMultipleCallInstances: true,
-      showLeaveButton: false,
-      showFullscreenButton: false,
-      showUserNameChangeUI: false,
-      showLocalVideo: false,
-      showParticipantsBar: false,
-      activeSpeakerMode: true,
-      userName: 'You',
-      startVideoOff: true,
-      iframeStyle: {
-        width: '100%',
-        height: '100%',
-        border: 'none',
-        borderRadius: '0'
-      },
-      theme: {
-        colors: {
-          accent: '#00d2ff',
-          background: '#0a0a0f',
-          backgroundAccent: '#0a0a0f',
-          baseText: '#ffffff',
-          border: 'transparent',
-          mainAreaBg: '#0a0a0f',
-          mainAreaBgAccent: '#111118',
-          mainAreaText: '#ffffff',
-          supportiveText: '#aaaaaa'
-        }
-      }
+    // 2) Load Anam SDK in-browser (no bundler required)
+    if (!anamSdk) {
+      anamSdk = await import('https://esm.sh/@anam-ai/js-sdk@latest');
+    }
+
+    // 3) Render video element + start streaming
+    const videoId = 'anam-video-element';
+    videoCallFrame.innerHTML = `<video id="${videoId}" autoplay playsinline></video>`;
+
+    anamClient = anamSdk.createClient(data.session_token, {
+      disableInputAudio: false
     });
 
-    dailyCallFrame.on('joined-meeting', () => {
-      if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
-    });
+    if (anamSdk.AnamEvent && typeof anamClient.addListener === 'function') {
+      anamClient.addListener(anamSdk.AnamEvent.CONNECTION_ESTABLISHED, () => {
+        if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
+      });
+      anamClient.addListener(anamSdk.AnamEvent.CONNECTION_CLOSED, () => {
+        endVideoCall();
+      });
+    }
 
-    dailyCallFrame.on('participant-joined', () => {
-      if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
-    });
+    await anamClient.streamToVideoElement(videoId);
 
-    dailyCallFrame.on('left-meeting', () => {
-      endVideoCall();
-    });
-
-    dailyCallFrame.on('error', (e) => {
-      console.error('Daily error:', e);
-      endVideoCall();
-    });
-
-    await dailyCallFrame.join({ url: data.conversation_url });
+    if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
 
     // Fallback: hide connecting overlay after 10s
     setTimeout(() => {
@@ -1583,12 +1540,12 @@ async function startVideoCall() {
 }
 
 function endVideoCall() {
-  if (!isInVideoCall && !dailyCallFrame) return;
+  if (!isInVideoCall && !anamClient) return;
   isInVideoCall = false;
   stopRingtone();
   playHangup();
 
-  destroyDailyFrame();
+  destroyVideoCallSession();
 
   if (videoCallScreen) videoCallScreen.classList.remove('active');
   if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
