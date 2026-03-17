@@ -1510,9 +1510,16 @@ async function startVideoCall() {
       anamSdk = await import('https://esm.sh/@anam-ai/js-sdk@latest');
     }
 
-    // 3) Render video element + start streaming
-    const videoId = 'anam-video-element';
-    videoCallFrame.innerHTML = `<video id="${videoId}" autoplay playsinline></video>`;
+    // 3) Render videos:
+    // - background: blurred + cover (fills the frame, no black bars)
+    // - foreground: contain (shows full face, "zoomed out")
+    const fgId = 'anam-video-foreground';
+    const bgId = 'anam-video-background';
+    videoCallFrame.innerHTML =
+      `<div class="anam-video-stack">` +
+        `<video id="${bgId}" class="anam-video anam-video-bg" autoplay playsinline muted></video>` +
+        `<video id="${fgId}" class="anam-video anam-video-fg" autoplay playsinline></video>` +
+      `</div>`;
 
     anamClient = anamSdk.createClient(data.session_token, {
       disableInputAudio: false
@@ -1527,7 +1534,19 @@ async function startVideoCall() {
       });
     }
 
-    await anamClient.streamToVideoElement(videoId);
+    await anamClient.streamToVideoElement(fgId);
+
+    // Mirror the same stream onto the blurred background video
+    const fgEl = document.getElementById(fgId);
+    const bgEl = document.getElementById(bgId);
+    if (fgEl && bgEl && fgEl.srcObject && !bgEl.srcObject) {
+      try {
+        bgEl.srcObject = fgEl.srcObject;
+        bgEl.play().catch(() => {});
+      } catch (e) {
+        // If the browser blocks it, it's fine — foreground still works
+      }
+    }
 
     if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
 

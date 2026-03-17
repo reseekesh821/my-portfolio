@@ -1379,12 +1379,31 @@ h1 {
   overflow: hidden;
 }
 
-.video-call-frame video {
+.video-call-frame .anam-video-stack {
+  position: absolute;
+  inset: 0;
+}
+
+.video-call-frame .anam-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Background fills the whole frame to remove black bars */
+.video-call-frame .anam-video-bg {
+  object-fit: cover;
+  object-position: center;
+  filter: blur(18px) saturate(1.05) brightness(0.75);
+  transform: scale(1.12);
+}
+
+/* Foreground shows full face (zoomed out) */
+.video-call-frame .anam-video-fg {
   object-fit: contain;
   object-position: center;
-  background: #000;
+  z-index: 1;
 }
 
 .video-call-frame iframe {
