@@ -1476,6 +1476,8 @@ async function startVideoCall() {
   if (voiceStatus) voiceStatus.style.display = 'none';
   if (chatInputArea) chatInputArea.style.display = 'none';
 
+  const ringStartMs = Date.now();
+  const MIN_RING_MS = 9000; // ~2 full tones / consistent "ringing" UX
   playRingtone();
 
   try {
@@ -1485,13 +1487,20 @@ async function startVideoCall() {
 
     if (!res.ok || !data.session_token) {
       console.error('Anam session response:', data);
-      const raw = (data.detail && JSON.stringify(data.detail)) || data.error || '';
-      let friendlyMsg = 'Unable to connect right now. Try again later.';
-      if (raw.includes('out of') && raw.includes('credits')) {
-        friendlyMsg = 'Video call is temporarily unavailable. Please try again later.';
+      const detailText = (data && data.detail) ? JSON.stringify(data.detail) : '';
+      const raw = detailText || data.error || '';
+      if (res.status === 401 || raw.toLowerCase().includes('invalid api key')) {
+        throw new Error('Server rejected the Anam API key. Create a new key and redeploy.');
       }
-      throw new Error(friendlyMsg);
+      if (raw.toLowerCase().includes('out of') && raw.toLowerCase().includes('credits')) {
+        throw new Error('Video call is temporarily unavailable. Please try again later.');
+      }
+      throw new Error('Unable to connect right now. Try again later.');
     }
+
+    // Keep ringing a consistent amount before showing the avatar
+    const remainingRing = Math.max(0, MIN_RING_MS - (Date.now() - ringStartMs));
+    if (remainingRing) await new Promise((r) => setTimeout(r, remainingRing));
 
     stopRingtone();
     if (videoCallStatus) videoCallStatus.textContent = 'Connecting...';
@@ -1531,8 +1540,12 @@ async function startVideoCall() {
 
   } catch (err) {
     console.error('Video call error:', err);
+    // Preserve the "ringing" feel even on fast failures
+    const remainingRing = Math.max(0, MIN_RING_MS - (Date.now() - ringStartMs));
+    if (remainingRing) await new Promise((r) => setTimeout(r, remainingRing));
+
     stopRingtone();
-    if (videoCallStatus) videoCallStatus.textContent = 'Could not connect: ' + (err.message || 'Unknown error');
+    if (videoCallStatus) videoCallStatus.textContent = 'Could not connect: ' + (err?.message || 'Unknown error');
     setTimeout(() => {
       endVideoCall();
     }, 4000);
