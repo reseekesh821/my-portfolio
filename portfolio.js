@@ -395,6 +395,7 @@ const VoiceAssistant = (function() {
   let currentUtterance = null;
   let isRecognizing = false;
   let resumeRecognitionAfterSpeech = false;
+  let activeVoiceAbort = null;
 
   function stopSpeaking() {
     if (!synth) return;
@@ -402,31 +403,22 @@ const VoiceAssistant = (function() {
     currentUtterance = null;
   }
 
+  function abortPendingAI() {
+    if (activeVoiceAbort) {
+      try { activeVoiceAbort.abort(); } catch (e) {}
+      activeVoiceAbort = null;
+    }
+  }
+
   function speak(text) {
     if (!synth) return;
     stopSpeaking();
-
-    // Prevent the assistant from "hearing itself" and looping:
-    // pause recognition while TTS is speaking, then optionally resume.
-    resumeRecognitionAfterSpeech = false;
-    if (recognition && isRecognizing && !isCallListening) {
-      try {
-        resumeRecognitionAfterSpeech = true;
-        recognition.stop();
-      } catch (e) {}
-    }
 
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95;
     u.pitch = 1;
     u.onend = () => {
       currentUtterance = null;
-      if (resumeRecognitionAfterSpeech && recognition && !isCallListening) {
-        resumeRecognitionAfterSpeech = false;
-        try {
-          recognition.start();
-        } catch (e) {}
-      }
     };
     currentUtterance = u;
     synth.speak(u);
@@ -616,6 +608,7 @@ const VoiceAssistant = (function() {
   let noSpeechRetry = false;
   let wasPlayingBeforeMic = false;
   let isCallListening = false;
+  let ignoreRecognitionUntilMs = 0;
 
   function getRecognition() {
     if (!SpeechRecognition) return null;
@@ -667,6 +660,9 @@ const VoiceAssistant = (function() {
     };
 
     recognition.onresult = (e) => {
+      // If we just stopped a call / just spoke, ignore any stray mic pickup.
+      if (Date.now() < ignoreRecognitionUntilMs) return;
+
       const result = e.results[e.results.length - 1];
       const transcript = (result[0]?.transcript || '').trim();
       const isFinal = result.isFinal;
@@ -674,6 +670,23 @@ const VoiceAssistant = (function() {
       if (!transcript) return;
       if (!isFinal) {
         if (voiceStatus) voiceStatus.textContent = '"' + transcript + '"';
+        return;
+      }
+
+      // While the assistant is speaking, only pay attention to clear "stop" style interrupts
+      // so it doesn't respond to its own voice but still lets the user pause it.
+      if (synth && (synth.speaking || synth.pending)) {
+        const lower = transcript.toLowerCase().trim();
+        const clean = lower.replace(/[?!.,]/g, ' ');
+        const words = clean.split(/\s+/).filter(Boolean);
+        const has = (w) => words.includes(w);
+        const isStopLike =
+          (has('stop') && words.length <= 3) ||
+          clean === 'ok stop' ||
+          clean === 'okay stop';
+        if (isStopLike) {
+          handleCommand(transcript);
+        }
         return;
       }
 
@@ -691,14 +704,20 @@ const VoiceAssistant = (function() {
         voiceStatus.classList.add('active');
       }
 
-      getAIResponse(transcript)
+      // Abort any previous in-flight AI request triggered by voice.
+      abortPendingAI();
+      activeVoiceAbort = new AbortController();
+      getAIResponse(transcript, { signal: activeVoiceAbort.signal })
         .then((reply) => {
           if (reply) speak(reply);
         })
         .catch(() => {
+          // If we intentionally aborted (e.g., user ended call), stay quiet.
+          if (activeVoiceAbort && activeVoiceAbort.signal && activeVoiceAbort.signal.aborted) return;
           speak("I didn't catch that. Try again or say help.");
         })
         .finally(() => {
+          activeVoiceAbort = null;
           if (voiceStatus) voiceStatus.classList.remove('active');
         });
     };
@@ -765,6 +784,14 @@ const VoiceAssistant = (function() {
     }
   }
 
+  function hardStop() {
+    // Stop everything the assistant can do: TTS, recognition, pending AI
+    abortPendingAI();
+    stopSpeaking();
+    stopContinuousListening();
+    ignoreRecognitionUntilMs = Date.now() + 800;
+  }
+
   async function startListening() {
     if (!SpeechRecognition) {
       speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
@@ -809,7 +836,7 @@ const VoiceAssistant = (function() {
     });
   }
 
-  return { speak, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening };
+  return { speak, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening, hardStop };
 })();
 
 
@@ -860,6 +887,7 @@ const RINGTONE_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/
 const HANGUP_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/freesound_community-mobile_phone_hanging_up-94525.mp3';
 let ringtoneAudio = null;
 let hangupAudio = null;
+let callRingTimeoutId = null;
 
 // Session ID for Supabase logging (chat, tabs, quiz)
 const CHAT_SESSION_STORAGE_KEY = 'portfolio-chat-session-id';
@@ -1441,7 +1469,12 @@ function startAudioCall() {
   if (chatInputArea) chatInputArea.style.display = 'none';
 
   // Simulate ringing for ~9 seconds (~two full rounds), then start the call
-  setTimeout(() => {
+  if (callRingTimeoutId) {
+    clearTimeout(callRingTimeoutId);
+    callRingTimeoutId = null;
+  }
+  callRingTimeoutId = setTimeout(() => {
+    callRingTimeoutId = null;
     if (!isInCall) return;
     stopRingtone();
     callStatusText.textContent = 'On call';
@@ -1460,10 +1493,9 @@ function startAudioCall() {
       callRecordBtn.setAttribute('aria-label', 'Mute microphone');
     }
     isMuted = false;
-    VoiceAssistant.speak("Hello, it's me Rishikesh Bastakoti. How can I help you today?");
-    if (VoiceAssistant && VoiceAssistant.beginContinuousListening) {
-      VoiceAssistant.beginContinuousListening();
-    }
+    // Start listening for the user. The assistant will pause listening while it speaks.
+    if (VoiceAssistant && VoiceAssistant.beginContinuousListening) VoiceAssistant.beginContinuousListening();
+    VoiceAssistant.speak("Hello. How can I help you today?");
   }, 9000);
 
   if (callRecordBtn) {
@@ -1505,8 +1537,15 @@ function endAudioCall() {
   if (!isInCall) return;
   isInCall = false;
   setVoiceButtonDisabled(false);
+  if (callRingTimeoutId) {
+    clearTimeout(callRingTimeoutId);
+    callRingTimeoutId = null;
+  }
   if (VoiceAssistant && VoiceAssistant.stopContinuousListening) {
     VoiceAssistant.stopContinuousListening();
+  }
+  if (VoiceAssistant && VoiceAssistant.hardStop) {
+    VoiceAssistant.hardStop();
   }
   stopRingtone();
   playHangup();
@@ -1709,7 +1748,7 @@ function endVideoCall() {
   }
 }
 
-async function getAIResponse(userMessage) {
+async function getAIResponse(userMessage, { signal } = {}) {
   try {
     // Add User Message to History BEFORE sending
     conversationHistory.push({ role: "user", content: userMessage });
@@ -1718,7 +1757,8 @@ async function getAIResponse(userMessage) {
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: conversationHistory })
+      body: JSON.stringify({ messages: conversationHistory }),
+      signal
     });
 
     if (!response.ok) throw new Error("API Error");
@@ -1740,6 +1780,10 @@ async function getAIResponse(userMessage) {
     return botReply;
 
   } catch (error) {
+    // If request was intentionally aborted (e.g. end call), don't speak "offline".
+    if (error && (error.name === 'AbortError' || error.code === 20)) {
+      return "";
+    }
     console.error("Chat Error:", error);
     return "Sorry, I'm currently offline. Please try again later.";
   }
