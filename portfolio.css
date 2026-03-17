@@ -1382,6 +1382,7 @@ h1 {
 .video-call-frame .anam-video-stack {
   position: absolute;
   inset: 0;
+  background: #000;
 }
 
 .video-call-frame .anam-video {
@@ -1397,6 +1398,7 @@ h1 {
   object-position: center;
   filter: blur(18px) saturate(1.05) brightness(0.75);
   transform: scale(1.12);
+  z-index: 0;
 }
 
 /* Foreground shows full face (zoomed out) */

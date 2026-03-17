@@ -1536,15 +1536,23 @@ async function startVideoCall() {
 
     await anamClient.streamToVideoElement(fgId);
 
-    // Mirror the same stream onto the blurred background video
+    // Mirror the same stream onto the blurred background video.
+    // Some browsers/SDK paths attach srcObject asynchronously, so wait briefly.
     const fgEl = document.getElementById(fgId);
     const bgEl = document.getElementById(bgId);
-    if (fgEl && bgEl && fgEl.srcObject && !bgEl.srcObject) {
-      try {
-        bgEl.srcObject = fgEl.srcObject;
-        bgEl.play().catch(() => {});
-      } catch (e) {
-        // If the browser blocks it, it's fine — foreground still works
+    if (fgEl && bgEl) {
+      const start = Date.now();
+      while (!fgEl.srcObject && Date.now() - start < 2500) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      if (fgEl.srcObject && !bgEl.srcObject) {
+        try {
+          bgEl.srcObject = fgEl.srcObject;
+          // background is muted so autoplay is allowed
+          bgEl.play().catch(() => {});
+        } catch (e) {
+          // Foreground still works even if background can't autoplay
+        }
       }
     }
 
