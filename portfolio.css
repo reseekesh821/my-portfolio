@@ -895,6 +895,21 @@ h1 {
   background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
 }
 
+.voice-btn:disabled,
+.voice-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+  filter: grayscale(0.2);
+}
+
+.voice-btn:disabled:hover,
+.voice-btn[aria-disabled="true"]:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* Voice button inside chat — next to send button */
 .chat-voice-btn {
   width: 45px !important;

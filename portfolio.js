@@ -738,6 +738,15 @@ const VoiceAssistant = (function() {
       speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
       return;
     }
+    // Don't mix voice assistant with calls/video calls
+    if (typeof isInCall !== 'undefined' && isInCall) {
+      speak("You're in a call right now. End the call to use the voice assistant.");
+      return;
+    }
+    if (typeof isInVideoCall !== 'undefined' && isInVideoCall) {
+      speak("You're in a video call right now. End the video call to use the voice assistant.");
+      return;
+    }
 
     const rec = getRecognition();
     if (!rec) return;
@@ -1175,6 +1184,35 @@ document.addEventListener('keydown', (e) => {
 initChatPresence();
 
 // --- e. CORE LOGIC ---
+function looksLikePortfolioCommand(input) {
+  const t = (input || '').toLowerCase();
+  if (!t) return false;
+
+  // common typos / variants
+  const normalized = t
+    .replace(/\bthem\b/g, 'theme')
+    .replace(/\bthme\b/g, 'theme')
+    .replace(/\bcolou?r\b/g, 'color');
+
+  const hasAny = (arr) => arr.some((w) => normalized.includes(w));
+
+  const colors = ['cyan','blue','purple','green','red','orange','pink','teal','yellow'];
+  const colorIntent = hasAny(colors) && hasAny(['change','set','switch','make','theme','color']);
+
+  const musicIntent = hasAny(['play music','play song','pause music','pause song','play','pause']) && hasAny(['music','song','songs','track','audio']);
+
+  const callIntent =
+    hasAny(['video call','start video','end video','hang up','call me','audio call','start call','end call']) ||
+    (normalized.includes('call') && hasAny(['start','end','video','audio','hang']));
+
+  const navIntent = hasAny(['show ','open ','go to ','switch to ']) &&
+    hasAny(['intro','projects','education','hometown','favorites','games','news','contact']);
+
+  const helpIntent = hasAny(['what can you do','show commands','help']);
+
+  return colorIntent || musicIntent || callIntent || navIntent || helpIntent;
+}
+
 async function sendMessage() {
   if (isCoolingDown) return;
 
@@ -1193,6 +1231,21 @@ async function sendMessage() {
   if (commandReply !== false && typeof commandReply === 'string') {
     addMessage(commandReply, 'bot-message');
     logChatMessage('assistant', commandReply);
+    if (quickRepliesContainer) {
+      quickRepliesContainer.style.display = 'flex';
+      chatMessages.appendChild(quickRepliesContainer);
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    setTimeout(() => { isCoolingDown = false; sendBtn.disabled = false; }, 600);
+    return;
+  }
+
+  // If it *looks like* a portfolio command but didn't match, don't send it to Groq.
+  // This prevents "conflicts" where Groq answers instead of executing a command.
+  if (looksLikePortfolioCommand(text)) {
+    const fallback = "I think you're trying to use a portfolio command. Try: “change color to green”, “play music”, “show projects”, “start video call”, or “help”.";
+    addMessage(fallback, 'bot-message');
+    logChatMessage('assistant', fallback);
     if (quickRepliesContainer) {
       quickRepliesContainer.style.display = 'flex';
       chatMessages.appendChild(quickRepliesContainer);
@@ -1321,9 +1374,24 @@ function playHangup() {
   }
 }
 
+function setVoiceButtonDisabled(disabled) {
+  const btn = document.getElementById('voice-btn');
+  if (!btn) return;
+  btn.disabled = !!disabled;
+  if (disabled) {
+    btn.classList.remove('listening');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.setAttribute('title', 'Voice assistant disabled during calls');
+  } else {
+    btn.removeAttribute('aria-disabled');
+    btn.setAttribute('title', 'Voice assistant');
+  }
+}
+
 function startAudioCall() {
   if (!VoiceAssistant || isInCall || !callScreen || !callStatusText || !callTimerEl) return;
   isInCall = true;
+  setVoiceButtonDisabled(true);
   callScreen.classList.add('active');
   callStatusText.textContent = 'Ringing...';
   callTimerEl.textContent = '00:00';
@@ -1404,6 +1472,7 @@ function startAudioCall() {
 function endAudioCall() {
   if (!isInCall) return;
   isInCall = false;
+  setVoiceButtonDisabled(false);
   if (VoiceAssistant && VoiceAssistant.stopContinuousListening) {
     VoiceAssistant.stopContinuousListening();
   }
@@ -1460,6 +1529,7 @@ async function startVideoCall() {
   destroyVideoCallSession();
 
   isInVideoCall = true;
+  setVoiceButtonDisabled(true);
   isVideoMuted = false;
   videoCallScreen.classList.add('active');
   if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
@@ -1582,6 +1652,7 @@ async function startVideoCall() {
 function endVideoCall() {
   if (!isInVideoCall && !anamClient) return;
   isInVideoCall = false;
+  setVoiceButtonDisabled(false);
   stopRingtone();
   playHangup();
 
