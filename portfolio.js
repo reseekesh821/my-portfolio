@@ -31,6 +31,9 @@
 // 1. Tabs (click + keyboard accessible)
 const tabs = document.querySelectorAll(".tabs li");
 const tabContents = document.querySelectorAll(".tab-content");
+// Session ID for Supabase logging (chat, tabs, quiz)
+// Must be declared before first tab activation to avoid TDZ errors.
+let chatSessionId = null;
 
 function setActiveTab(tabEl, { focus = false } = {}) {
   if (!tabEl) return;
@@ -1034,7 +1037,6 @@ let callRingTimeoutId = null;
 
 // Session ID for Supabase logging (chat, tabs, quiz)
 const CHAT_SESSION_STORAGE_KEY = 'portfolio-chat-session-id';
-let chatSessionId = null;
 
 (function initChatSessionId() {
   try {
