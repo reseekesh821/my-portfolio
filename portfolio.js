@@ -529,6 +529,7 @@ const VoiceAssistant = (function() {
   function handleCommand(text, forChat) {
     const t = text.toLowerCase().trim();
     const clean = t.replace(/[?!.,]/g, ' ');
+    const lower = clean.toLowerCase();
     const words = clean.split(/\s+/).filter(Boolean);
     const has = (w) => words.includes(w);
     const hasAny = (...ws) => ws.some((w) => words.includes(w));
@@ -551,13 +552,30 @@ const VoiceAssistant = (function() {
       return reply("Okay, I'll stop.");
     }
 
-    // Greetings — only handle locally for voice (so we speak something). In chat, let the LLM respond so the first message is interactive.
-    if (!forChat && (hasAny('hi','hello','hey','yo','sup') || clean.startsWith('good morning') || clean.startsWith('good afternoon') || clean.startsWith('good evening'))) {
-      return reply("Hiii. Ask me about Rishikesh, or try commands like play music, change color, or show projects.");
+    // Small-talk: answer these before greeting/about matchers.
+    // STT often captures "hello, how are you" as just "hello" or "hi are you".
+    const isHowAreYouIntent =
+      /\bhow\s+are\s+you\b/.test(lower) ||
+      /\bhow(?:'s| is)\s+it\s+going\b/.test(lower) ||
+      /\bwhat(?:'s| is)\s+up\b/.test(lower) ||
+      /\bhow\s+you\s+doin\b/.test(lower) ||
+      (has('are') && has('you') && (has('how') || has('hi') || has('hey') || has('hello')));
+    if (!forChat && isHowAreYouIntent) {
+      return reply("I'm doing well — how can I help?");
+    }
+
+    // Greetings — only handle for very short openers to avoid hijacking real questions.
+    const isGreetingIntent =
+      (hasAny('hi','hello','hey','yo','sup') && words.length <= 2) ||
+      lower.startsWith('good morning') ||
+      lower.startsWith('good afternoon') ||
+      lower.startsWith('good evening');
+    if (!forChat && isGreetingIntent) {
+      // Use "Hello" instead of "Hi" (avoids awkward "he"/"hi" pronunciations in some voices).
+      return reply("Hello! What can I help you with?");
     }
 
     // About Rishikesh — maximum forgiveness: catch every possible mishearing
-    const lower = clean.toLowerCase();
     const rishiLike = /rishi|rishikesh|rishy|reeshi|reishikesh|reshikesh|rish\s*ikesh|rish\s*kesh/i;
     const hasRishiAnywhere = rishiLike.test(lower) ||
       words.some((w) => /rishi|rishikesh|rishy|reeshi|resh/i.test(w)) ||
