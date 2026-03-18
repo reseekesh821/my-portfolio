@@ -468,6 +468,17 @@ const VoiceAssistant = (function() {
     }
   }
 
+  function speakBest(text) {
+    const t = String(text ?? '').trim();
+    if (!t) return;
+    // Try ElevenLabs first, fall back to browser TTS.
+    // (Don't block the UI; we only fall back if API fails.)
+    (async () => {
+      const ok = await speakViaApi(t);
+      if (!ok) speak(t);
+    })();
+  }
+
   function abortPendingAI() {
     if (activeVoiceAbort) {
       try { activeVoiceAbort.abort(); } catch (e) {}
@@ -522,7 +533,7 @@ const VoiceAssistant = (function() {
     const has = (w) => words.includes(w);
     const hasAny = (...ws) => ws.some((w) => words.includes(w));
     function reply(msg) {
-      if (!forChat) speak(msg);
+      if (!forChat) speakBest(msg);
       return forChat ? msg : true;
     }
 
@@ -570,10 +581,10 @@ const VoiceAssistant = (function() {
         return reply(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C, wind ${Math.round(lastWeather.wind)} km/h.`);
       }
       if (!forChat) {
-        speak("Checking the weather for Kathmandu. One moment.");
+        speakBest("Checking the weather for Kathmandu. One moment.");
         getWeather().then(() => {
-          if (lastWeather.temp != null) speak(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C.`);
-          else speak("Weather is unavailable right now.");
+          if (lastWeather.temp != null) speakBest(`In Kathmandu it's ${Math.round(lastWeather.temp)}°C.`);
+          else speakBest("Weather is unavailable right now.");
         });
       }
       return reply("Checking weather for Kathmandu…");
@@ -805,12 +816,12 @@ const VoiceAssistant = (function() {
       activeVoiceAbort = new AbortController();
       getAIResponse(transcript, { signal: activeVoiceAbort.signal })
         .then((reply) => {
-          if (reply) speak(reply);
+          if (reply) speakBest(reply);
         })
         .catch(() => {
           // If we intentionally aborted (e.g., user ended call), stay quiet.
           if (activeVoiceAbort && activeVoiceAbort.signal && activeVoiceAbort.signal.aborted) return;
-          speak("I didn't catch that. Try again or say help.");
+          speakBest("I didn't catch that. Try again or say help.");
         })
         .finally(() => {
           activeVoiceAbort = null;
@@ -819,7 +830,7 @@ const VoiceAssistant = (function() {
     };
 
     recognition.onnomatch = () => {
-      speak("I heard you but couldn't match it. Say help to hear options.");
+      speakBest("I heard you but couldn't match it. Say help to hear options.");
     };
 
     recognition.onerror = (e) => {
@@ -829,7 +840,7 @@ const VoiceAssistant = (function() {
 
       if (e.error === 'no-speech' && !noSpeechRetry) {
         noSpeechRetry = true;
-        speak("I didn't hear anything. Try again and speak right away.");
+        speakBest("I didn't hear anything. Try again and speak right away.");
         setTimeout(() => {
           if (!recognition) return;
           if (voiceStatus) {
@@ -853,7 +864,7 @@ const VoiceAssistant = (function() {
         // For network/other transient errors, keep the message generic
         msg = "I couldn't understand that. Please try again.";
       }
-      speak(msg);
+      speakBest(msg);
     };
 
     return recognition;
@@ -925,7 +936,7 @@ const VoiceAssistant = (function() {
 
   async function startListening() {
     if (!SpeechRecognition) {
-      speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
+      speakBest('Voice recognition is not supported in this browser. Try Chrome or Edge.');
       return;
     }
     // If the assistant is currently speaking, treat a mic-tap as an interrupt.
@@ -936,11 +947,11 @@ const VoiceAssistant = (function() {
     }
     // Don't mix voice assistant with calls/video calls
     if (typeof isInCall !== 'undefined' && isInCall) {
-      speak("You're in a call right now. End the call to use the voice assistant.");
+      speakBest("You're in a call right now. End the call to use the voice assistant.");
       return;
     }
     if (typeof isInVideoCall !== 'undefined' && isInVideoCall) {
-      speak("You're in a video call right now. End the video call to use the voice assistant.");
+      speakBest("You're in a video call right now. End the video call to use the voice assistant.");
       return;
     }
 
