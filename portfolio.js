@@ -431,9 +431,18 @@ const VoiceAssistant = (function() {
         body: JSON.stringify({ text: t }),
         signal: activeTtsAbort.signal
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        let detail = '';
+        try { detail = await res.text(); } catch (e) {}
+        console.warn('[TTS] /api/tts failed:', res.status, detail);
+        return false;
+      }
 
       const blob = await res.blob();
+      if (!blob || !blob.size) {
+        console.warn('[TTS] /api/tts returned empty audio');
+        return false;
+      }
       const url = URL.createObjectURL(blob);
       const audioEl = new Audio(url);
       activeTtsAudio = audioEl;
@@ -448,6 +457,8 @@ const VoiceAssistant = (function() {
       await audioEl.play();
       return true;
     } catch (e) {
+      // If TTS fails, the caller will fall back to browser speech.
+      console.warn('[TTS] speakViaApi error:', e);
       return false;
     } finally {
       activeTtsAbort = null;
