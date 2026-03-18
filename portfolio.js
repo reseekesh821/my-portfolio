@@ -396,11 +396,62 @@ const VoiceAssistant = (function() {
   let isRecognizing = false;
   let resumeRecognitionAfterSpeech = false;
   let activeVoiceAbort = null;
+  let activeTtsAudio = null;
+  let activeTtsAbort = null;
 
   function stopSpeaking() {
     if (!synth) return;
     synth.cancel();
     currentUtterance = null;
+    if (activeTtsAudio) {
+      try { activeTtsAudio.pause(); } catch (e) {}
+      activeTtsAudio = null;
+    }
+    if (activeTtsAbort) {
+      try { activeTtsAbort.abort(); } catch (e) {}
+      activeTtsAbort = null;
+    }
+  }
+
+  async function speakViaApi(text) {
+    const t = String(text ?? '').trim();
+    if (!t) return false;
+
+    stopSpeaking();
+
+    if (activeTtsAbort) {
+      try { activeTtsAbort.abort(); } catch (e) {}
+    }
+    activeTtsAbort = new AbortController();
+
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: t }),
+        signal: activeTtsAbort.signal
+      });
+      if (!res.ok) return false;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audioEl = new Audio(url);
+      activeTtsAudio = audioEl;
+
+      const cleanup = () => {
+        try { URL.revokeObjectURL(url); } catch (e) {}
+        if (activeTtsAudio === audioEl) activeTtsAudio = null;
+      };
+      audioEl.onended = cleanup;
+      audioEl.onerror = cleanup;
+
+      await audioEl.play();
+      return true;
+    } catch (e) {
+      return false;
+    } finally {
+      activeTtsAbort = null;
+    }
   }
 
   function abortPendingAI() {
@@ -619,6 +670,11 @@ const VoiceAssistant = (function() {
   let wasPlayingBeforeMic = false;
   let isCallListening = false;
   let ignoreRecognitionUntilMs = 0;
+  let callMode = 'normal'; // 'normal' | 'push_to_talk'
+  let callTurnActive = false;
+  let callTurnResolve = null;
+  let callTurnReject = null;
+  let callTurnTimeoutId = null;
 
   function getRecognition() {
     if (!SpeechRecognition) return null;
@@ -655,8 +711,9 @@ const VoiceAssistant = (function() {
         audio.play().catch(() => {});
       }
 
-      // During an active call, keep recognition running so the user can speak naturally
-      if (isCallListening && typeof isInCall !== 'undefined' && isInCall) {
+      // During an active call, keep recognition running only for continuous call mode.
+      // In push-to-talk, we stop after each utterance.
+      if (isCallListening && callMode !== 'push_to_talk' && typeof isInCall !== 'undefined' && isInCall) {
         try {
           recognition.start();
         } catch (e) {
@@ -707,6 +764,21 @@ const VoiceAssistant = (function() {
 
       // 1) Try command handler first so voice commands stay in control
       if (handleCommand(transcript)) return;
+
+      // Push-to-talk call mode: resolve the captured utterance and do NOT auto-run AI here.
+      // The call controller will send it to AI and speak the reply, then wait for the next turn.
+      if (callMode === 'push_to_talk' && callTurnActive) {
+        callTurnActive = false;
+        if (callTurnTimeoutId) {
+          clearTimeout(callTurnTimeoutId);
+          callTurnTimeoutId = null;
+        }
+        const r = callTurnResolve;
+        callTurnResolve = null;
+        callTurnReject = null;
+        if (r) r(transcript);
+        return;
+      }
 
       // 2) If no command matched, fall back to AI chatbot and speak its reply
       if (voiceStatus) {
@@ -775,6 +847,7 @@ const VoiceAssistant = (function() {
 
   function beginContinuousListening() {
     isCallListening = true;
+    callMode = 'normal';
     const rec = getRecognition();
     if (!rec) return;
     try {
@@ -792,6 +865,40 @@ const VoiceAssistant = (function() {
     } catch (e) {
       // Ignore if already stopped
     }
+  }
+
+  function setCallMode(mode) {
+    callMode = mode === 'push_to_talk' ? 'push_to_talk' : 'normal';
+  }
+
+  function listenOnceForCall({ timeoutMs = 9000 } = {}) {
+    const rec = getRecognition();
+    if (!rec) return Promise.reject(new Error('SpeechRecognition not supported'));
+    if (typeof isInCall !== 'undefined' && !isInCall) return Promise.reject(new Error('Not in call'));
+    if (callMode !== 'push_to_talk') return Promise.reject(new Error('Call mode is not push-to-talk'));
+
+    // Cancel any previous call turn cleanly
+    if (callTurnActive && callTurnReject) {
+      try { callTurnReject(new Error('Cancelled')); } catch (e) {}
+    }
+    callTurnActive = true;
+
+    return new Promise((resolve, reject) => {
+      callTurnResolve = resolve;
+      callTurnReject = reject;
+
+      if (callTurnTimeoutId) clearTimeout(callTurnTimeoutId);
+      callTurnTimeoutId = setTimeout(() => {
+        callTurnTimeoutId = null;
+        callTurnActive = false;
+        callTurnResolve = null;
+        callTurnReject = null;
+        reject(new Error('timeout'));
+        try { rec.stop(); } catch (e) {}
+      }, timeoutMs);
+
+      try { rec.start(); } catch (e) {}
+    });
   }
 
   function hardStop() {
@@ -861,7 +968,7 @@ const VoiceAssistant = (function() {
     });
   }
 
-  return { speak, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening, hardStop };
+  return { speak, speakViaApi, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening, hardStop, setCallMode, listenOnceForCall };
 })();
 
 
@@ -1514,12 +1621,12 @@ function startAudioCall() {
     if (callRecordBtn) {
       callRecordBtn.disabled = false;
       callRecordBtn.classList.remove('recording', 'muted');
-      callRecordBtn.textContent = 'Mute';
-      callRecordBtn.setAttribute('aria-label', 'Mute microphone');
+      callRecordBtn.textContent = 'Talk';
+      callRecordBtn.setAttribute('aria-label', 'Talk (push to talk)');
     }
     isMuted = false;
-    // Start listening for the user. The assistant will pause listening while it speaks.
-    if (VoiceAssistant && VoiceAssistant.beginContinuousListening) VoiceAssistant.beginContinuousListening();
+    // Use push-to-talk during calls for a smooth "messenger call" feel (prevents self-feedback loops).
+    if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode('push_to_talk');
     VoiceAssistant.speak("Hello. How can I help you today?");
   }, 9000);
 
@@ -1530,22 +1637,33 @@ function startAudioCall() {
   if (callRecordBtn && !callRecordBtn.__bound) {
     callRecordBtn.addEventListener('click', () => {
       if (!isInCall || callRecordBtn.disabled) return;
-      isMuted = !isMuted;
-      if (isMuted) {
-        if (VoiceAssistant && VoiceAssistant.stopContinuousListening) {
-          VoiceAssistant.stopContinuousListening();
-        }
-        callRecordBtn.classList.add('muted');
-        callRecordBtn.textContent = 'Unmute';
-        callRecordBtn.setAttribute('aria-label', 'Unmute microphone');
-      } else {
-        if (VoiceAssistant && VoiceAssistant.beginContinuousListening) {
-          VoiceAssistant.beginContinuousListening();
-        }
-        callRecordBtn.classList.remove('muted');
-        callRecordBtn.textContent = 'Mute';
-        callRecordBtn.setAttribute('aria-label', 'Mute microphone');
-      }
+      if (isMuted) return;
+      if (!VoiceAssistant || !VoiceAssistant.listenOnceForCall) return;
+
+      callRecordBtn.classList.add('recording');
+      callRecordBtn.textContent = 'Listening…';
+      callRecordBtn.setAttribute('aria-label', 'Listening…');
+
+      VoiceAssistant.listenOnceForCall({ timeoutMs: 10000 })
+        .then(async (transcript) => {
+          if (!isInCall) return;
+          const text = (transcript || '').trim();
+          if (!text) return;
+          // Feed it through the same AI pipeline used by chat, then speak the reply.
+          const reply = await getAIResponse(text);
+          if (!reply) return;
+          const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(reply) : false;
+          if (!ok) VoiceAssistant.speak(reply);
+        })
+        .catch(() => {
+          // timeout/cancel/no-speech: stay quiet
+        })
+        .finally(() => {
+          if (!callRecordBtn) return;
+          callRecordBtn.classList.remove('recording');
+          callRecordBtn.textContent = 'Talk';
+          callRecordBtn.setAttribute('aria-label', 'Talk (push to talk)');
+        });
     });
     callRecordBtn.__bound = true;
   }
