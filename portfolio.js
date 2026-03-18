@@ -1640,7 +1640,11 @@ function startAudioCall() {
     isMuted = false;
     // Use push-to-talk during calls for a smooth "messenger call" feel (prevents self-feedback loops).
     if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode('push_to_talk');
-    VoiceAssistant.speak("Hello. How can I help you today?");
+    (async () => {
+      const greet = "Hello. How can I help you today?";
+      const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(greet) : false;
+      if (!ok) VoiceAssistant.speak(greet);
+    })();
   }, 9000);
 
   if (callRecordBtn) {
