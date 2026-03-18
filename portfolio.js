@@ -414,10 +414,20 @@ const VoiceAssistant = (function() {
     if (!synth) return;
     stopSpeaking();
 
+    // Help reduce "assistant hears itself" loops, but still allow the user to say "stop"
+    // mid-sentence (so we do NOT fully stop recognition here).
+    if (typeof ignoreRecognitionUntilMs !== 'undefined') {
+      ignoreRecognitionUntilMs = Date.now() + 250;
+    }
+    resumeRecognitionAfterSpeech = false;
+
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95;
     u.pitch = 1;
     u.onend = () => {
+      currentUtterance = null;
+    };
+    u.onerror = () => {
       currentUtterance = null;
     };
     currentUtterance = u;
@@ -797,6 +807,12 @@ const VoiceAssistant = (function() {
       speak('Voice recognition is not supported in this browser. Try Chrome or Edge.');
       return;
     }
+    // If the assistant is currently speaking, treat a mic-tap as an interrupt.
+    if (synth && (synth.speaking || synth.pending)) {
+      stopSpeaking();
+      if (typeof ignoreRecognitionUntilMs !== 'undefined') ignoreRecognitionUntilMs = Date.now() + 600;
+      return;
+    }
     // Don't mix voice assistant with calls/video calls
     if (typeof isInCall !== 'undefined' && isInCall) {
       speak("You're in a call right now. End the call to use the voice assistant.");
@@ -824,6 +840,15 @@ const VoiceAssistant = (function() {
   if (voiceBtn) {
     voiceBtn.addEventListener('click', startListening);
   }
+
+  // ESC can always stop speech (useful if the assistant is being verbose)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (synth && (synth.speaking || synth.pending)) {
+      stopSpeaking();
+      if (typeof ignoreRecognitionUntilMs !== 'undefined') ignoreRecognitionUntilMs = Date.now() + 600;
+    }
+  });
 
   const helpBtn = document.getElementById('voice-help-btn');
   const commandsPanel = document.getElementById('voice-commands-panel');
@@ -1793,9 +1818,13 @@ async function getAIResponse(userMessage, { signal } = {}) {
 function addMessage(text, className) {
   const div = document.createElement('div');
   div.classList.add('message', className);
-  
-  // Use innerHTML to make links clickable and allow bold text
-  div.innerHTML = text; 
+
+  // Prevent HTML injection (XSS). Only allow limited markup for bot messages.
+  if (className === 'bot-message') {
+    div.innerHTML = sanitizeBotHtml(text);
+  } else {
+    div.textContent = String(text ?? '');
+  }
 
   if (quickRepliesContainer && chatMessages.contains(quickRepliesContainer)) {
     chatMessages.insertBefore(div, quickRepliesContainer);
@@ -1804,6 +1833,79 @@ function addMessage(text, className) {
   }
   
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sanitizeBotHtml(input) {
+  const html = String(input ?? '');
+  // Fast path: no tags -> safe as text
+  if (!/[<>]/.test(html)) return escapeHtmlForChat(html);
+
+  const allowedTags = new Set(['A', 'BR', 'STRONG', 'EM', 'B', 'I', 'CODE']);
+  const allowedAttrs = {
+    A: new Set(['href', 'target', 'rel'])
+  };
+
+  const template = document.createElement('template');
+  template.innerHTML = html;
+
+  const sanitizeNode = (node) => {
+    // Text nodes are safe
+    if (node.nodeType === Node.TEXT_NODE) return;
+
+    // Remove comments/processing instructions/etc.
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      node.remove();
+      return;
+    }
+
+    const el = node;
+    const tag = el.tagName;
+
+    if (!allowedTags.has(tag)) {
+      // Replace unknown elements with their text content (preserve readable output)
+      const text = document.createTextNode(el.textContent || '');
+      el.replaceWith(text);
+      return;
+    }
+
+    // Strip all attributes except a small whitelist
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      const tagAllowed = allowedAttrs[tag] || new Set();
+      if (!tagAllowed.has(name)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+
+    // Special handling for links: enforce safe target/rel and block javascript: URLs
+    if (tag === 'A') {
+      const href = (el.getAttribute('href') || '').trim();
+      const isSafeHref =
+        href.startsWith('https://') ||
+        href.startsWith('http://') ||
+        href.startsWith('mailto:') ||
+        href.startsWith('/');
+      if (!isSafeHref) {
+        el.replaceWith(document.createTextNode(el.textContent || ''));
+        return;
+      }
+      if (el.getAttribute('target') === '_blank') {
+        el.setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+
+    // Recurse into children (copy list first because we may replace nodes)
+    for (const child of Array.from(el.childNodes)) sanitizeNode(child);
+  };
+
+  for (const child of Array.from(template.content.childNodes)) sanitizeNode(child);
+  return template.innerHTML;
+}
+
+function escapeHtmlForChat(text) {
+  const div = document.createElement('div');
+  div.textContent = String(text ?? '');
+  return div.innerHTML;
 }
 
 function showTyping() {
