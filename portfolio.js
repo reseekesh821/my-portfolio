@@ -19,13 +19,23 @@
   var saved = getStored();
   if (saved === 'light') applyTheme('light');
 
+  function syncThemeToggleAria() {
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    var isLight = html.getAttribute('data-theme') === 'light';
+    btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+    btn.setAttribute('title', isLight ? 'Dark mode' : 'Light mode');
+  }
+
   var btn = document.getElementById('theme-toggle');
   if (btn) {
     btn.addEventListener('click', function() {
       var isLight = html.getAttribute('data-theme') === 'light';
       applyTheme(isLight ? 'dark' : 'light');
+      syncThemeToggleAria();
     });
   }
+  syncThemeToggleAria();
 })();
 
 // 1. Tabs (click + keyboard accessible)
@@ -228,9 +238,17 @@ function togglePlay() {
     playIcon.innerText = "⏸";
     isPlaying = true;
   }
+  if (playBtn) {
+    playBtn.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+    playBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+  }
 }
 
-playBtn.addEventListener('click', togglePlay);
+if (playBtn) {
+  playBtn.setAttribute('aria-pressed', 'false');
+  playBtn.setAttribute('aria-label', 'Play');
+  playBtn.addEventListener('click', togglePlay);
+}
 
 audio.addEventListener('timeupdate', (e) => {
   const { duration, currentTime } = e.srcElement;
@@ -261,6 +279,10 @@ audio.addEventListener('ended', () => {
   isPlaying = false;
   playIcon.innerText = "▶";
   progress.style.width = "0%";
+  if (playBtn) {
+    playBtn.setAttribute('aria-pressed', 'false');
+    playBtn.setAttribute('aria-label', 'Play');
+  }
 });
 
 
@@ -1263,18 +1285,24 @@ let conversationHistory = [
 ];
 
 // --- d. EVENT LISTENERS ---
+function setChatFabLabels(open) {
+  if (!chatToggle) return;
+  chatToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  chatToggle.setAttribute('aria-label', open ? 'Close chat' : 'Open chat');
+}
+
 if (chatToggle) {
   chatToggle.addEventListener('click', () => {
     const willOpen = !chatBox.classList.contains('open');
     chatBox.classList.toggle('open');
-    chatToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    setChatFabLabels(willOpen);
     if (willOpen && userInput) setTimeout(() => userInput.focus(), 0);
   });
 }
 if (closeChat) {
   closeChat.addEventListener('click', () => {
     chatBox.classList.remove('open');
-    if (chatToggle) chatToggle.setAttribute('aria-expanded', 'false');
+    setChatFabLabels(false);
     if (chatToggle) chatToggle.focus();
   });
 }
@@ -1293,7 +1321,7 @@ document.addEventListener('keydown', (e) => {
   if (!chatBox || !chatToggle) return;
   if (!chatBox.classList.contains('open')) return;
   chatBox.classList.remove('open');
-  chatToggle.setAttribute('aria-expanded', 'false');
+  setChatFabLabels(false);
   chatToggle.focus();
 });
 
