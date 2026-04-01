@@ -104,7 +104,6 @@ const initialActive = document.querySelector(".tabs li.active") || tabs[0];
 if (initialActive) setActiveTab(initialActive);
 
 // 1b. News (fetch when News tab is opened)
-let newsLoadedOnce = false;
 
 async function fetchNews() {
   const listEl = document.getElementById("news-list");
@@ -148,7 +147,6 @@ async function fetchNews() {
       )
       .join("");
     listEl.setAttribute("aria-busy", "false");
-    newsLoadedOnce = true;
   } catch (err) {
     console.error("fetchNews error:", err);
     listEl.innerHTML = "<p class=\"news-error\">Could not load news. Check your connection.</p>";
@@ -950,7 +948,9 @@ const VoiceAssistant = (function() {
   function listenOnceForCall({ timeoutMs = 9000 } = {}) {
     const rec = getRecognition();
     if (!rec) return Promise.reject(new Error('SpeechRecognition not supported'));
-    if (typeof isInCall !== 'undefined' && !isInCall) return Promise.reject(new Error('Not in call'));
+    if (typeof isInCall !== 'undefined' && typeof isInVideoCall !== 'undefined' && !isInCall && !isInVideoCall) {
+      return Promise.reject(new Error('Not in call'));
+    }
     if (callMode !== 'push_to_talk') return Promise.reject(new Error('Call mode is not push-to-talk'));
 
     // Cancel any previous call turn cleanly
@@ -1074,10 +1074,10 @@ const voiceStatus = document.getElementById('voice-status');
 const videoCallScreen = document.getElementById('video-call-screen');
 const videoCallConnecting = document.getElementById('video-call-connecting');
 const videoCallFrame = document.getElementById('video-call-frame');
+const videoCallTalkBtn = document.getElementById('video-call-talk-btn');
 const videoCallEndBtn = document.getElementById('video-call-end-btn');
 const videoCallMuteBtn = document.getElementById('video-call-mute-btn');
 const videoCallStatus = document.getElementById('video-call-status');
-const videoCallActions = document.getElementById('video-call-actions');
 let anamClient = null;
 let anamSdk = null;
 let isVideoMuted = false;
@@ -1089,7 +1089,6 @@ let isCoolingDown = false;
 let isInCall = false;
 let callTimerInterval = null;
 let callStartTime = null;
-let isMuted = false;
 let isInVideoCall = false;
 const RINGTONE_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/standardringtone.mp3';
 const HANGUP_URL = 'https://raw.githubusercontent.com/reseekesh821/music/main/freesound_community-mobile_phone_hanging_up-94525.mp3';
@@ -1583,6 +1582,9 @@ function initChatPresence() {
       endVideoCall();
     });
   }
+  if (videoCallTalkBtn) {
+    videoCallTalkBtn.addEventListener('click', handleVideoCallTalk);
+  }
   if (videoCallMuteBtn) {
     videoCallMuteBtn.addEventListener('click', () => {
       if (!isInVideoCall || !anamClient) return;
@@ -1650,28 +1652,12 @@ function getEffectiveSearchProvider(query, provider) {
   return chooseSearchProvider(query);
 }
 
-function getSearchProviderLabel(provider) {
-  switch (String(provider || '').trim().toLowerCase()) {
-    case 'amazon':
-      return 'Amazon';
-    case 'bestbuy':
-      return 'Best Buy';
-    case 'ebay':
-      return 'eBay';
-    case 'youtube':
-      return 'YouTube';
-    case 'google':
-    default:
-      return 'Google';
-  }
-}
-
 function chooseSearchProvider(query) {
   const cleanQuery = normalizeSearchQuery(query);
   if (!cleanQuery) return false;
   const q = cleanQuery.toLowerCase();
 
-  if (/(review|reviews|unboxing|hands on|vs|comparison|compare|tutorial|how to|demo|watch)/.test(q)) {
+  if (/(review|reviews|unboxing|hands on|vs|comparison|compare|tutorial|how to|demo|watch|video|videos|youtube|trailer|song|songs|music video|lyrics|interview|live performance|performance|clip)/.test(q)) {
     return 'youtube';
   }
   if (/(used|second hand|second-hand|refurbished|vintage|collectible|rare)/.test(q)) {
@@ -1698,6 +1684,11 @@ function openExternalLink(url) {
   return !!opened;
 }
 
+function isBlockedAdultQuery(value) {
+  const t = String(value || '').toLowerCase();
+  return /(porn|porno|pornhub|xvideos|xnxx|sex video|adult video|adult site|nude|nudes|nsfw|xxx|explicit sex|erotic)/.test(t);
+}
+
 function finalizeAgentResult(result) {
   const safeResult = result && typeof result === 'object'
     ? result
@@ -1708,13 +1699,33 @@ function finalizeAgentResult(result) {
       : {};
   let safeReply = String(safeResult.reply || '').trim();
 
+  if (
+    (safeResult.action === 'open_search_tab' && isBlockedAdultQuery(safeParams.query)) ||
+    (safeResult.action === 'open_external_link' && isBlockedAdultQuery(safeParams.url))
+  ) {
+    return {
+      reply: "Sorry, I can't help open adult content or porn sites.",
+      action: 'reply_only',
+      params: {}
+    };
+  }
+
   if (safeResult.action === 'open_search_tab') {
     const query = normalizeSearchQuery(safeParams.query);
     const provider = getEffectiveSearchProvider(query, safeParams.provider);
     safeParams.provider = provider;
     if (query && (!safeReply || /opening search results/i.test(safeReply) || /opening results/i.test(safeReply))) {
-      safeReply = `Checking ${query} for you.`;
+      if (provider === 'youtube') safeReply = `Pulling up videos for ${query}.`;
+      else safeReply = `Checking ${query} for you.`;
     }
+  }
+
+  if (safeResult.action === 'play_music' && !safeReply) {
+    safeReply = 'Playing music.';
+  }
+
+  if (safeResult.action === 'pause_music' && !safeReply) {
+    safeReply = 'Pausing the music.';
   }
 
   return {
@@ -1771,10 +1782,6 @@ function executeAgentAction(action, params = {}) {
       return true;
     case 'end_video_call':
       endVideoCall();
-      return true;
-    case 'fetch_news':
-      switchTab('news');
-      fetchNews();
       return true;
     default:
       return false;
@@ -1836,6 +1843,35 @@ function setVoiceButtonDisabled(disabled) {
   }
 }
 
+function handleVideoCallTalk() {
+  if (!isInVideoCall || !videoCallTalkBtn || videoCallTalkBtn.disabled) return;
+  if (!VoiceAssistant || !VoiceAssistant.listenOnceForCall) return;
+
+  videoCallTalkBtn.classList.add('recording');
+  videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
+  videoCallTalkBtn.setAttribute('aria-label', 'Listening during video call');
+
+  VoiceAssistant.listenOnceForCall({ timeoutMs: 10000 })
+    .then(async (transcript) => {
+      if (!isInVideoCall) return;
+      const text = (transcript || '').trim();
+      if (!text) return;
+      const result = runAgentResult(await getAIResponse(text));
+      if (!result.reply) return;
+      const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
+      if (!ok) VoiceAssistant.speak(result.reply);
+    })
+    .catch(() => {
+      // timeout/cancel/no-speech: stay quiet
+    })
+    .finally(() => {
+      if (!videoCallTalkBtn) return;
+      videoCallTalkBtn.classList.remove('recording');
+      videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+      videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
+    });
+}
+
 function startAudioCall() {
   if (!VoiceAssistant || isInCall || !callScreen || !callStatusText || !callTimerEl) return;
   isInCall = true;
@@ -1880,7 +1916,6 @@ function startAudioCall() {
       callRecordBtn.textContent = 'Talk';
       callRecordBtn.setAttribute('aria-label', 'Talk (push to talk)');
     }
-    isMuted = false;
     // Use push-to-talk during calls for a smooth "messenger call" feel (prevents self-feedback loops).
     if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode('push_to_talk');
     (async () => {
@@ -1897,7 +1932,6 @@ function startAudioCall() {
   if (callRecordBtn && !callRecordBtn.__bound) {
     callRecordBtn.addEventListener('click', () => {
       if (!isInCall || callRecordBtn.disabled) return;
-      if (isMuted) return;
       if (!VoiceAssistant || !VoiceAssistant.listenOnceForCall) return;
 
       callRecordBtn.classList.add('recording');
@@ -2013,6 +2047,12 @@ async function startVideoCall() {
     videoCallMuteBtn.classList.remove('muted');
     videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
   }
+  if (videoCallTalkBtn) {
+    videoCallTalkBtn.disabled = false;
+    videoCallTalkBtn.classList.remove('recording');
+    videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+    videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
+  }
 
   if (chatMessages) chatMessages.style.display = 'none';
   if (typingIndicator) typingIndicator.style.display = 'none';
@@ -2048,6 +2088,7 @@ async function startVideoCall() {
 
     stopRingtone();
     if (videoCallStatus) videoCallStatus.textContent = 'Connecting...';
+    if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode('push_to_talk');
 
     // 2) Load Anam SDK in-browser (no bundler required)
     if (!anamSdk) {
@@ -2138,6 +2179,12 @@ function endVideoCall() {
   if (videoCallMuteBtn) {
     videoCallMuteBtn.classList.remove('muted');
     videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+  }
+  if (videoCallTalkBtn) {
+    videoCallTalkBtn.disabled = true;
+    videoCallTalkBtn.classList.remove('recording');
+    videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+    videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
   }
 
   if (chatMessages) chatMessages.style.display = 'flex';

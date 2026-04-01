@@ -72,6 +72,11 @@ export default async function handler(req, res) {
       return topics.find((topic) => t.includes(topic)) || "";
     }
 
+    function containsBlockedAdultIntent(text) {
+      const t = String(text || "").toLowerCase();
+      return /\b(porn|porno|pornhub|xvideos|xnxx|sex video|adult video|adult site|nude|nudes|nsfw|xxx|explicit sex|erotic)\b/.test(t);
+    }
+
     const baseMessages = [...messages];
     const firstMessage = baseMessages[0];
     const remainingMessages =
@@ -87,11 +92,15 @@ export default async function handler(req, res) {
         "Return this exact shape: " +
         '{"reply":"short natural reply for the user","action":"reply_only | switch_tab | open_search_tab | open_external_link | play_music | pause_music | start_audio_call | end_audio_call | start_video_call | end_video_call | fetch_news","params":{}}. ' +
         "Rules: " +
-        "1) Only use action open_search_tab when the user clearly wants to search or shop right now, or after enough details have been provided in the conversation. " +
+        "1) You may use action open_search_tab for general web requests too, not only shopping. If the user wants to search the internet, look something up, open web results, open videos, reviews, tutorials, trailers, or find information online, you can use open_search_tab with a clean params.query. " +
+        "Only use action open_search_tab for shopping when the user clearly wants to search or shop right now, or after enough details have been provided in the conversation. " +
         "If the user is still asking exploratory questions like which is best, what do you recommend, help me choose, or they have not yet shared important details like budget/use case, stay in reply_only and ask a short follow-up question instead of opening a search. " +
         "If the user later provides a concrete budget, price range, model, or shopping intent, then you may use open_search_tab with params.query. " +
         "For open_search_tab, also include params.provider when helpful. Allowed providers are google, amazon, bestbuy, ebay, youtube. " +
-        "Use amazon for general shopping/product intent, bestbuy for electronics/phones/laptops/tvs/accessories, ebay for used/collectible items, youtube for videos/reviews/tutorials, and google when unsure. " +
+        "Use amazon for general shopping/product intent, bestbuy for electronics/phones/laptops/tvs/accessories, ebay for used/collectible items, youtube for videos/reviews/tutorials/trailers/music videos, and google for broad web/information searches or when unsure. " +
+        "If the user asks to open YouTube, show YouTube videos, search YouTube, watch a trailer, watch reviews, tutorials, songs, or videos about a topic, use open_search_tab with params.provider set to youtube. " +
+        "If the user asks to play music in the site/player without asking for a specific external song/video search, use play_music. If they ask to pause or stop the music, use pause_music. " +
+        "If the user asks for adult content, porn, explicit sexual material, or adult websites, do not open anything. Use reply_only with a short refusal like sorry I can't help with that. " +
         "2) If the user wants a portfolio section, use switch_tab with params.target equal to one of intro, projects, education, hometown, favorites, games, news, contact. " +
         "3) If the user wants resume, LinkedIn, or GitHub, use open_external_link with params.url and a short reply. " +
         "4) For normal conversation or questions, use reply_only. " +
@@ -195,6 +204,11 @@ export default async function handler(req, res) {
       safeAction = "open_search_tab";
       safeParams.query = `${topic} under ${budget}`;
       safeReply = `Checking ${topic} options around $${budget} for you.`;
+    }
+
+    if (containsBlockedAdultIntent(lastUserMessage)) {
+      safeAction = "reply_only";
+      safeReply = "Sorry, I can't help open adult content or porn sites.";
     }
 
     return res.status(200).json({
