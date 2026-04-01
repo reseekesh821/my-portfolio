@@ -856,8 +856,7 @@ const VoiceAssistant = (function() {
       activeVoiceAbort = new AbortController();
       getAIResponse(transcript, { signal: activeVoiceAbort.signal })
         .then((result) => {
-          const finalResult = finalizeAgentResult(result);
-          executeAgentAction(finalResult.action, finalResult.params);
+          const finalResult = runAgentResult(result);
           if (finalResult.reply) speakBest(finalResult.reply);
         })
         .catch(() => {
@@ -1520,9 +1519,8 @@ async function sendMessage() {
   }
 
   showTyping();
-  const result = finalizeAgentResult(await getAIResponse(text));
+  const result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
   hideTyping();
-  executeAgentAction(result.action, result.params);
   addMessage(result.reply, 'bot-message');
   logChatMessage('assistant', result.reply);
 
@@ -1703,7 +1701,7 @@ function finalizeAgentResult(result) {
     const provider = getEffectiveSearchProvider(query, safeParams.provider);
     safeParams.provider = provider;
     if (query && (!safeReply || /opening search results/i.test(safeReply) || /opening results/i.test(safeReply))) {
-      safeReply = `Opening ${getSearchProviderLabel(provider)} results for ${query}.`;
+      safeReply = `Searching the web for ${query}.`;
     }
   }
 
@@ -1712,6 +1710,23 @@ function finalizeAgentResult(result) {
     action: safeResult.action || 'reply_only',
     params: safeParams
   };
+}
+
+function shouldDelayAgentAction(action) {
+  return action === 'open_search_tab' || action === 'open_external_link';
+}
+
+function runAgentResult(result, { deferVisualActions = false } = {}) {
+  const finalResult = finalizeAgentResult(result);
+  const runAction = () => executeAgentAction(finalResult.action, finalResult.params);
+
+  if (deferVisualActions && shouldDelayAgentAction(finalResult.action)) {
+    setTimeout(runAction, 900);
+  } else {
+    runAction();
+  }
+
+  return finalResult;
 }
 
 function executeAgentAction(action, params = {}) {
@@ -1883,8 +1898,7 @@ function startAudioCall() {
           const text = (transcript || '').trim();
           if (!text) return;
           // Feed it through the same AI pipeline used by chat, then speak the reply.
-          const result = finalizeAgentResult(await getAIResponse(text));
-          executeAgentAction(result.action, result.params);
+          const result = runAgentResult(await getAIResponse(text));
           if (!result.reply) return;
           const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
           if (!ok) VoiceAssistant.speak(result.reply);
