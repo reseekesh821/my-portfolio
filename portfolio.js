@@ -1476,31 +1476,11 @@ function looksLikePortfolioCommand(input) {
   return colorIntent || musicIntent || callIntent || navIntent || helpIntent;
 }
 
-function looksLikeShoppingSearch(input) {
-  const t = String(input || '').toLowerCase().trim();
-  if (!t) return false;
-  if (looksLikePortfolioCommand(t)) return false;
-
-  return (
-    /\b(buy|shop|shopping|order|price|deal|deals|find|search|look up|lookup)\b/.test(t) ||
-    /\b(iphone|phone|smartphone|laptop|macbook|ipad|tablet|monitor|tv|television|headphones|earbuds|camera|keyboard|mouse|gpu|graphics card|pc|computer|console|playstation|xbox|nintendo|printer|router|ssd|charger|shoes|sneakers|watch)\b/.test(t)
-  );
-}
-
 async function sendMessage() {
   if (isCoolingDown) return;
 
   const text = userInput.value.trim();
   if (!text) return;
-
-  let pendingSearchWindow = null;
-  if (looksLikeShoppingSearch(text)) {
-    try {
-      pendingSearchWindow = window.open('', '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      pendingSearchWindow = null;
-    }
-  }
 
   isCoolingDown = true;
   sendBtn.disabled = true;
@@ -1540,8 +1520,7 @@ async function sendMessage() {
 
   showTyping();
   const result = runAgentResult(await getAIResponse(text), {
-    deferVisualActions: true,
-    pendingWindow: pendingSearchWindow
+    deferVisualActions: true
   });
   hideTyping();
   addMessage(result.reply, 'bot-message');
@@ -1694,19 +1673,10 @@ function chooseSearchProvider(query) {
   return 'amazon';
 }
 
-function openSearchTab(query, provider, targetWindow = null) {
+function openSearchTab(query, provider) {
   const effectiveProvider = getEffectiveSearchProvider(query, provider);
   const url = buildSearchUrl(query, effectiveProvider);
   if (!url) return false;
-  if (targetWindow && !targetWindow.closed) {
-    try {
-      targetWindow.location.replace(url);
-      targetWindow.focus();
-      return true;
-    } catch (e) {
-      // Fall back to opening a fresh tab.
-    }
-  }
   const opened = window.open(url, '_blank', 'noopener,noreferrer');
   return !!opened;
 }
@@ -1733,7 +1703,7 @@ function finalizeAgentResult(result) {
     const provider = getEffectiveSearchProvider(query, safeParams.provider);
     safeParams.provider = provider;
     if (query && (!safeReply || /opening search results/i.test(safeReply) || /opening results/i.test(safeReply))) {
-      safeReply = `Searching the web for ${query}.`;
+      safeReply = `Checking ${query} for you.`;
     }
   }
 
@@ -1748,15 +1718,9 @@ function shouldDelayAgentAction(action) {
   return action === 'open_search_tab' || action === 'open_external_link';
 }
 
-function runAgentResult(result, { deferVisualActions = false, pendingWindow = null } = {}) {
+function runAgentResult(result, { deferVisualActions = false } = {}) {
   const finalResult = finalizeAgentResult(result);
-  const runAction = () => executeAgentAction(finalResult.action, finalResult.params, pendingWindow);
-
-  if (pendingWindow && !shouldDelayAgentAction(finalResult.action)) {
-    try {
-      if (!pendingWindow.closed) pendingWindow.close();
-    } catch (e) {}
-  }
+  const runAction = () => executeAgentAction(finalResult.action, finalResult.params);
 
   if (deferVisualActions && shouldDelayAgentAction(finalResult.action)) {
     setTimeout(runAction, 900);
@@ -1767,14 +1731,14 @@ function runAgentResult(result, { deferVisualActions = false, pendingWindow = nu
   return finalResult;
 }
 
-function executeAgentAction(action, params = {}, pendingWindow = null) {
+function executeAgentAction(action, params = {}) {
   switch (action) {
     case 'reply_only':
       return true;
     case 'switch_tab':
       return switchTab(String(params.target || '').toLowerCase());
     case 'open_search_tab':
-      return openSearchTab(params.query, params.provider, pendingWindow);
+      return openSearchTab(params.query, params.provider);
     case 'open_external_link': {
       const key = String(params.url || '').trim().toLowerCase();
       const resolvedUrl = AGENT_EXTERNAL_LINKS[key] || params.url;
