@@ -1856,7 +1856,7 @@ function handleVideoCallTalk() {
       if (!isInVideoCall) return;
       const text = (transcript || '').trim();
       if (!text) return;
-      const result = runAgentResult(await getAIResponse(text));
+      const result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
       if (!result.reply) return;
       const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
       if (!ok) VoiceAssistant.speak(result.reply);
@@ -2045,12 +2045,12 @@ async function startVideoCall() {
   if (videoCallEndBtn) videoCallEndBtn.disabled = false;
   if (videoCallMuteBtn) {
     videoCallMuteBtn.classList.remove('muted');
-    videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+    videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
   }
   if (videoCallTalkBtn) {
     videoCallTalkBtn.disabled = false;
     videoCallTalkBtn.classList.remove('recording');
-    videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+    videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
     videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
   }
 
