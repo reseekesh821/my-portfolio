@@ -36,6 +36,42 @@ export default async function handler(req, res) {
       );
     }
 
+    function extractBudget(text) {
+      const t = String(text || "").toLowerCase();
+      const underMatch = t.match(/\bunder\s+\$?(\d{3,5})\b/);
+      if (underMatch) return underMatch[1];
+      const directMatch = t.match(/\b(\d{3,5})\b/);
+      return directMatch ? directMatch[1] : "";
+    }
+
+    function extractShoppingTopic(text) {
+      const t = String(text || "").toLowerCase();
+      const topics = [
+        "laptop",
+        "iphone",
+        "phone",
+        "smartphone",
+        "macbook",
+        "ipad",
+        "tablet",
+        "monitor",
+        "tv",
+        "headphones",
+        "earbuds",
+        "camera",
+        "keyboard",
+        "mouse",
+        "printer",
+        "router",
+        "ssd",
+        "charger",
+        "shoes",
+        "sneakers",
+        "watch"
+      ];
+      return topics.find((topic) => t.includes(topic)) || "";
+    }
+
     const baseMessages = [...messages];
     const firstMessage = baseMessages[0];
     const remainingMessages =
@@ -130,7 +166,7 @@ export default async function handler(req, res) {
     const previousUserMessage = userMessages[userMessages.length - 2]?.content || "";
 
     let safeAction = allowedActions.has(parsed?.action) ? parsed.action : "reply_only";
-    const safeReply =
+    let safeReply =
       typeof parsed?.reply === "string" && parsed.reply.trim()
         ? parsed.reply.trim()
         : "I'm not sure, but I can still help.";
@@ -138,6 +174,9 @@ export default async function handler(req, res) {
       parsed?.params && typeof parsed.params === "object" && !Array.isArray(parsed.params)
         ? parsed.params
         : {};
+    const budget = extractBudget(lastUserMessage);
+    const previousTopic = extractShoppingTopic(previousUserMessage);
+    const topic = extractShoppingTopic(lastUserMessage) || previousTopic;
 
     if (
       safeAction === "open_search_tab" &&
@@ -145,6 +184,17 @@ export default async function handler(req, res) {
       !looksLikeConcreteShoppingIntent(previousUserMessage)
     ) {
       safeAction = "reply_only";
+    }
+
+    if (
+      safeAction === "reply_only" &&
+      budget &&
+      topic &&
+      (looksLikeExploratoryShoppingQuestion(previousUserMessage) || /\b(buy|shop|looking for|want)\b/.test(previousUserMessage.toLowerCase()))
+    ) {
+      safeAction = "open_search_tab";
+      safeParams.query = `${topic} under ${budget}`;
+      safeReply = `Checking ${topic} options around $${budget} for you.`;
     }
 
     return res.status(200).json({
