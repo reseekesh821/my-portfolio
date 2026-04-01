@@ -555,6 +555,16 @@ const VoiceAssistant = (function() {
     const words = clean.split(/\s+/).filter(Boolean);
     const has = (w) => words.includes(w);
     const hasAny = (...ws) => ws.some((w) => words.includes(w));
+    function doAction(actionFn) {
+      if (typeof actionFn !== 'function') return false;
+      if (forChat) {
+        setTimeout(() => {
+          try { actionFn(); } catch (e) {}
+        }, 700);
+        return true;
+      }
+      return actionFn();
+    }
     function reply(msg) {
       if (!forChat) speakBest(msg);
       return forChat ? msg : true;
@@ -652,13 +662,13 @@ const VoiceAssistant = (function() {
 
     // Play music — understand phrases like "play some music", "start the song", or just "play music"
     if ((has('play') || has('start')) && hasAny('music','song','songs')) {
-      if (!isPlaying) { togglePlay(); return reply('Playing music.'); }
+      if (!isPlaying) { doAction(() => togglePlay()); return reply('Playing music.'); }
       return reply('Music is already playing.');
     }
 
     // Pause music — phrases like "pause the music", "stop song", or "pause music"
     if (hasAny('pause','stop') && hasAny('music','song','songs')) {
-      if (isPlaying) { togglePlay(); return reply('Music paused.'); }
+      if (isPlaying) { doAction(() => togglePlay()); return reply('Music paused.'); }
       return reply('Music is already paused.');
     }
 
@@ -671,7 +681,7 @@ const VoiceAssistant = (function() {
     }
     if (pickedColor && hasAny('change','make','set','switch')) {
       const color = pickedColor.toLowerCase();
-      if (THEMES[color] && applyTheme(color)) {
+      if (THEMES[color] && doAction(() => applyTheme(color))) {
         return reply(`Theme changed to ${color}.`);
       }
     }
@@ -682,7 +692,7 @@ const VoiceAssistant = (function() {
       (has('video') && has('call') && words.length <= 4);
     if (wantsVideoCall) {
       if (typeof startVideoCall === 'function' && typeof isInVideoCall !== 'undefined' && !isInVideoCall) {
-        startVideoCall();
+        doAction(() => startVideoCall());
         return reply('Starting video call.');
       }
       if (typeof isInVideoCall !== 'undefined' && isInVideoCall) {
@@ -694,7 +704,7 @@ const VoiceAssistant = (function() {
       (has('hang') && has('up') && typeof isInVideoCall !== 'undefined' && isInVideoCall);
     if (wantsEndVideoCall) {
       if (typeof endVideoCall === 'function' && typeof isInVideoCall !== 'undefined' && isInVideoCall) {
-        endVideoCall();
+        doAction(() => endVideoCall());
         return reply('Ending video call.');
       }
       return reply('No video call is active right now.');
@@ -706,7 +716,7 @@ const VoiceAssistant = (function() {
       (has('call') && has('me') && !has('video'));
     if (wantsAudioCall) {
       if (typeof startAudioCall === 'function' && typeof isInCall !== 'undefined' && !isInCall) {
-        startAudioCall();
+        doAction(() => startAudioCall());
         return reply('Starting audio call.');
       }
       if (typeof isInCall !== 'undefined' && isInCall) {
@@ -718,12 +728,12 @@ const VoiceAssistant = (function() {
     const tabMap = { intro: 'intro', projects: 'projects', education: 'education', hometown: 'hometown', favorites: 'favorites', games: 'games', news: 'news', contact: 'contact' };
     for (const [keyword, id] of Object.entries(tabMap)) {
       if (t.includes(keyword) && (t.includes('show') || t.includes('go') || t.includes('open') || t.includes('switch') || t.includes('take me'))) {
-        if (switchTab(id)) return reply(`Opening ${keyword}.`);
+        if (doAction(() => switchTab(id))) return reply(`Opening ${keyword}.`);
       }
     }
     if (/(show|go\s*to|open|switch to)\s*(intro|projects|education|hometown|favorites|games|news|contact)/.test(t)) {
       const id = t.match(/(intro|projects|education|hometown|favorites|games|news|contact)/)[1];
-      if (switchTab(id)) return reply(`Opening ${id}.`);
+      if (doAction(() => switchTab(id))) return reply(`Opening ${id}.`);
     }
 
     return false;
