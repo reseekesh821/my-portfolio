@@ -855,8 +855,10 @@ const VoiceAssistant = (function() {
       abortPendingAI();
       activeVoiceAbort = new AbortController();
       getAIResponse(transcript, { signal: activeVoiceAbort.signal })
-        .then((reply) => {
-          if (reply) speakBest(reply);
+        .then((result) => {
+          const finalResult = finalizeAgentResult(result);
+          executeAgentAction(finalResult.action, finalResult.params);
+          if (finalResult.reply) speakBest(finalResult.reply);
         })
         .catch(() => {
           // If we intentionally aborted (e.g., user ended call), stay quiet.
@@ -1518,10 +1520,11 @@ async function sendMessage() {
   }
 
   showTyping();
-  const botReply = await getAIResponse(text);
+  const result = finalizeAgentResult(await getAIResponse(text));
   hideTyping();
-  addMessage(botReply, 'bot-message');
-  logChatMessage('assistant', botReply);
+  executeAgentAction(result.action, result.params);
+  addMessage(result.reply, 'bot-message');
+  logChatMessage('assistant', result.reply);
 
   if (quickRepliesContainer) {
     quickRepliesContainer.style.display = 'flex';
@@ -1592,6 +1595,162 @@ function initChatPresence() {
         videoCallMuteBtn.setAttribute('aria-label', 'Mute microphone');
       }
     });
+  }
+}
+
+const AGENT_EXTERNAL_LINKS = {
+  github: 'https://github.com/reseekesh821',
+  linkedin: 'https://www.linkedin.com/in/rbastakoti1/',
+  resume: 'https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti.pdf'
+};
+
+function normalizeSearchQuery(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  return input
+    .replace(/^(search|find|look up|lookup|show me|open)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildSearchUrl(query, provider) {
+  const cleanQuery = normalizeSearchQuery(query);
+  if (!cleanQuery) return '';
+  const encoded = encodeURIComponent(cleanQuery);
+  const normalizedProvider = String(provider || '').trim().toLowerCase();
+
+  switch (normalizedProvider) {
+    case 'amazon':
+      return `https://www.amazon.com/s?k=${encoded}`;
+    case 'bestbuy':
+      return `https://www.bestbuy.com/site/searchpage.jsp?st=${encoded}`;
+    case 'ebay':
+      return `https://www.ebay.com/sch/i.html?_nkw=${encoded}`;
+    case 'youtube':
+      return `https://www.youtube.com/results?search_query=${encoded}`;
+    case 'google':
+    default:
+      return `https://www.google.com/search?q=${encoded}`;
+  }
+}
+
+function getEffectiveSearchProvider(query, provider) {
+  const normalizedProvider = String(provider || '').trim().toLowerCase();
+  if (normalizedProvider) return normalizedProvider;
+  return chooseSearchProvider(query);
+}
+
+function getSearchProviderLabel(provider) {
+  switch (String(provider || '').trim().toLowerCase()) {
+    case 'amazon':
+      return 'Amazon';
+    case 'bestbuy':
+      return 'Best Buy';
+    case 'ebay':
+      return 'eBay';
+    case 'youtube':
+      return 'YouTube';
+    case 'google':
+    default:
+      return 'Google';
+  }
+}
+
+function chooseSearchProvider(query) {
+  const cleanQuery = normalizeSearchQuery(query);
+  if (!cleanQuery) return false;
+  const q = cleanQuery.toLowerCase();
+
+  if (/(review|reviews|unboxing|hands on|vs|comparison|compare|tutorial|how to|demo|watch)/.test(q)) {
+    return 'youtube';
+  }
+  if (/(used|second hand|second-hand|refurbished|vintage|collectible|rare)/.test(q)) {
+    return 'ebay';
+  }
+  if (/(iphone|phone|smartphone|laptop|macbook|ipad|tablet|monitor|tv|television|headphones|earbuds|camera|keyboard|mouse|gpu|graphics card|pc|computer|console|playstation|xbox|nintendo|printer|router|ssd|hard drive|charger)/.test(q)) {
+    return 'bestbuy';
+  }
+  return 'amazon';
+}
+
+function openSearchTab(query, provider) {
+  const effectiveProvider = getEffectiveSearchProvider(query, provider);
+  const url = buildSearchUrl(query, effectiveProvider);
+  if (!url) return false;
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  return !!opened;
+}
+
+function openExternalLink(url) {
+  const cleanUrl = String(url || '').trim();
+  if (!/^https?:\/\//i.test(cleanUrl)) return false;
+  const opened = window.open(cleanUrl, '_blank', 'noopener,noreferrer');
+  return !!opened;
+}
+
+function finalizeAgentResult(result) {
+  const safeResult = result && typeof result === 'object'
+    ? result
+    : { reply: '', action: 'reply_only', params: {} };
+  const safeParams =
+    safeResult.params && typeof safeResult.params === 'object' && !Array.isArray(safeResult.params)
+      ? { ...safeResult.params }
+      : {};
+  let safeReply = String(safeResult.reply || '').trim();
+
+  if (safeResult.action === 'open_search_tab') {
+    const query = normalizeSearchQuery(safeParams.query);
+    const provider = getEffectiveSearchProvider(query, safeParams.provider);
+    safeParams.provider = provider;
+    if (query && (!safeReply || /opening search results/i.test(safeReply) || /opening results/i.test(safeReply))) {
+      safeReply = `Opening ${getSearchProviderLabel(provider)} results for ${query}.`;
+    }
+  }
+
+  return {
+    reply: safeReply,
+    action: safeResult.action || 'reply_only',
+    params: safeParams
+  };
+}
+
+function executeAgentAction(action, params = {}) {
+  switch (action) {
+    case 'reply_only':
+      return true;
+    case 'switch_tab':
+      return switchTab(String(params.target || '').toLowerCase());
+    case 'open_search_tab':
+      return openSearchTab(params.query, params.provider);
+    case 'open_external_link': {
+      const key = String(params.url || '').trim().toLowerCase();
+      const resolvedUrl = AGENT_EXTERNAL_LINKS[key] || params.url;
+      return openExternalLink(resolvedUrl);
+    }
+    case 'play_music':
+      if (!isPlaying) togglePlay();
+      return true;
+    case 'pause_music':
+      if (isPlaying) togglePlay();
+      return true;
+    case 'start_audio_call':
+      startAudioCall();
+      return true;
+    case 'end_audio_call':
+      endAudioCall();
+      return true;
+    case 'start_video_call':
+      startVideoCall();
+      return true;
+    case 'end_video_call':
+      endVideoCall();
+      return true;
+    case 'fetch_news':
+      switchTab('news');
+      fetchNews();
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -1724,10 +1883,11 @@ function startAudioCall() {
           const text = (transcript || '').trim();
           if (!text) return;
           // Feed it through the same AI pipeline used by chat, then speak the reply.
-          const reply = await getAIResponse(text);
-          if (!reply) return;
-          const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(reply) : false;
-          if (!ok) VoiceAssistant.speak(reply);
+          const result = finalizeAgentResult(await getAIResponse(text));
+          executeAgentAction(result.action, result.params);
+          if (!result.reply) return;
+          const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
+          if (!ok) VoiceAssistant.speak(result.reply);
         })
         .catch(() => {
           // timeout/cancel/no-speech: stay quiet
@@ -1981,7 +2141,18 @@ async function getAIResponse(userMessage, { signal } = {}) {
     if (!response.ok) throw new Error("API Error");
 
     const data = await response.json();
-    const botReply = data?.choices?.[0]?.message?.content || "I'm having trouble connecting. Please try again.";
+    const botReply =
+      typeof data?.reply === 'string' && data.reply.trim()
+        ? data.reply.trim()
+        : "I'm having trouble connecting. Please try again.";
+    const action =
+      typeof data?.action === 'string' && data.action.trim()
+        ? data.action.trim()
+        : 'reply_only';
+    const params =
+      data?.params && typeof data.params === 'object' && !Array.isArray(data.params)
+        ? data.params
+        : {};
 
     // Add Assistant Reply to History
     conversationHistory.push({ role: "assistant", content: botReply });
@@ -1994,15 +2165,15 @@ async function getAIResponse(userMessage, { signal } = {}) {
       ];
     }
 
-    return botReply;
+    return { reply: botReply, action, params };
 
   } catch (error) {
     // If request was intentionally aborted (e.g. end call), don't speak "offline".
     if (error && (error.name === 'AbortError' || error.code === 20)) {
-      return "";
+      return { reply: "", action: "reply_only", params: {} };
     }
     console.error("Chat Error:", error);
-    return "Sorry, I'm currently offline. Please try again later.";
+    return { reply: "Sorry, I'm currently offline. Please try again later.", action: "reply_only", params: {} };
   }
 }
 
