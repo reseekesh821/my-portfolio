@@ -14,6 +14,28 @@ export default async function handler(req, res) {
   }
 
   try {
+    function getUserMessages(list) {
+      return list.filter((msg) => msg && msg.role === "user" && typeof msg.content === "string");
+    }
+
+    function looksLikeExploratoryShoppingQuestion(text) {
+      const t = String(text || "").toLowerCase().trim();
+      if (!t) return false;
+      return (
+        /\b(which|what|best|better|recommend|recommendation|suggest|suggestion|help me choose|which one)\b/.test(t) &&
+        !/\bunder\s+\$?\d+|\b\d{3,5}\b|\bbuy\b|\bshop\b|\border\b|\bsearch\b|\bfind\b/.test(t)
+      );
+    }
+
+    function looksLikeConcreteShoppingIntent(text) {
+      const t = String(text || "").toLowerCase().trim();
+      if (!t) return false;
+      return (
+        /\b(buy|shop|order|search|find|look up|lookup)\b/.test(t) ||
+        /\bunder\s+\$?\d+|\b\d{3,5}\b/.test(t)
+      );
+    }
+
     const baseMessages = [...messages];
     const firstMessage = baseMessages[0];
     const remainingMessages =
@@ -29,7 +51,9 @@ export default async function handler(req, res) {
         "Return this exact shape: " +
         '{"reply":"short natural reply for the user","action":"reply_only | switch_tab | open_search_tab | open_external_link | play_music | pause_music | start_audio_call | end_audio_call | start_video_call | end_video_call | fetch_news","params":{}}. ' +
         "Rules: " +
-        "1) If the user is asking to search for any product, brand, item, or shopping query, use action open_search_tab with params.query. " +
+        "1) Only use action open_search_tab when the user clearly wants to search or shop right now, or after enough details have been provided in the conversation. " +
+        "If the user is still asking exploratory questions like which is best, what do you recommend, help me choose, or they have not yet shared important details like budget/use case, stay in reply_only and ask a short follow-up question instead of opening a search. " +
+        "If the user later provides a concrete budget, price range, model, or shopping intent, then you may use open_search_tab with params.query. " +
         "For open_search_tab, also include params.provider when helpful. Allowed providers are google, amazon, bestbuy, ebay, youtube. " +
         "Use amazon for general shopping/product intent, bestbuy for electronics/phones/laptops/tvs/accessories, ebay for used/collectible items, youtube for videos/reviews/tutorials, and google when unsure. " +
         "2) If the user wants a portfolio section, use switch_tab with params.target equal to one of intro, projects, education, hometown, favorites, games, news, contact. " +
@@ -101,7 +125,11 @@ export default async function handler(req, res) {
       "fetch_news"
     ]);
 
-    const safeAction = allowedActions.has(parsed?.action) ? parsed.action : "reply_only";
+    const userMessages = getUserMessages(baseMessages);
+    const lastUserMessage = userMessages[userMessages.length - 1]?.content || "";
+    const previousUserMessage = userMessages[userMessages.length - 2]?.content || "";
+
+    let safeAction = allowedActions.has(parsed?.action) ? parsed.action : "reply_only";
     const safeReply =
       typeof parsed?.reply === "string" && parsed.reply.trim()
         ? parsed.reply.trim()
@@ -110,6 +138,14 @@ export default async function handler(req, res) {
       parsed?.params && typeof parsed.params === "object" && !Array.isArray(parsed.params)
         ? parsed.params
         : {};
+
+    if (
+      safeAction === "open_search_tab" &&
+      looksLikeExploratoryShoppingQuestion(lastUserMessage) &&
+      !looksLikeConcreteShoppingIntent(previousUserMessage)
+    ) {
+      safeAction = "reply_only";
+    }
 
     return res.status(200).json({
       reply: safeReply,
