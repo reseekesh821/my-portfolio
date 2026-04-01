@@ -14,6 +14,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    const baseMessages = [...messages];
+    const firstMessage = baseMessages[0];
+    const remainingMessages =
+      firstMessage && firstMessage.role === "system"
+        ? baseMessages.slice(1)
+        : baseMessages;
+
     const agentInstruction = {
       role: "system",
       content:
@@ -33,7 +40,9 @@ export default async function handler(req, res) {
         "7) If uncertain, use reply_only."
     };
 
-    const payloadMessages = [...messages, agentInstruction];
+    const payloadMessages = firstMessage && firstMessage.role === "system"
+      ? [firstMessage, agentInstruction, ...remainingMessages]
+      : [agentInstruction, ...remainingMessages];
 
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -46,6 +55,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: payloadMessages,
+          response_format: { type: "json_object" },
           temperature: 0.2,
           top_p: 0.9,
           max_tokens: 200
@@ -61,10 +71,14 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     const rawContent = data?.choices?.[0]?.message?.content || "";
+    const extractedJsonMatch = typeof rawContent === "string"
+      ? rawContent.match(/\{[\s\S]*\}/)
+      : null;
+    const jsonCandidate = extractedJsonMatch ? extractedJsonMatch[0] : rawContent;
 
     let parsed;
     try {
-      parsed = JSON.parse(rawContent);
+      parsed = JSON.parse(jsonCandidate);
     } catch (error) {
       parsed = {
         reply: rawContent || "I'm having trouble connecting. Please try again.",
