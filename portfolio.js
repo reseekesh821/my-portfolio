@@ -835,11 +835,9 @@ const VoiceAssistant = (function() {
         try { recognition.stop(); } catch (e) {}
       }
 
-      // 1) Try command handler first so voice commands stay in control
-      if (handleCommand(transcript)) return;
-
-      // Push-to-talk call mode: resolve the captured utterance and do NOT auto-run AI here.
-      // The call controller will send it to AI and speak the reply, then wait for the next turn.
+      // Push-to-talk call mode: resolve the captured utterance first and do NOT
+      // run the normal voice assistant command/AI pipeline here. The active
+      // audio/video call controller will decide what to do with the transcript.
       if (callMode === 'push_to_talk' && callTurnActive) {
         callTurnActive = false;
         if (callTurnTimeoutId) {
@@ -852,6 +850,9 @@ const VoiceAssistant = (function() {
         if (r) r(transcript);
         return;
       }
+
+      // 1) Try command handler first so voice commands stay in control
+      if (handleCommand(transcript)) return;
 
       // 2) If no command matched, fall back to AI chatbot and speak its reply
       if (voiceStatus) {
