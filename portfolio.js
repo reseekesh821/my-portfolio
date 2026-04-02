@@ -1850,24 +1850,30 @@ function handleVideoCallTalk() {
   videoCallTalkBtn.classList.add('recording');
   videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
   videoCallTalkBtn.setAttribute('aria-label', 'Listening during video call');
+  if (videoCallStatus) videoCallStatus.textContent = 'Listening...';
 
   VoiceAssistant.listenOnceForCall({ timeoutMs: 10000 })
     .then(async (transcript) => {
       if (!isInVideoCall) return;
       const text = (transcript || '').trim();
       if (!text) return;
+      if (videoCallStatus) videoCallStatus.textContent = 'Working on it...';
       const result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
-      if (!result.reply) return;
-      const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
-      if (!ok) VoiceAssistant.speak(result.reply);
+      if (videoCallStatus) {
+        videoCallStatus.textContent = result.reply || 'Done.';
+        setTimeout(() => {
+          if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'On video call';
+        }, 2200);
+      }
     })
     .catch(() => {
       // timeout/cancel/no-speech: stay quiet
+      if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'On video call';
     })
     .finally(() => {
       if (!videoCallTalkBtn) return;
       videoCallTalkBtn.classList.remove('recording');
-      videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+      videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
       videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
     });
 }
