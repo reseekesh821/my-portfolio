@@ -357,6 +357,8 @@ body {
   opacity: 1;
   flex-shrink: 0;
   margin-top: 2px;
+  color: var(--primary-color);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   transition: color 0.45s ease, filter 0.45s ease;
 }
 
@@ -401,11 +403,6 @@ body {
     0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
 
-.cover-visitor[data-visitor-mood="night"] i {
-  color: #7dd3fc;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
-}
-
 .cover-visitor[data-visitor-mood="day"] {
   color: #0a3d56;
   background: linear-gradient(
@@ -418,11 +415,6 @@ body {
   box-shadow:
     0 6px 22px rgba(8, 47, 73, 0.18),
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-}
-
-.cover-visitor[data-visitor-mood="day"] i {
-  color: #0369a1;
-  filter: none;
 }
 
 .cover-visitor[data-visitor-mood="sunny"] {
@@ -438,11 +430,6 @@ body {
   box-shadow:
     0 6px 22px rgba(120, 53, 15, 0.15),
     0 0 0 1px rgba(255, 255, 255, 0.45) inset;
-}
-
-.cover-visitor[data-visitor-mood="sunny"] i {
-  color: #c2410c;
-  filter: none;
 }
 
 .cover-visitor[data-visitor-mood="rain"] {
@@ -465,11 +452,6 @@ body {
   animation: visitor-rain-move 0.75s linear infinite;
 }
 
-.cover-visitor[data-visitor-mood="rain"] i {
-  color: #7dd3fc;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
-}
-
 .cover-visitor[data-visitor-mood="snow"] {
   color: #0f172a;
   border-color: rgba(148, 163, 184, 0.45);
@@ -489,11 +471,6 @@ body {
   animation: visitor-snow-shift 6s ease-in-out infinite;
 }
 
-.cover-visitor[data-visitor-mood="snow"] i {
-  color: #0284c7;
-  filter: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cover-visitor[data-visitor-mood="rain"],
   .cover-visitor[data-visitor-mood="snow"] {
@@ -509,11 +486,6 @@ body {
   box-shadow:
     0 6px 22px rgba(15, 23, 42, 0.12),
     0 0 0 1px rgba(255, 255, 255, 0.75) inset;
-}
-
-[data-theme="light"] .cover-visitor[data-visitor-mood="night"] i {
-  color: #0284c7;
-  filter: none;
 }
 
 [data-theme="light"] .cover-visitor[data-visitor-mood="day"],
@@ -537,11 +509,6 @@ body {
   box-shadow:
     0 6px 20px rgba(15, 23, 42, 0.1),
     0 0 0 1px rgba(255, 255, 255, 0.65) inset;
-}
-
-[data-theme="light"] .cover-visitor[data-visitor-mood="rain"] i {
-  color: #0369a1;
-  filter: none;
 }
 
 [data-theme="light"] .cover-visitor[data-visitor-mood="snow"] {
