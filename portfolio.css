@@ -305,6 +305,60 @@ body {
 [data-theme="light"] .theme-toggle #theme-icon-dark { display: none; }
 [data-theme="light"] .theme-toggle #theme-icon-light { display: inline-block !important; }
 
+/* Live local time + approximate location (hero cover) */
+.cover-visitor {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  right: 58px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+[data-theme="light"] .cover-visitor {
+  color: #0f172a;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
+}
+
+.cover-visitor-time,
+.cover-visitor-location,
+.cover-visitor-weather {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.cover-visitor-time time {
+  font-variant-numeric: tabular-nums;
+}
+
+.cover-visitor-location span {
+  word-break: break-word;
+}
+
+.cover-visitor i {
+  opacity: 0.92;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@media (max-width: 420px) {
+  .cover-visitor {
+    font-size: 0.65rem;
+    right: 52px;
+    left: 10px;
+  }
+}
+
 /* --- Profile & Cover --- */
 /* Moving wallpaper behind profile (video fills cover box only) */
 .cover-video-bg {

@@ -38,6 +38,148 @@
   syncThemeToggleAria();
 })();
 
+// 0b. Cover: local time, city (reverse geocode), weather (Open-Meteo — no API key)
+(function initCoverVisitor() {
+  const timeEl = document.getElementById("cover-local-time");
+  const locEl = document.getElementById("cover-location");
+  const weatherEl = document.getElementById("cover-weather");
+  const weatherIconEl = document.getElementById("cover-weather-icon");
+  if (!timeEl && !locEl && !weatherEl) return;
+
+  function tickClock() {
+    if (!timeEl) return;
+    const now = new Date();
+    timeEl.textContent = now.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    timeEl.setAttribute("datetime", now.toISOString());
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  function setLocation(text, title) {
+    if (!locEl) return;
+    locEl.textContent = text;
+    if (title) locEl.setAttribute("title", title);
+    else locEl.removeAttribute("title");
+  }
+
+  function wmoWeatherLabel(code) {
+    const c = code | 0;
+    if (c === 0) return "Clear";
+    if (c <= 3) return c === 1 ? "Mostly clear" : c === 2 ? "Partly cloudy" : "Overcast";
+    if (c <= 48) return "Fog";
+    if (c <= 57) return "Drizzle";
+    if (c <= 67) return "Rain";
+    if (c <= 77) return "Snow";
+    if (c <= 82) return "Showers";
+    if (c <= 86) return "Snow showers";
+    if (c >= 95) return "Thunderstorm";
+    return "—";
+  }
+
+  function setWeatherIcon(code) {
+    if (!weatherIconEl) return;
+    const c = code | 0;
+    let cls = "fa-solid fa-cloud-sun";
+    if (c === 0) cls = "fa-solid fa-sun";
+    else if (c <= 3) cls = "fa-solid fa-cloud-sun";
+    else if (c <= 48) cls = "fa-solid fa-smog";
+    else if (c <= 67) cls = "fa-solid fa-cloud-rain";
+    else if (c <= 77) cls = "fa-solid fa-snowflake";
+    else if (c <= 86) cls = "fa-solid fa-cloud-showers-heavy";
+    else if (c >= 95) cls = "fa-solid fa-bolt";
+    weatherIconEl.className = cls;
+  }
+
+  async function fetchOpenMeteo(lat, lon) {
+    if (!weatherEl) return;
+    weatherEl.textContent = "…";
+    try {
+      const u = new URL("https://api.open-meteo.com/v1/forecast");
+      u.searchParams.set("latitude", String(lat));
+      u.searchParams.set("longitude", String(lon));
+      u.searchParams.set("current", "temperature_2m,weather_code");
+      u.searchParams.set("timezone", "auto");
+      const res = await fetch(u.toString());
+      if (!res.ok) throw new Error("wx");
+      const data = await res.json();
+      const cur = data.current;
+      if (!cur || typeof cur.temperature_2m !== "number") throw new Error("wx");
+      const t = Math.round(cur.temperature_2m * 10) / 10;
+      const label = wmoWeatherLabel(cur.weather_code);
+      setWeatherIcon(cur.weather_code);
+      weatherEl.textContent = `${t}°C · ${label}`;
+      weatherEl.setAttribute("title", "Open-Meteo (approx. for your area)");
+    } catch (e) {
+      weatherEl.textContent = "Weather unavailable";
+      weatherEl.removeAttribute("title");
+    }
+  }
+
+  async function tryReverseGeocode(lat, lon) {
+    try {
+      const base = window.location.origin;
+      const res = await fetch(
+        `${base}/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data && typeof data.label === "string" && data.label.trim()) {
+        return data.label.trim();
+      }
+    } catch (e) {
+      /* static host / no API route */
+    }
+    return null;
+  }
+
+  if (!locEl && !weatherEl) return;
+
+  if (!navigator.geolocation) {
+    if (locEl) setLocation("Location not supported");
+    if (weatherEl) weatherEl.textContent = "—";
+    return;
+  }
+
+  if (locEl) setLocation("Locating…");
+  if (weatherEl) weatherEl.textContent = "…";
+
+  navigator.geolocation.getCurrentPosition(
+    async function onOk(pos) {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const coordTitle = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°`;
+
+      const labelPromise = tryReverseGeocode(lat, lon);
+      const wxPromise = fetchOpenMeteo(lat, lon);
+      const label = await labelPromise;
+      if (label) setLocation(label, coordTitle);
+      else setLocation(coordTitle);
+      await wxPromise;
+    },
+    function onErr(err) {
+      if (locEl) {
+        if (err && err.code === 1) setLocation("Location denied");
+        else if (err && err.code === 2) setLocation("Location unavailable");
+        else if (err && err.code === 3) setLocation("Location timed out");
+        else setLocation("Location unavailable");
+      }
+      if (weatherEl) {
+        weatherEl.textContent = "—";
+        weatherEl.removeAttribute("title");
+      }
+    },
+    {
+      enableHighAccuracy: false,
+      maximumAge: 300000,
+      timeout: 15000
+    }
+  );
+})();
+
 // 1. Tabs (click + keyboard accessible)
 const tabs = document.querySelectorAll(".tabs li");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -1858,6 +2000,20 @@ function handleVideoCallTalk() {
       if (!isInVideoCall) return;
       const text = (transcript || '').trim();
       if (!text) return;
+
+      const commandReply = VoiceAssistant && VoiceAssistant.handleCommand
+        ? VoiceAssistant.handleCommand(text, true)
+        : false;
+      if (commandReply !== false && typeof commandReply === 'string') {
+        if (videoCallStatus) {
+          videoCallStatus.textContent = commandReply;
+          setTimeout(() => {
+            if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'On video call';
+          }, 2200);
+        }
+        return;
+      }
+
       if (videoCallStatus) videoCallStatus.textContent = 'Working on it...';
       const result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
       if (videoCallStatus) {
