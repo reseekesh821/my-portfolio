@@ -186,12 +186,7 @@
     applyCoverMood(lastMoodWeatherCode);
   }, 60000);
 
-  const retryBtn = document.getElementById("cover-loc-retry");
   var geoGeneration = 0;
-
-  function setRetryVisible(show) {
-    if (retryBtn) retryBtn.hidden = !show;
-  }
 
   async function onGeoSuccess(pos, gen) {
     if (gen !== geoGeneration) return;
@@ -206,8 +201,32 @@
     if (label) setLocation(label, coordTitle);
     else setLocation(coordTitle);
     await wxPromise;
-    if (gen !== geoGeneration) return;
-    setRetryVisible(false);
+  }
+
+  function applyGeoErrorToUI(err) {
+    if (!locEl) return;
+    if (err && err.code === 1) {
+      setLocation("Location blocked");
+      locEl.setAttribute(
+        "title",
+        "Chrome: click the lock icon → Site settings → Location → Allow, then reload."
+      );
+    } else if (err && err.code === 2) {
+      setLocation("System location off");
+      locEl.setAttribute(
+        "title",
+        "Windows: Settings → Privacy & security → Location → On. Also allow location for Google Chrome. Then reload this page."
+      );
+    } else if (err && err.code === 3) {
+      setLocation("Location timed out");
+      locEl.setAttribute(
+        "title",
+        "Turn on system location and Wi‑Fi, then reload. Chrome may need a moment to get a fix."
+      );
+    } else {
+      setLocation("Location unavailable");
+      locEl.removeAttribute("title");
+    }
   }
 
   function onGeoFailure(err, gen, options) {
@@ -227,45 +246,18 @@
       return;
     }
 
-    if (locEl) {
-      if (err && err.code === 1) setLocation("Location denied");
-      else if (err && err.code === 2) setLocation("Location unavailable");
-      else if (err && err.code === 3) setLocation("Location timed out");
-      else setLocation("Location unavailable");
-    }
+    applyGeoErrorToUI(err);
     if (weatherEl) {
       weatherEl.textContent = "—";
       weatherEl.removeAttribute("title");
     }
     lastMoodWeatherCode = null;
     applyCoverMood(null);
-    setRetryVisible(true);
   }
 
-  function startGeolocation() {
-    if (!navigator.geolocation) {
-      if (locEl) setLocation("Location not supported");
-      if (weatherEl) weatherEl.textContent = "—";
-      setRetryVisible(false);
-      return;
-    }
-
-    if (!window.isSecureContext) {
-      if (locEl) {
-        setLocation("HTTPS required for location");
-        locEl.setAttribute(
-          "title",
-          "Chrome only exposes geolocation on HTTPS (or localhost). Open your deployed site with https://"
-        );
-      }
-      if (weatherEl) weatherEl.textContent = "—";
-      setRetryVisible(false);
-      return;
-    }
-
+  function beginGeoRequest() {
     geoGeneration += 1;
     const gen = geoGeneration;
-    setRetryVisible(false);
     if (locEl) setLocation("Locating…");
     if (weatherEl) weatherEl.textContent = "…";
 
@@ -280,10 +272,48 @@
     );
   }
 
-  if (retryBtn) {
-    retryBtn.addEventListener("click", function () {
-      startGeolocation();
-    });
+  function startGeolocation() {
+    if (!navigator.geolocation) {
+      if (locEl) setLocation("Location not supported");
+      if (weatherEl) weatherEl.textContent = "—";
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      if (locEl) {
+        setLocation("HTTPS required for location");
+        locEl.setAttribute(
+          "title",
+          "Chrome only exposes geolocation on HTTPS (or localhost). Open your deployed site with https://"
+        );
+      }
+      if (weatherEl) weatherEl.textContent = "—";
+      return;
+    }
+
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then(function (p) {
+          if (p.state === "denied") {
+            geoGeneration += 1;
+            applyGeoErrorToUI({ code: 1 });
+            if (weatherEl) {
+              weatherEl.textContent = "—";
+              weatherEl.removeAttribute("title");
+            }
+            lastMoodWeatherCode = null;
+            applyCoverMood(null);
+            return;
+          }
+          beginGeoRequest();
+        })
+        .catch(function () {
+          beginGeoRequest();
+        });
+    } else {
+      beginGeoRequest();
+    }
   }
 
   startGeolocation();
