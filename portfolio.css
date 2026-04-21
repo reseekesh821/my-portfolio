@@ -116,7 +116,7 @@ body {
   width: 95%;
   margin: 0 auto;
   background: var(--card-bg);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 62%, transparent);
   box-shadow: var(--shadow), 0 0 60px -15px color-mix(in srgb, var(--primary-color) 25%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -269,8 +269,8 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(0,0,0,0.3);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 42%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--primary-color) 14%, rgba(0, 0, 0, 0.45));
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -278,25 +278,32 @@ body {
   justify-content: center;
   font-size: 1.1rem;
   z-index: 15;
-  transition: background var(--transition), border-color var(--transition), transform 0.2s;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform 0.2s,
+    box-shadow var(--transition);
 }
 
 .theme-toggle:hover {
-  background: rgba(0, 210, 255, 0.25);
-  border-color: rgba(0, 210, 255, 0.4);
+  background: color-mix(in srgb, var(--primary-color) 34%, rgba(0, 0, 0, 0.35));
+  border-color: color-mix(in srgb, var(--primary-color) 72%, rgba(255, 255, 255, 0.35));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 35%, transparent);
   transform: scale(1.05);
 }
 
 [data-theme="light"] .theme-toggle {
-  background: rgba(255,255,255,0.9);
-  border-color: rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: color-mix(in srgb, var(--primary-color) 38%, rgba(15, 23, 42, 0.12));
   color: #1e293b;
 }
 
 [data-theme="light"] .theme-toggle:hover {
   background: #fff;
-  border-color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
   color: var(--primary-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 22%, transparent);
 }
 
 .theme-toggle .hidden { display: none !important; }
@@ -395,7 +402,7 @@ body {
 .cover-visitor[data-visitor-mood="night"] {
   color: #f8fafc;
   background: rgba(15, 23, 42, 0.88);
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: color-mix(in srgb, var(--primary-color) 52%, rgba(255, 255, 255, 0.12));
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   box-shadow:
     0 6px 24px rgba(0, 0, 0, 0.5),
@@ -410,7 +417,7 @@ body {
     rgba(224, 242, 254, 0.97) 0%,
     rgba(125, 211, 252, 0.52) 100%
   );
-  border-color: rgba(14, 165, 233, 0.35);
+  border-color: color-mix(in srgb, var(--primary-color) 48%, rgba(14, 116, 144, 0.25));
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
   box-shadow:
     0 6px 22px rgba(8, 47, 73, 0.18),
@@ -425,7 +432,7 @@ body {
     rgba(253, 224, 71, 0.48) 55%,
     rgba(251, 191, 36, 0.38) 100%
   );
-  border-color: rgba(180, 83, 9, 0.38);
+  border-color: color-mix(in srgb, var(--primary-color) 45%, rgba(180, 83, 9, 0.35));
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
   box-shadow:
     0 6px 22px rgba(120, 53, 15, 0.15),
@@ -434,7 +441,7 @@ body {
 
 .cover-visitor[data-visitor-mood="rain"] {
   color: #e0f2fe;
-  border-color: rgba(125, 211, 252, 0.28);
+  border-color: color-mix(in srgb, var(--primary-color) 40%, rgba(125, 211, 252, 0.22));
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
   background-color: rgba(15, 23, 42, 0.94);
   background-image: repeating-linear-gradient(
@@ -454,7 +461,7 @@ body {
 
 .cover-visitor[data-visitor-mood="snow"] {
   color: #0f172a;
-  border-color: rgba(148, 163, 184, 0.45);
+  border-color: color-mix(in srgb, var(--primary-color) 38%, rgba(148, 163, 184, 0.4));
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
   background-color: #f1f5f9;
   background-image: radial-gradient(
@@ -481,7 +488,7 @@ body {
 [data-theme="light"] .cover-visitor[data-visitor-mood="night"] {
   color: #0f172a;
   background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(15, 23, 42, 0.12);
+  border-color: color-mix(in srgb, var(--primary-color) 42%, rgba(15, 23, 42, 0.1));
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
   box-shadow:
     0 6px 22px rgba(15, 23, 42, 0.12),
@@ -490,7 +497,7 @@ body {
 
 [data-theme="light"] .cover-visitor[data-visitor-mood="day"],
 [data-theme="light"] .cover-visitor[data-visitor-mood="sunny"] {
-  border-color: rgba(8, 145, 178, 0.22);
+  border-color: color-mix(in srgb, var(--primary-color) 40%, rgba(8, 145, 178, 0.18));
 }
 
 [data-theme="light"] .cover-visitor[data-visitor-mood="rain"] {
@@ -559,11 +566,16 @@ body {
 }
 
 [data-theme="light"] .cover {
-  background: linear-gradient(145deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--primary-color) 14%, #f0f9ff) 0%,
+    color-mix(in srgb, var(--secondary-color) 18%, #e0f2fe) 42%,
+    color-mix(in srgb, var(--primary-color) 32%, #dbeafe) 100%
+  );
   background-image:
-    linear-gradient(rgba(0, 210, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 210, 255, 0.08) 1px, transparent 1px);
-  border-bottom-color: rgba(0, 210, 255, 0.25);
+    linear-gradient(color-mix(in srgb, var(--primary-color) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 10%, transparent) 1px, transparent 1px);
+  border-bottom-color: color-mix(in srgb, var(--primary-color) 38%, transparent);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
