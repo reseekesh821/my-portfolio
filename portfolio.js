@@ -186,48 +186,107 @@
     applyCoverMood(lastMoodWeatherCode);
   }, 60000);
 
-  if (!navigator.geolocation) {
-    if (locEl) setLocation("Location not supported");
-    if (weatherEl) weatherEl.textContent = "—";
-    return;
+  const retryBtn = document.getElementById("cover-loc-retry");
+  var geoGeneration = 0;
+
+  function setRetryVisible(show) {
+    if (retryBtn) retryBtn.hidden = !show;
   }
 
-  if (locEl) setLocation("Locating…");
-  if (weatherEl) weatherEl.textContent = "…";
+  async function onGeoSuccess(pos, gen) {
+    if (gen !== geoGeneration) return;
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const coordTitle = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°`;
 
-  navigator.geolocation.getCurrentPosition(
-    async function onOk(pos) {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const coordTitle = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°`;
+    const labelPromise = tryReverseGeocode(lat, lon);
+    const wxPromise = fetchOpenMeteo(lat, lon);
+    const label = await labelPromise;
+    if (gen !== geoGeneration) return;
+    if (label) setLocation(label, coordTitle);
+    else setLocation(coordTitle);
+    await wxPromise;
+    if (gen !== geoGeneration) return;
+    setRetryVisible(false);
+  }
 
-      const labelPromise = tryReverseGeocode(lat, lon);
-      const wxPromise = fetchOpenMeteo(lat, lon);
-      const label = await labelPromise;
-      if (label) setLocation(label, coordTitle);
-      else setLocation(coordTitle);
-      await wxPromise;
-    },
-    function onErr(err) {
-      if (locEl) {
-        if (err && err.code === 1) setLocation("Location denied");
-        else if (err && err.code === 2) setLocation("Location unavailable");
-        else if (err && err.code === 3) setLocation("Location timed out");
-        else setLocation("Location unavailable");
-      }
-      if (weatherEl) {
-        weatherEl.textContent = "—";
-        weatherEl.removeAttribute("title");
-      }
-      lastMoodWeatherCode = null;
-      applyCoverMood(null);
-    },
-    {
-      enableHighAccuracy: false,
-      maximumAge: 300000,
-      timeout: 15000
+  function onGeoFailure(err, gen, options) {
+    if (gen !== geoGeneration) return;
+    options = options || {};
+    if (!options.skipHighAccuracyRetry && err && (err.code === 2 || err.code === 3)) {
+      if (locEl) setLocation("Locating…");
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          onGeoSuccess(pos, gen);
+        },
+        function (e) {
+          onGeoFailure(e, gen, { skipHighAccuracyRetry: true });
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 35000 }
+      );
+      return;
     }
-  );
+
+    if (locEl) {
+      if (err && err.code === 1) setLocation("Location denied");
+      else if (err && err.code === 2) setLocation("Location unavailable");
+      else if (err && err.code === 3) setLocation("Location timed out");
+      else setLocation("Location unavailable");
+    }
+    if (weatherEl) {
+      weatherEl.textContent = "—";
+      weatherEl.removeAttribute("title");
+    }
+    lastMoodWeatherCode = null;
+    applyCoverMood(null);
+    setRetryVisible(true);
+  }
+
+  function startGeolocation() {
+    if (!navigator.geolocation) {
+      if (locEl) setLocation("Location not supported");
+      if (weatherEl) weatherEl.textContent = "—";
+      setRetryVisible(false);
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      if (locEl) {
+        setLocation("HTTPS required for location");
+        locEl.setAttribute(
+          "title",
+          "Chrome only exposes geolocation on HTTPS (or localhost). Open your deployed site with https://"
+        );
+      }
+      if (weatherEl) weatherEl.textContent = "—";
+      setRetryVisible(false);
+      return;
+    }
+
+    geoGeneration += 1;
+    const gen = geoGeneration;
+    setRetryVisible(false);
+    if (locEl) setLocation("Locating…");
+    if (weatherEl) weatherEl.textContent = "…";
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        onGeoSuccess(pos, gen);
+      },
+      function (err) {
+        onGeoFailure(err, gen, {});
+      },
+      { enableHighAccuracy: false, maximumAge: 0, timeout: 22000 }
+    );
+  }
+
+  if (retryBtn) {
+    retryBtn.addEventListener("click", function () {
+      startGeolocation();
+    });
+  }
+
+  startGeolocation();
 })();
 
 // 1. Tabs (click + keyboard accessible)
