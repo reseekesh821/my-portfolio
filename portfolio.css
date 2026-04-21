@@ -305,28 +305,44 @@ body {
 [data-theme="light"] .theme-toggle #theme-icon-dark { display: none; }
 [data-theme="light"] .theme-toggle #theme-icon-light { display: inline-block !important; }
 
-/* Live local time + approximate location (hero cover) */
+/* Live local time + location + weather (hero cover) — high contrast on video/stars */
 .cover-visitor {
   position: absolute;
-  top: 12px;
-  left: 14px;
+  top: 10px;
+  left: 12px;
   right: 58px;
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.35;
-  color: rgba(255, 255, 255, 0.96);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  gap: 6px;
+  max-width: min(100%, 16.5rem);
+  padding: 9px 11px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.4;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.2) inset,
+    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   pointer-events: none;
 }
 
 [data-theme="light"] .cover-visitor {
   color: #0f172a;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow:
+    0 6px 22px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .cover-visitor-time,
@@ -346,16 +362,25 @@ body {
 }
 
 .cover-visitor i {
-  opacity: 0.92;
+  opacity: 1;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
+  color: #7dd3fc;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+[data-theme="light"] .cover-visitor i {
+  color: #0284c7;
+  filter: none;
 }
 
 @media (max-width: 420px) {
   .cover-visitor {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     right: 52px;
-    left: 10px;
+    left: 8px;
+    padding: 7px 9px 8px;
+    max-width: min(100%, 14.5rem);
   }
 }
 
