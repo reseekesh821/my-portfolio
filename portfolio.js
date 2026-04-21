@@ -38,6 +38,44 @@
   syncThemeToggleAria();
 })();
 
+// 0a. Accent palette (cyan, blue, red, …) — persisted so voice/chat “change color” survives reload
+var PORTFOLIO_ACCENT_STORAGE_KEY = "portfolio-accent";
+var PORTFOLIO_ACCENT_THEMES = {
+  cyan: { primary: "#00d2ff", secondary: "#3a7bd5" },
+  blue: { primary: "#4dabf7", secondary: "#228be6" },
+  purple: { primary: "#9775fa", secondary: "#7950f2" },
+  green: { primary: "#51cf66", secondary: "#37b24d" },
+  red: { primary: "#ff6b6b", secondary: "#fa5252" },
+  orange: { primary: "#ff922b", secondary: "#fd7e14" },
+  pink: { primary: "#f06595", secondary: "#e64980" },
+  teal: { primary: "#20c997", secondary: "#0ca678" },
+  yellow: { primary: "#ffd43b", secondary: "#fab005" }
+};
+
+function applyPortfolioAccent(name) {
+  var key = String(name || "").toLowerCase();
+  var theme = PORTFOLIO_ACCENT_THEMES[key];
+  if (!theme) return false;
+  var root = document.documentElement;
+  root.style.setProperty("--primary-color", theme.primary);
+  root.style.setProperty("--secondary-color", theme.secondary);
+  try {
+    localStorage.setItem(PORTFOLIO_ACCENT_STORAGE_KEY, key);
+  } catch (e) {}
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", theme.primary);
+  return true;
+}
+
+(function initPortfolioAccentFromStorage() {
+  try {
+    var saved = localStorage.getItem(PORTFOLIO_ACCENT_STORAGE_KEY);
+    if (saved && PORTFOLIO_ACCENT_THEMES[saved]) {
+      applyPortfolioAccent(saved);
+    }
+  } catch (e) {}
+})();
+
 // 0b. Cover: local time, city (reverse geocode), weather (Open-Meteo — no API key)
 (function initCoverVisitor() {
   const timeEl = document.getElementById("cover-local-time");
@@ -114,12 +152,12 @@
   }
 
   /**
-   * Hero cover: bright "day" / dark "night" from visitor local clock; "rain" / "snow" override from WMO code.
+   * Weather/time chip only (#cover-visitor): sunny, day, night, rain, snow — hero cover stays unchanged.
    */
   var lastMoodWeatherCode = null;
 
-  function applyCoverMood(weatherCode) {
-    const el = document.getElementById("hero-cover");
+  function applyVisitorMood(weatherCode) {
+    const el = document.getElementById("cover-visitor");
     if (!el) return;
 
     var mood = localHourCoverMood();
@@ -127,9 +165,10 @@
       var c = Number(weatherCode) | 0;
       if (isRainMoodCode(c)) mood = "rain";
       else if (isSnowMoodCode(c)) mood = "snow";
+      else if (mood === "day" && (c === 0 || c === 1)) mood = "sunny";
     }
 
-    el.setAttribute("data-cover-mood", mood);
+    el.setAttribute("data-visitor-mood", mood);
   }
 
   async function fetchOpenMeteo(lat, lon) {
@@ -153,12 +192,12 @@
       weatherEl.setAttribute("title", "Open-Meteo (approx. for your area)");
 
       lastMoodWeatherCode = cur.weather_code;
-      applyCoverMood(lastMoodWeatherCode);
+      applyVisitorMood(lastMoodWeatherCode);
     } catch (e) {
       lastMoodWeatherCode = null;
       weatherEl.textContent = "Weather unavailable";
       weatherEl.removeAttribute("title");
-      applyCoverMood(null);
+      applyVisitorMood(null);
     }
   }
 
@@ -181,9 +220,9 @@
 
   if (!locEl && !weatherEl) return;
 
-  applyCoverMood(null);
+  applyVisitorMood(null);
   setInterval(function () {
-    applyCoverMood(lastMoodWeatherCode);
+    applyVisitorMood(lastMoodWeatherCode);
   }, 60000);
 
   var geoGeneration = 0;
@@ -252,7 +291,7 @@
       weatherEl.removeAttribute("title");
     }
     lastMoodWeatherCode = null;
-    applyCoverMood(null);
+    applyVisitorMood(null);
   }
 
   function beginGeoRequest() {
@@ -303,7 +342,7 @@
               weatherEl.removeAttribute("title");
             }
             lastMoodWeatherCode = null;
-            applyCoverMood(null);
+            applyVisitorMood(null);
             return;
           }
           beginGeoRequest();
@@ -680,17 +719,7 @@ const VoiceAssistant = (function() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const synth = window.speechSynthesis;
 
-  const THEMES = {
-    cyan: { primary: '#00d2ff', secondary: '#3a7bd5' },
-    blue: { primary: '#4dabf7', secondary: '#228be6' },
-    purple: { primary: '#9775fa', secondary: '#7950f2' },
-    green: { primary: '#51cf66', secondary: '#37b24d' },
-    red: { primary: '#ff6b6b', secondary: '#fa5252' },
-    orange: { primary: '#ff922b', secondary: '#fd7e14' },
-    pink: { primary: '#f06595', secondary: '#e64980' },
-    teal: { primary: '#20c997', secondary: '#0ca678' },
-    yellow: { primary: '#ffd43b', secondary: '#fab005' }
-  };
+  const THEMES = PORTFOLIO_ACCENT_THEMES;
 
   const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028. He's from Kathmandu, Nepal, and is building a career in software development. He's built a full-stack QuickLoan app with React and FastAPI, and a Python Budget Tracker. He loves web development, algorithms, and in his free time enjoys the song Teemi Ra Maa by Dixita Karki, the movie Interstellar, and the city of Pokhara.";
 
@@ -812,11 +841,7 @@ const VoiceAssistant = (function() {
   }
 
   function applyTheme(name) {
-    const theme = THEMES[name];
-    if (!theme) return false;
-    document.documentElement.style.setProperty('--primary-color', theme.primary);
-    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
-    return true;
+    return applyPortfolioAccent(name);
   }
 
   function switchTab(targetId) {
@@ -828,9 +853,14 @@ const VoiceAssistant = (function() {
   }
 
   function handleCommand(text, forChat) {
-    const t = text.toLowerCase().trim();
-    const clean = t.replace(/[?!.,]/g, ' ');
-    const lower = clean.toLowerCase();
+    const t = String(text || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\bthem\b/g, "theme")
+      .replace(/\bthme\b/g, "theme")
+      .replace(/\bcolou?r\b/g, "color");
+    const clean = t.replace(/[?!.,]/g, " ");
+    const lower = clean;
     const words = clean.split(/\s+/).filter(Boolean);
     const has = (w) => words.includes(w);
     const hasAny = (...ws) => ws.some((w) => words.includes(w));
@@ -958,7 +988,10 @@ const VoiceAssistant = (function() {
     for (const c of colorNames) {
       if (has(c)) { pickedColor = c; break; }
     }
-    if (pickedColor && hasAny('change','make','set','switch')) {
+    if (
+      pickedColor &&
+      hasAny("change", "make", "set", "switch", "theme", "color", "update", "turn")
+    ) {
       const color = pickedColor.toLowerCase();
       if (THEMES[color] && doAction(() => applyTheme(color))) {
         return reply(`Theme changed to ${color}.`);
@@ -1750,8 +1783,10 @@ function looksLikePortfolioCommand(input) {
 
   const hasAny = (arr) => arr.some((w) => normalized.includes(w));
 
-  const colors = ['cyan','blue','purple','green','red','orange','pink','teal','yellow'];
-  const colorIntent = hasAny(colors) && hasAny(['change','set','switch','make','theme','color']);
+  const colors = ["cyan", "blue", "purple", "green", "red", "orange", "pink", "teal", "yellow"];
+  const colorIntent =
+    hasAny(colors) &&
+    hasAny(["change", "set", "switch", "make", "theme", "color", "update", "turn"]);
 
   const musicIntent = hasAny(['play music','play song','pause music','pause song','play','pause']) && hasAny(['music','song','songs','track','audio']);
 

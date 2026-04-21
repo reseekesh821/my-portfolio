@@ -305,7 +305,7 @@ body {
 [data-theme="light"] .theme-toggle #theme-icon-dark { display: none; }
 [data-theme="light"] .theme-toggle #theme-icon-light { display: inline-block !important; }
 
-/* Live local time + location + weather (hero cover) — high contrast on video/stars */
+/* Live local time + location + weather — layout; colors via data-visitor-mood only */
 .cover-visitor {
   position: absolute;
   top: 10px;
@@ -321,28 +321,20 @@ body {
   font-weight: 600;
   letter-spacing: 0.015em;
   line-height: 1.4;
-  color: #f8fafc;
-  background: rgba(15, 23, 42, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid transparent;
   border-radius: 12px;
   box-shadow:
-    0 6px 24px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(0, 0, 0, 0.2) inset,
-    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    0 6px 24px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.15) inset;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   pointer-events: none;
-}
-
-[data-theme="light"] .cover-visitor {
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(15, 23, 42, 0.12);
-  box-shadow:
-    0 6px 22px rgba(15, 23, 42, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.7) inset;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    background 0.45s ease,
+    border-color 0.45s ease,
+    color 0.45s ease,
+    box-shadow 0.45s ease,
+    text-shadow 0.45s ease;
 }
 
 .cover-visitor-time,
@@ -365,13 +357,7 @@ body {
   opacity: 1;
   flex-shrink: 0;
   margin-top: 2px;
-  color: #7dd3fc;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
-}
-
-[data-theme="light"] .cover-visitor i {
-  color: #0284c7;
-  filter: none;
+  transition: color 0.45s ease, filter 0.45s ease;
 }
 
 @media (max-width: 420px) {
@@ -384,72 +370,187 @@ body {
   }
 }
 
-/* Hero cover mood: day / night / rain / snow (set via data-cover-mood from weather + is_day) */
-.cover-ambient {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: var(--radius) var(--radius) 0 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.55s ease;
-}
-
-.cover[data-cover-mood="rain"] .cover-ambient,
-.cover[data-cover-mood="snow"] .cover-ambient {
-  opacity: 1;
-}
-
-.cover[data-cover-mood="rain"] .cover-ambient {
-  background-image: repeating-linear-gradient(
-    105deg,
-    transparent,
-    transparent 6px,
-    rgba(186, 230, 255, 0.12) 6px,
-    rgba(186, 230, 255, 0.12) 7px
-  );
-  animation: cover-rain-fall 0.75s linear infinite;
-}
-
-.cover[data-cover-mood="snow"] .cover-ambient {
-  background-image:
-    radial-gradient(1.2px 1.2px at 12% 18%, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(1px 1px at 72% 32%, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1.2px 1.2px at 38% 78%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 88% 65%, rgba(255, 255, 255, 0.65), transparent);
-  background-size: 100% 100%;
-  animation: cover-snow-drift 5s ease-in-out infinite;
-}
-
-@keyframes cover-rain-fall {
+/* Weather / time-of-day look — #cover-visitor only (hero video & overlay unchanged) */
+@keyframes visitor-rain-move {
   from {
-    background-position: 0 0;
+    background-position: 0 0, 0 0;
   }
   to {
-    background-position: 12px 36px;
+    background-position: 12px 40px, 0 0;
   }
 }
 
-@keyframes cover-snow-drift {
+@keyframes visitor-snow-shift {
   0%,
   100% {
-    transform: translateY(0);
-    opacity: 1;
+    background-position: 0 0, 0 0, 0 0, 0 0;
   }
   50% {
-    transform: translateY(3px);
-    opacity: 0.92;
+    background-position: 3px 4px, -2px 2px, 1px -3px, 0 0;
   }
+}
+
+.cover-visitor[data-visitor-mood="night"] {
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.14);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.2) inset,
+    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+}
+
+.cover-visitor[data-visitor-mood="night"] i {
+  color: #7dd3fc;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+.cover-visitor[data-visitor-mood="day"] {
+  color: #0a3d56;
+  background: linear-gradient(
+    165deg,
+    rgba(224, 242, 254, 0.97) 0%,
+    rgba(125, 211, 252, 0.52) 100%
+  );
+  border-color: rgba(14, 165, 233, 0.35);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 6px 22px rgba(8, 47, 73, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+.cover-visitor[data-visitor-mood="day"] i {
+  color: #0369a1;
+  filter: none;
+}
+
+.cover-visitor[data-visitor-mood="sunny"] {
+  color: #451a03;
+  background: linear-gradient(
+    155deg,
+    rgba(254, 252, 232, 0.98) 0%,
+    rgba(253, 224, 71, 0.48) 55%,
+    rgba(251, 191, 36, 0.38) 100%
+  );
+  border-color: rgba(180, 83, 9, 0.38);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 6px 22px rgba(120, 53, 15, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.45) inset;
+}
+
+.cover-visitor[data-visitor-mood="sunny"] i {
+  color: #c2410c;
+  filter: none;
+}
+
+.cover-visitor[data-visitor-mood="rain"] {
+  color: #e0f2fe;
+  border-color: rgba(125, 211, 252, 0.28);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  background-color: rgba(15, 23, 42, 0.94);
+  background-image: repeating-linear-gradient(
+      105deg,
+      transparent,
+      transparent 5px,
+      rgba(255, 255, 255, 0.07) 5px,
+      rgba(255, 255, 255, 0.07) 6px
+    ),
+    linear-gradient(170deg, rgba(30, 58, 95, 0.95), rgba(15, 23, 42, 0.98));
+  background-size: auto, 100% 100%;
+  box-shadow:
+    0 6px 26px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+  animation: visitor-rain-move 0.75s linear infinite;
+}
+
+.cover-visitor[data-visitor-mood="rain"] i {
+  color: #7dd3fc;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+.cover-visitor[data-visitor-mood="snow"] {
+  color: #0f172a;
+  border-color: rgba(148, 163, 184, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+  background-color: #f1f5f9;
+  background-image: radial-gradient(
+      1px 1px at 15% 25%,
+      rgba(255, 255, 255, 0.95),
+      transparent 45%
+    ),
+    radial-gradient(1px 1px at 78% 40%, rgba(255, 255, 255, 0.88), transparent 45%),
+    radial-gradient(1.2px 1.2px at 42% 78%, rgba(255, 255, 255, 0.92), transparent 45%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(186, 230, 253, 0.9));
+  box-shadow:
+    0 6px 22px rgba(30, 41, 59, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.75) inset;
+  animation: visitor-snow-shift 6s ease-in-out infinite;
+}
+
+.cover-visitor[data-visitor-mood="snow"] i {
+  color: #0284c7;
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cover[data-cover-mood="rain"] .cover-ambient {
+  .cover-visitor[data-visitor-mood="rain"],
+  .cover-visitor[data-visitor-mood="snow"] {
     animation: none;
   }
+}
 
-  .cover[data-cover-mood="snow"] .cover-ambient {
-    animation: none;
-  }
+[data-theme="light"] .cover-visitor[data-visitor-mood="night"] {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(15, 23, 42, 0.12);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 6px 22px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.75) inset;
+}
+
+[data-theme="light"] .cover-visitor[data-visitor-mood="night"] i {
+  color: #0284c7;
+  filter: none;
+}
+
+[data-theme="light"] .cover-visitor[data-visitor-mood="day"],
+[data-theme="light"] .cover-visitor[data-visitor-mood="sunny"] {
+  border-color: rgba(8, 145, 178, 0.22);
+}
+
+[data-theme="light"] .cover-visitor[data-visitor-mood="rain"] {
+  color: #0f172a;
+  background-color: transparent;
+  background-image: repeating-linear-gradient(
+      105deg,
+      transparent,
+      transparent 5px,
+      rgba(14, 116, 144, 0.12) 5px,
+      rgba(14, 116, 144, 0.12) 6px
+    ),
+    linear-gradient(175deg, rgba(186, 230, 253, 0.96), rgba(240, 249, 255, 0.98));
+  background-size: auto, 100% 100%;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 6px 20px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+}
+
+[data-theme="light"] .cover-visitor[data-visitor-mood="rain"] i {
+  color: #0369a1;
+  filter: none;
+}
+
+[data-theme="light"] .cover-visitor[data-visitor-mood="snow"] {
+  background-image: radial-gradient(
+      1px 1px at 22% 28%,
+      rgba(56, 189, 248, 0.45),
+      transparent 50%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(224, 242, 254, 0.96));
 }
 
 /* --- Profile & Cover --- */
@@ -469,7 +570,6 @@ body {
   object-fit: cover;
   object-position: center;
   display: block;
-  transition: filter 0.65s ease;
 }
 
 .cover {
@@ -508,93 +608,10 @@ body {
   background: linear-gradient(180deg, rgba(13, 13, 20, 0.3) 0%, rgba(13, 13, 20, 0.75) 100%);
   border-radius: var(--radius) var(--radius) 0 0;
   pointer-events: none;
-  transition: background 0.65s ease;
 }
 
 [data-theme="light"] .cover::after {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.6) 100%);
-}
-
-/* Ambient overlays on default (dark) site theme */
-.cover[data-cover-mood="day"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 220, 160, 0.18) 0%,
-    rgba(13, 13, 20, 0.38) 100%
-  );
-}
-
-.cover[data-cover-mood="day"] .cover-video-bg video {
-  filter: brightness(1.1) contrast(1.04) saturate(1.12);
-}
-
-.cover[data-cover-mood="night"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(8, 14, 40, 0.5) 0%,
-    rgba(4, 4, 10, 0.92) 100%
-  );
-}
-
-.cover[data-cover-mood="night"] .cover-video-bg video {
-  filter: brightness(0.68) contrast(1.08) saturate(0.82);
-}
-
-.cover[data-cover-mood="rain"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(35, 55, 85, 0.5) 0%,
-    rgba(10, 12, 22, 0.9) 100%
-  );
-}
-
-.cover[data-cover-mood="rain"] .cover-video-bg video {
-  filter: brightness(0.52) contrast(1.12) saturate(0.72);
-}
-
-.cover[data-cover-mood="snow"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(200, 220, 245, 0.22) 0%,
-    rgba(15, 20, 35, 0.88) 100%
-  );
-}
-
-.cover[data-cover-mood="snow"] .cover-video-bg video {
-  filter: brightness(0.78) contrast(1.05) saturate(0.75);
-}
-
-/* Light UI theme: keep hero readable; ambient is subtle */
-[data-theme="light"] .cover[data-cover-mood="day"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 251, 235, 0.55) 0%,
-    rgba(186, 230, 253, 0.75) 100%
-  );
-}
-
-[data-theme="light"] .cover[data-cover-mood="night"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(30, 58, 95, 0.2) 0%,
-    rgba(186, 230, 253, 0.88) 100%
-  );
-}
-
-[data-theme="light"] .cover[data-cover-mood="rain"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(100, 130, 170, 0.28) 0%,
-    rgba(186, 230, 253, 0.9) 100%
-  );
-}
-
-[data-theme="light"] .cover[data-cover-mood="snow"]::after {
-  background: linear-gradient(
-    180deg,
-    rgba(240, 249, 255, 0.65) 0%,
-    rgba(186, 230, 253, 0.92) 100%
-  );
 }
 
 /* Profile picture — slightly larger, clearer ring */
