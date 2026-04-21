@@ -265,7 +265,7 @@ body {
   position: absolute;
   top: 16px;
   right: 16px;
-  z-index: 3;
+  z-index: 5;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -311,7 +311,7 @@ body {
   top: 12px;
   left: 14px;
   right: 58px;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -359,6 +359,74 @@ body {
   }
 }
 
+/* Hero cover mood: day / night / rain / snow (set via data-cover-mood from weather + is_day) */
+.cover-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius) var(--radius) 0 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+
+.cover[data-cover-mood="rain"] .cover-ambient,
+.cover[data-cover-mood="snow"] .cover-ambient {
+  opacity: 1;
+}
+
+.cover[data-cover-mood="rain"] .cover-ambient {
+  background-image: repeating-linear-gradient(
+    105deg,
+    transparent,
+    transparent 6px,
+    rgba(186, 230, 255, 0.12) 6px,
+    rgba(186, 230, 255, 0.12) 7px
+  );
+  animation: cover-rain-fall 0.75s linear infinite;
+}
+
+.cover[data-cover-mood="snow"] .cover-ambient {
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1px 1px at 72% 32%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.2px 1.2px at 38% 78%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 88% 65%, rgba(255, 255, 255, 0.65), transparent);
+  background-size: 100% 100%;
+  animation: cover-snow-drift 5s ease-in-out infinite;
+}
+
+@keyframes cover-rain-fall {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 12px 36px;
+  }
+}
+
+@keyframes cover-snow-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(3px);
+    opacity: 0.92;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover[data-cover-mood="rain"] .cover-ambient {
+    animation: none;
+  }
+
+  .cover[data-cover-mood="snow"] .cover-ambient {
+    animation: none;
+  }
+}
+
 /* --- Profile & Cover --- */
 /* Moving wallpaper behind profile (video fills cover box only) */
 .cover-video-bg {
@@ -376,6 +444,7 @@ body {
   object-fit: cover;
   object-position: center;
   display: block;
+  transition: filter 0.65s ease;
 }
 
 .cover {
@@ -410,14 +479,97 @@ body {
   content: '';
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 1;
+  z-index: 2;
   background: linear-gradient(180deg, rgba(13, 13, 20, 0.3) 0%, rgba(13, 13, 20, 0.75) 100%);
   border-radius: var(--radius) var(--radius) 0 0;
   pointer-events: none;
+  transition: background 0.65s ease;
 }
 
 [data-theme="light"] .cover::after {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.6) 100%);
+}
+
+/* Ambient overlays on default (dark) site theme */
+.cover[data-cover-mood="day"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 220, 160, 0.18) 0%,
+    rgba(13, 13, 20, 0.38) 100%
+  );
+}
+
+.cover[data-cover-mood="day"] .cover-video-bg video {
+  filter: brightness(1.1) contrast(1.04) saturate(1.12);
+}
+
+.cover[data-cover-mood="night"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 14, 40, 0.5) 0%,
+    rgba(4, 4, 10, 0.92) 100%
+  );
+}
+
+.cover[data-cover-mood="night"] .cover-video-bg video {
+  filter: brightness(0.68) contrast(1.08) saturate(0.82);
+}
+
+.cover[data-cover-mood="rain"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(35, 55, 85, 0.5) 0%,
+    rgba(10, 12, 22, 0.9) 100%
+  );
+}
+
+.cover[data-cover-mood="rain"] .cover-video-bg video {
+  filter: brightness(0.52) contrast(1.12) saturate(0.72);
+}
+
+.cover[data-cover-mood="snow"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(200, 220, 245, 0.22) 0%,
+    rgba(15, 20, 35, 0.88) 100%
+  );
+}
+
+.cover[data-cover-mood="snow"] .cover-video-bg video {
+  filter: brightness(0.78) contrast(1.05) saturate(0.75);
+}
+
+/* Light UI theme: keep hero readable; ambient is subtle */
+[data-theme="light"] .cover[data-cover-mood="day"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 251, 235, 0.55) 0%,
+    rgba(186, 230, 253, 0.75) 100%
+  );
+}
+
+[data-theme="light"] .cover[data-cover-mood="night"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(30, 58, 95, 0.2) 0%,
+    rgba(186, 230, 253, 0.88) 100%
+  );
+}
+
+[data-theme="light"] .cover[data-cover-mood="rain"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(100, 130, 170, 0.28) 0%,
+    rgba(186, 230, 253, 0.9) 100%
+  );
+}
+
+[data-theme="light"] .cover[data-cover-mood="snow"]::after {
+  background: linear-gradient(
+    180deg,
+    rgba(240, 249, 255, 0.65) 0%,
+    rgba(186, 230, 253, 0.92) 100%
+  );
 }
 
 /* Profile picture — slightly larger, clearer ring */

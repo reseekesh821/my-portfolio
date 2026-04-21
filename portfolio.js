@@ -94,6 +94,44 @@
     weatherIconEl.className = cls;
   }
 
+  function isRainMoodCode(code) {
+    const c = code | 0;
+    return (
+      (c >= 51 && c <= 67) ||
+      (c >= 80 && c <= 82) ||
+      (c >= 95 && c <= 99)
+    );
+  }
+
+  function isSnowMoodCode(code) {
+    const c = code | 0;
+    return (c >= 71 && c <= 77) || (c >= 85 && c <= 86);
+  }
+
+  function localHourCoverMood() {
+    const h = new Date().getHours();
+    return h >= 6 && h < 19 ? "day" : "night";
+  }
+
+  /**
+   * Hero cover: bright "day" / dark "night" from visitor local clock; "rain" / "snow" override from WMO code.
+   */
+  var lastMoodWeatherCode = null;
+
+  function applyCoverMood(weatherCode) {
+    const el = document.getElementById("hero-cover");
+    if (!el) return;
+
+    var mood = localHourCoverMood();
+    if (weatherCode != null && !Number.isNaN(Number(weatherCode))) {
+      var c = Number(weatherCode) | 0;
+      if (isRainMoodCode(c)) mood = "rain";
+      else if (isSnowMoodCode(c)) mood = "snow";
+    }
+
+    el.setAttribute("data-cover-mood", mood);
+  }
+
   async function fetchOpenMeteo(lat, lon) {
     if (!weatherEl) return;
     weatherEl.textContent = "…";
@@ -113,9 +151,14 @@
       setWeatherIcon(cur.weather_code);
       weatherEl.textContent = `${t}°C · ${label}`;
       weatherEl.setAttribute("title", "Open-Meteo (approx. for your area)");
+
+      lastMoodWeatherCode = cur.weather_code;
+      applyCoverMood(lastMoodWeatherCode);
     } catch (e) {
+      lastMoodWeatherCode = null;
       weatherEl.textContent = "Weather unavailable";
       weatherEl.removeAttribute("title");
+      applyCoverMood(null);
     }
   }
 
@@ -137,6 +180,11 @@
   }
 
   if (!locEl && !weatherEl) return;
+
+  applyCoverMood(null);
+  setInterval(function () {
+    applyCoverMood(lastMoodWeatherCode);
+  }, 60000);
 
   if (!navigator.geolocation) {
     if (locEl) setLocation("Location not supported");
@@ -171,6 +219,8 @@
         weatherEl.textContent = "—";
         weatherEl.removeAttribute("title");
       }
+      lastMoodWeatherCode = null;
+      applyCoverMood(null);
     },
     {
       enableHighAccuracy: false,
