@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server configuration error (Missing API Key)" });
   }
 
-  const { messages } = req.body;
+  const { messages, language } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Messages array is required" });
   }
@@ -84,6 +84,18 @@ export default async function handler(req, res) {
         ? baseMessages.slice(1)
         : baseMessages;
 
+    const normalizedLang = typeof language === "string" ? language.trim().toLowerCase() : "en";
+    const languageMap = {
+      en: "English",
+      ne: "Nepali",
+      es: "Spanish",
+      zh: "Chinese",
+      fr: "French",
+      de: "German",
+      pt: "Portuguese"
+    };
+    const responseLanguage = languageMap[normalizedLang] || "English";
+
     const agentInstruction = {
       role: "system",
       content:
@@ -106,7 +118,8 @@ export default async function handler(req, res) {
         "4) For normal conversation or questions, use reply_only. " +
         "5) Keep reply concise and helpful. " +
         "6) Never invent unsupported actions. " +
-        "7) If uncertain, use reply_only."
+        "7) If uncertain, use reply_only. " +
+        `8) Always write the user-facing 'reply' in ${responseLanguage}.`
     };
 
     const payloadMessages = firstMessage && firstMessage.role === "system"

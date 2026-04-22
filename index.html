@@ -33,6 +33,18 @@
       <i class="fa-solid fa-moon" id="theme-icon-dark"></i>
       <i class="fa-solid fa-sun hidden" id="theme-icon-light"></i>
     </button>
+    <label for="language-select" class="language-switcher">
+      <span id="language-label">Language</span>
+      <select id="language-select" aria-label="Choose language">
+        <option value="en">English</option>
+        <option value="ne">Nepali</option>
+        <option value="es">Spanish</option>
+        <option value="zh">Chinese</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="pt">Portuguese</option>
+      </select>
+    </label>
     <div class="cover-visitor" id="cover-visitor" data-visitor-mood="night" aria-live="polite">
       <div class="cover-visitor-time">
         <i class="fa-regular fa-clock" aria-hidden="true"></i>
@@ -71,14 +83,14 @@
     </ul>
     
     <div id="intro" class="tab-content active" role="tabpanel" aria-labelledby="tab-intro" tabindex="0">
-      <p class="intro-lead">
+      <p class="intro-lead" id="intro-lead">
         Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the United States, where I am pursuing my undergraduate degree in Computer Science at Caldwell University. I am in my sophomore year and aspire to build a career as a software developer. So far, I have completed several projects using Python, HTML, CSS, and JavaScript, and I am continuously expanding my skills in full-stack development.
       </p>
     </div>
 
     <div id="projects" class="tab-content" role="tabpanel" aria-labelledby="tab-projects" tabindex="0">
-      <h3><i class="fa-solid fa-laptop-code"></i> Featured Projects</h3>
-      <p>Here are some of the projects I've been working on:</p>
+      <h3 id="projects-title"><i class="fa-solid fa-laptop-code"></i> Featured Projects</h3>
+      <p id="projects-desc">Here are some of the projects I've been working on:</p>
 
       <div class="project-grid">
         <div class="project-card">
@@ -87,12 +99,12 @@
               <i class="fa-solid fa-folder-open"></i>
             </div>
             <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" rel="noopener noreferrer" class="code-btn">
-              View Code <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
             </a>
           </div>
           <div class="card-content">
             <h4>QuickLoan App</h4>
-            <p>A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.</p>
+            <p id="project-quickloan-desc">A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.</p>
             <div class="tech-stack">
               <span>React</span>
               <span>Python (FastAPI)</span>
@@ -107,12 +119,12 @@
               <i class="fa-solid fa-chart-pie"></i>
             </div>
             <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" rel="noopener noreferrer" class="code-btn">
-              View Code <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
             </a>
           </div>
           <div class="card-content">
             <h4>BudgetTracker</h4>
-            <p>A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.</p>
+            <p id="project-budget-desc">A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.</p>
             <div class="tech-stack">
               <span>Python</span>
               <span>Data Structures</span>
@@ -127,12 +139,12 @@
               <i class="fa-solid fa-robot"></i>
             </div>
             <a href="https://github.com/reseekesh821/my-portfolio" target="_blank" rel="noopener noreferrer" class="code-btn">
-              View Code <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
             </a>
           </div>
           <div class="card-content">
             <h4>AI-Powered Portfolio</h4>
-            <p>Personal portfolio site with an AI chat assistant (Groq), voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.</p>
+            <p id="project-portfolio-desc">Personal portfolio site with an AI chat assistant (Groq), voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.</p>
             <div class="tech-stack">
               <span>HTML / CSS / JS</span>
               <span>Supabase</span>
@@ -145,14 +157,14 @@
 
     <div id="education" class="tab-content" role="tabpanel" aria-labelledby="tab-education" tabindex="0">
       <div class="info-block">
-        <h3><i class="fa-solid fa-building-columns"></i> University</h3>
+        <h3 id="education-university-title"><i class="fa-solid fa-building-columns"></i> University</h3>
         <p><strong>Caldwell University</strong><br>
         Caldwell, NJ, USA<br>
         <span>2024 - 2028 (Bachelor's in CS)</span></p>
       </div>
       <hr class="section-divider" aria-hidden="true">
       <div class="info-block">
-        <h3><i class="fa-solid fa-school"></i> High School</h3>
+        <h3 id="education-highschool-title"><i class="fa-solid fa-school"></i> High School</h3>
         <p><strong>National School of Sciences</strong><br>
         Kathmandu, Nepal<br>
         <span>2021 - 2023 (High School Diploma)</span></p>
@@ -166,18 +178,18 @@
         <img src="https://raw.githubusercontent.com/reseekesh821/music/main/kathmandu.png" alt="Kathmandu" class="content-media" loading="lazy" decoding="async">
         
         <div class="hometown-time-card">
-          <p class="stack-tight"><strong><i class="fa-solid fa-clock"></i> Kathmandu Time:</strong></p>
+          <p class="stack-tight"><strong><i class="fa-solid fa-clock"></i> <span id="hometown-time-label">Kathmandu Time:</span></strong></p>
           <div id="nepal-clock" class="hometown-clock">Loading...</div>
           <div id="nepal-date" class="hometown-date">Loading Date...</div>
           
           <hr class="hometown-card-hr">
           
-          <p class="stack-tight"><strong><i class="fa-solid fa-cloud-sun"></i> Weather:</strong></p>
+          <p class="stack-tight"><strong><i class="fa-solid fa-cloud-sun"></i> <span id="hometown-weather-label">Weather:</span></strong></p>
           <div id="nepal-weather" class="hometown-weather">Loading...</div>
         </div>
 
         <div class="map-container">
-          <p class="map-label"><strong><i class="fa-solid fa-map"></i> Location:</strong></p>
+          <p class="map-label"><strong><i class="fa-solid fa-map"></i> <span id="hometown-location-label">Location:</span></strong></p>
           <iframe 
             class="map-frame"
             title="Map of Kathmandu, Nepal"
@@ -194,7 +206,7 @@
 
     <div id="favorites" class="tab-content" role="tabpanel" aria-labelledby="tab-favorites" tabindex="0">
       <div class="info-block">
-        <h3><i class="fa-solid fa-music"></i> Favorite Music</h3>
+        <h3 id="favorites-music-title"><i class="fa-solid fa-music"></i> Favorite Music</h3>
         
         <div class="spotify-player">
           <div class="album-art">
@@ -226,13 +238,13 @@
       </div>
 
       <div id="favcity" class="info-block">
-        <h3><i class="fa-solid fa-mountain-sun"></i> Favorite City</h3>
+        <h3 id="favorites-city-title"><i class="fa-solid fa-mountain-sun"></i> Favorite City</h3>
         <p>Pokhara, Nepal</p>
         <img src="https://raw.githubusercontent.com/reseekesh821/music/main/pokhara.jpg" alt="Pokhara" class="content-media" loading="lazy" decoding="async">
       </div>
 
       <div class="info-block">
-        <h3><i class="fa-solid fa-film"></i> Favorite Movie</h3>
+        <h3 id="favorites-movie-title"><i class="fa-solid fa-film"></i> Favorite Movie</h3>
         <p>Interstellar</p>
         
         <div class="embed-youtube">
@@ -265,7 +277,7 @@
     </div>
 
     <div id="news" class="tab-content" role="tabpanel" aria-labelledby="tab-news" tabindex="0">
-      <h3><i class="fa-solid fa-newspaper"></i> News</h3>
+      <h3 id="news-title"><i class="fa-solid fa-newspaper"></i> News</h3>
       <p>Top headlines from around the world.</p>
       <div id="news-list" class="news-list" aria-live="polite"></div>
     </div>
@@ -279,7 +291,7 @@
       <div class="btn-icon">
         <i class="fa-solid fa-file-pdf"></i>
       </div>
-      <span>View Resume</span>
+      <span id="contact-resume-text">View Resume</span>
       <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
     </a>
 
@@ -300,7 +312,7 @@
     </a>
   </div>
   <div class="form-container">
-  <h3><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
+  <h3 id="contact-send-title"><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
   
   <form id="contact-form" action="#" method="POST" class="contact-form">
     <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
@@ -321,7 +333,7 @@
     </div>
 
     <button type="submit" class="send-btn" id="contact-submit-btn">
-      Send Message <i class="fa-solid fa-paper-plane"></i>
+      <span id="contact-send-btn-text">Send Message</span> <i class="fa-solid fa-paper-plane"></i>
     </button>
   </form>
 </div>
@@ -334,7 +346,7 @@
     <button id="voice-help-btn" class="voice-help-btn" title="What can I say?"><i class="fa-solid fa-circle-question"></i></button>
   </div>
   <div class="voice-commands-panel" id="voice-commands-panel">
-    <div class="voice-commands-header"><i class="fa-solid fa-microphone-lines"></i> Voice commands</div>
+    <div class="voice-commands-header"><i class="fa-solid fa-microphone-lines"></i> <span id="voice-commands-title">Voice commands</span></div>
     <ul class="voice-commands-list">
       <li><strong>About:</strong> "Who is Rishikesh?" "Tell me about him"</li>
       <li><strong>Weather:</strong> "What's the weather?" "Weather in Kathmandu"</li>
@@ -410,13 +422,13 @@
     
     <div class="chat-messages" id="chat-messages">
       <div class="message bot-message chat-welcome">
-        Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.
+        <span id="chat-welcome-text">Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.</span>
       </div>
       <div class="quick-replies" id="quick-replies">
-        <button type="button" class="chip" onclick="handleQuickReply('change color to red')">Red theme</button>
-        <button type="button" class="chip" onclick="handleQuickReply('play music')">Play music</button>
-        <button type="button" class="chip" onclick="handleQuickReply('Tell me about Rishikesh')">About Rishi</button>
-        <button type="button" class="chip" onclick="handleQuickReply('show projects')">Projects</button>
+        <button type="button" class="chip" onclick="handleQuickReply('change color to red')" id="chip-red-theme">Red theme</button>
+        <button type="button" class="chip" onclick="handleQuickReply('play music')" id="chip-play-music">Play music</button>
+        <button type="button" class="chip" onclick="handleQuickReply('Tell me about Rishikesh')" id="chip-about-rishi">About Rishi</button>
+        <button type="button" class="chip" onclick="handleQuickReply('show projects')" id="chip-projects">Projects</button>
       </div>
     </div>
     

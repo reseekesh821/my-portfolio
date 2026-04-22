@@ -76,6 +76,443 @@ function applyPortfolioAccent(name) {
   } catch (e) {}
 })();
 
+// 0c. Language/i18n (no external API required)
+const PORTFOLIO_LANG_STORAGE_KEY = "portfolio-language";
+const RTL_LANGS = new Set([]);
+const I18N = {
+  en: {
+    introLead: "Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the United States, where I am pursuing my undergraduate degree in Computer Science at Caldwell University. I am in my sophomore year and aspire to build a career as a software developer. So far, I have completed several projects using Python, HTML, CSS, and JavaScript, and I am continuously expanding my skills in full-stack development.",
+    languageLabel: "Language",
+    subtitle: "Computer Science Student | Aspiring Software Developer",
+    tourStart: "Walk me through this site",
+    intro: "Intro",
+    projects: "Projects",
+    education: "Education",
+    hometown: "Hometown",
+    favorites: "Favorites",
+    games: "Games",
+    news: "News",
+    contact: "Contact",
+    gamesTitle: "Play & Learn",
+    gamesDesc: "Test what you know about Rishikesh with a quick quiz.",
+    gameTitle: "Know Rishikesh?",
+    scoreLabel: "Score",
+    quizStart: "Start Quiz",
+    quizNext: "Next Question",
+    newsDesc: "Top headlines from around the world.",
+    contactTitle: "Contact & Portfolio",
+    contactDesc: "Reach out via the links below or drop a message—I will respond as soon as I can.",
+    sendMessageTitle: "Send a Message",
+    name: "Name",
+    email: "Email Address",
+    yourMessage: "Your Message",
+    sendButton: "Send Message",
+    chatPlaceholder: "Type a message or command...",
+    typing: "Thinking...",
+    listening: "Listening...",
+    newsLoading: "Loading news…",
+    newsUnavailable: "Unable to load news. Try again later.",
+    newsEmpty: "No headlines right now.",
+    newsConnection: "Could not load news. Check your connection."
+  },
+  ne: { languageLabel: "भाषा", subtitle: "कम्प्युटर विज्ञान विद्यार्थी | सफ्टवेयर विकासकर्ता बन्ने लक्ष्य", tourStart: "यो साइट देखाइदिनुहोस्", intro: "परिचय", projects: "प्रोजेक्टहरू", education: "शिक्षा", hometown: "गृहनगर", favorites: "मनपर्ने", games: "खेल", news: "समाचार", contact: "सम्पर्क", gamesTitle: "खेल्दै सिकौं", gamesDesc: "रिशिकेशबारे छोटो क्विज खेल्नुहोस्।", gameTitle: "रिशिकेशलाई चिन्नुहुन्छ?", scoreLabel: "स्कोर", quizStart: "क्विज सुरु गर्नुहोस्", quizNext: "अर्को प्रश्न", newsDesc: "विश्वभरिका मुख्य समाचारहरू।", contactTitle: "सम्पर्क र पोर्टफोलियो", contactDesc: "तलका लिङ्कमार्फत सम्पर्क गर्नुहोस् वा सन्देश पठाउनुहोस्।", sendMessageTitle: "सन्देश पठाउनुहोस्", name: "नाम", email: "इमेल ठेगाना", yourMessage: "तपाईंको सन्देश", sendButton: "सन्देश पठाउनुहोस्", chatPlaceholder: "सन्देश वा कमाण्ड टाइप गर्नुहोस्...", typing: "सोच्दै...", listening: "सुनिरहेको...", newsLoading: "समाचार लोड हुँदैछ…", newsUnavailable: "समाचार लोड गर्न सकिएन।", newsEmpty: "अहिले हेडलाइन छैन।", newsConnection: "समाचार लोड भएन। इन्टरनेट जाँच्नुहोस्।" },
+  es: { languageLabel: "Idioma", subtitle: "Estudiante de Informática | Futuro desarrollador de software", tourStart: "Muéstrame este sitio", intro: "Introducción", projects: "Proyectos", education: "Educación", hometown: "Ciudad natal", favorites: "Favoritos", games: "Juegos", news: "Noticias", contact: "Contacto", gamesTitle: "Jugar y aprender", gamesDesc: "Pon a prueba lo que sabes sobre Rishikesh.", gameTitle: "¿Conoces a Rishikesh?", scoreLabel: "Puntuación", quizStart: "Iniciar quiz", quizNext: "Siguiente pregunta", newsDesc: "Titulares principales del mundo.", contactTitle: "Contacto y Portafolio", contactDesc: "Contáctame por los enlaces o envía un mensaje.", sendMessageTitle: "Enviar un mensaje", name: "Nombre", email: "Correo electrónico", yourMessage: "Tu mensaje", sendButton: "Enviar mensaje", chatPlaceholder: "Escribe un mensaje o comando...", typing: "Pensando...", listening: "Escuchando...", newsLoading: "Cargando noticias…", newsUnavailable: "No se pudieron cargar las noticias.", newsEmpty: "No hay titulares por ahora.", newsConnection: "No se pudieron cargar. Revisa tu conexión." },
+  fr: { languageLabel: "Langue", subtitle: "Etudiant en informatique | Futur developpeur logiciel", tourStart: "Faire la visite du site", intro: "Intro", projects: "Projets", education: "Etudes", hometown: "Ville natale", favorites: "Favoris", games: "Jeux", news: "Actualites", contact: "Contact", gamesTitle: "Jouer & apprendre", gamesDesc: "Testez vos connaissances sur Rishikesh.", gameTitle: "Connaissez-vous Rishikesh ?", scoreLabel: "Score", quizStart: "Demarrer le quiz", quizNext: "Question suivante", newsDesc: "Les grands titres du monde.", contactTitle: "Contact & Portfolio", contactDesc: "Contactez-moi via les liens ou envoyez un message.", sendMessageTitle: "Envoyer un message", name: "Nom", email: "Adresse e-mail", yourMessage: "Votre message", sendButton: "Envoyer", chatPlaceholder: "Tapez un message ou une commande...", typing: "Reflexion...", listening: "Ecoute...", newsLoading: "Chargement des actualites…", newsUnavailable: "Impossible de charger les actualites.", newsEmpty: "Aucun titre pour le moment.", newsConnection: "Chargement impossible. Verifiez votre connexion." },
+  de: { languageLabel: "Sprache", subtitle: "Informatikstudent | Zukuenftiger Softwareentwickler", tourStart: "Fuehre mich durch die Seite", intro: "Intro", projects: "Projekte", education: "Ausbildung", hometown: "Heimatstadt", favorites: "Favoriten", games: "Spiele", news: "Nachrichten", contact: "Kontakt", gamesTitle: "Spielen & Lernen", gamesDesc: "Teste dein Wissen ueber Rishikesh.", gameTitle: "Kennst du Rishikesh?", scoreLabel: "Punktzahl", quizStart: "Quiz starten", quizNext: "Naechste Frage", newsDesc: "Top-Schlagzeilen aus aller Welt.", contactTitle: "Kontakt & Portfolio", contactDesc: "Kontaktiere mich ueber die Links oder sende eine Nachricht.", sendMessageTitle: "Nachricht senden", name: "Name", email: "E-Mail-Adresse", yourMessage: "Deine Nachricht", sendButton: "Nachricht senden", chatPlaceholder: "Nachricht oder Befehl eingeben...", typing: "Denke nach...", listening: "Hoere zu...", newsLoading: "Nachrichten werden geladen…", newsUnavailable: "Nachrichten konnten nicht geladen werden.", newsEmpty: "Aktuell keine Schlagzeilen.", newsConnection: "Konnte nicht laden. Verbindung pruefen." },
+  pt: { languageLabel: "Idioma", subtitle: "Estudante de Ciencia da Computacao | Futuro desenvolvedor de software", tourStart: "Guie-me por este site", intro: "Introducao", projects: "Projetos", education: "Educacao", hometown: "Cidade natal", favorites: "Favoritos", games: "Jogos", news: "Noticias", contact: "Contato", gamesTitle: "Jogar e aprender", gamesDesc: "Teste o que voce sabe sobre Rishikesh.", gameTitle: "Conhece o Rishikesh?", scoreLabel: "Pontuacao", quizStart: "Iniciar quiz", quizNext: "Proxima pergunta", newsDesc: "Principais manchetes do mundo.", contactTitle: "Contato e Portfolio", contactDesc: "Entre em contato pelos links ou envie uma mensagem.", sendMessageTitle: "Enviar mensagem", name: "Nome", email: "Endereco de e-mail", yourMessage: "Sua mensagem", sendButton: "Enviar mensagem", chatPlaceholder: "Digite uma mensagem ou comando...", typing: "Pensando...", listening: "Ouvindo...", newsLoading: "Carregando noticias…", newsUnavailable: "Nao foi possivel carregar noticias.", newsEmpty: "Sem manchetes no momento.", newsConnection: "Falha ao carregar. Verifique a conexao." },
+  zh: { languageLabel: "语言", subtitle: "计算机科学学生 | 未来软件开发者", tourStart: "带我浏览这个网站", intro: "简介", projects: "项目", education: "教育", hometown: "家乡", favorites: "喜好", games: "游戏", news: "新闻", contact: "联系", gamesTitle: "边玩边学", gamesDesc: "通过小测验了解你对 Rishikesh 的认识。", gameTitle: "你了解 Rishikesh 吗？", scoreLabel: "得分", quizStart: "开始测验", quizNext: "下一题", newsDesc: "来自世界各地的头条新闻。", contactTitle: "联系与作品集", contactDesc: "你可以通过以下链接联系我，或直接留言。", sendMessageTitle: "发送消息", name: "姓名", email: "邮箱地址", yourMessage: "你的消息", sendButton: "发送消息", chatPlaceholder: "输入消息或指令...", typing: "思考中...", listening: "正在聆听...", newsLoading: "正在加载新闻…", newsUnavailable: "暂时无法加载新闻。", newsEmpty: "目前没有新闻。", newsConnection: "加载失败，请检查网络连接。" }
+};
+
+const I18N_EXTENDED = {
+  en: {
+    projectsTitle: "Featured Projects",
+    projectsDesc: "Here are some of the projects I've been working on:",
+    viewCode: "View Code",
+    projectQuickLoanDesc: "A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.",
+    projectBudgetDesc: "A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.",
+    projectPortfolioDesc: "Personal portfolio site with an AI chat assistant (Groq), voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.",
+    universityTitle: "University",
+    highSchoolTitle: "High School",
+    hometownTimeLabel: "Kathmandu Time:",
+    hometownWeatherLabel: "Weather:",
+    hometownLocationLabel: "Location:",
+    favoritesMusicTitle: "Favorite Music",
+    favoritesCityTitle: "Favorite City",
+    favoritesMovieTitle: "Favorite Movie",
+    resumeText: "View Resume",
+    voiceCommandsTitle: "Voice commands",
+    chatWelcome: "Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.",
+    chipRedTheme: "Red theme",
+    chipPlayMusic: "Play music",
+    chipAboutRishi: "About Rishi",
+    chipProjects: "Projects",
+    quizPromptStart: "Click Start to begin.",
+    quizComplete: "Quiz complete!",
+    playAgain: "Play Again",
+    quizResultPerfect: "Perfect! You know Rishikesh well.",
+    quizResultGood: "Nice job! Explore the portfolio to learn more.",
+    quizResultTry: "No worries — check out Intro and Projects!",
+    yourScore: "Your score",
+    chatOnline: "Online",
+    chatOffline: "Offline",
+    voiceHelpTitle: "What can I say?",
+    tourPrev: "Previous",
+    tourNext: "Next",
+    tourFinish: "Finish",
+    tourExit: "Exit"
+  },
+  es: {
+    introLead: "Hola a todos, mi nombre es Rishikesh Bastakoti. Soy de Nepal y actualmente vivo en Estados Unidos, donde estudio Informatica en Caldwell University. Estoy en segundo ano y quiero construir una carrera como desarrollador de software.",
+    projectsTitle: "Proyectos Destacados",
+    projectsDesc: "Estos son algunos de los proyectos en los que he estado trabajando:",
+    viewCode: "Ver codigo",
+    projectQuickLoanDesc: "Un sistema de prestamos full-stack disenado para agilizar el proceso de solicitud y aprobacion.",
+    projectBudgetDesc: "Una herramienta de finanzas personales en Python para registrar gastos y visualizar habitos de consumo.",
+    projectPortfolioDesc: "Portafolio personal con asistente de IA, comandos de voz, llamadas, clima y noticias en vivo, quiz y analiticas en Supabase.",
+    universityTitle: "Universidad",
+    highSchoolTitle: "Escuela secundaria",
+    hometownTimeLabel: "Hora de Katmandu:",
+    hometownWeatherLabel: "Clima:",
+    hometownLocationLabel: "Ubicacion:",
+    favoritesMusicTitle: "Musica favorita",
+    favoritesCityTitle: "Ciudad favorita",
+    favoritesMovieTitle: "Pelicula favorita",
+    resumeText: "Ver CV",
+    voiceCommandsTitle: "Comandos de voz",
+    chatWelcome: "Hola. Preguntame sobre Rishikesh o usa comandos como reproducir musica, cambiar color o mostrar proyectos.",
+    chipRedTheme: "Tema rojo",
+    chipPlayMusic: "Reproducir musica",
+    chipAboutRishi: "Sobre Rishi",
+    chipProjects: "Proyectos",
+    quizPromptStart: "Haz clic en iniciar para comenzar.",
+    quizComplete: "Quiz completado!",
+    playAgain: "Jugar de nuevo",
+    quizResultPerfect: "Perfecto! Conoces muy bien a Rishikesh.",
+    quizResultGood: "Buen trabajo! Explora el portafolio para aprender mas.",
+    quizResultTry: "No pasa nada: revisa Introduccion y Proyectos.",
+    yourScore: "Tu puntuacion",
+    chatOnline: "En linea",
+    chatOffline: "Desconectado",
+    voiceHelpTitle: "Que puedo decir?",
+    tourPrev: "Anterior",
+    tourNext: "Siguiente",
+    tourFinish: "Finalizar",
+    tourExit: "Salir"
+  },
+  ne: {
+    introLead: "नमस्ते सबैलाई, मेरो नाम रिशिकेश बास्ताकोटी हो। म नेपालबाट हुँ र हाल अमेरिकामा बस्दै कम्प्युटर साइन्स पढिरहेको छु। म दोस्रो वर्षमा छु र सफ्टवेयर डेभलपर बन्ने लक्ष्य राखेको छु।",
+    projectsTitle: "विशेष प्रोजेक्टहरू",
+    projectsDesc: "मैले काम गरिरहेका केही प्रोजेक्टहरू यहाँ छन्:",
+    viewCode: "कोड हेर्नुहोस्",
+    projectQuickLoanDesc: "ऋण प्रक्रिया सजिलो बनाउने फुल-स्ट्याक लोन प्रणाली। आधुनिक फ्रन्टएन्ड र बलियो ब्याकएन्डमा आधारित।",
+    projectBudgetDesc: "Python मा बनेको व्यक्तिगत वित्त उपकरण जसले खर्च ट्र्याक, बजेट सेट र खर्च विश्लेषण गर्न मद्दत गर्छ।",
+    projectPortfolioDesc: "AI सहायक, भ्वाइस कमाण्ड, कल, मौसम/समाचार, क्विज र Supabase एनालिटिक्स भएको व्यक्तिगत पोर्टफोलियो साइट।",
+    universityTitle: "विश्वविद्यालय",
+    highSchoolTitle: "उच्च माध्यमिक विद्यालय",
+    hometownTimeLabel: "काठमाडौं समय:",
+    hometownWeatherLabel: "मौसम:",
+    hometownLocationLabel: "स्थान:",
+    favoritesMusicTitle: "मनपर्ने संगीत",
+    favoritesCityTitle: "मनपर्ने सहर",
+    favoritesMovieTitle: "मनपर्ने चलचित्र",
+    resumeText: "रिजुमे हेर्नुहोस्",
+    voiceCommandsTitle: "भ्वाइस कमाण्डहरू",
+    chatWelcome: "नमस्ते। मसँग रिशिकेशबारे सोध्नुहोस् वा संगीत चलाऊ, रंग बदल जस्ता कमाण्ड प्रयोग गर्नुहोस्।",
+    chipRedTheme: "रातो थिम",
+    chipPlayMusic: "संगीत चलाऊ",
+    chipAboutRishi: "रिशीबारे",
+    chipProjects: "प्रोजेक्टहरू",
+    quizPromptStart: "सुरु गर्न Start थिच्नुहोस्।",
+    quizComplete: "क्विज सकियो!",
+    playAgain: "फेरि खेल्नुहोस्",
+    quizResultPerfect: "उत्कृष्ट! तपाईंले रिशिकेशलाई राम्रोसँग चिन्नुहुन्छ।",
+    quizResultGood: "राम्रो भयो! थप सिक्न पोर्टफोलियो हेर्नुहोस्।",
+    quizResultTry: "चिन्ता नलिनुहोस् — Intro र Projects हेर्नुहोस्।",
+    yourScore: "तपाईंको स्कोर",
+    chatOnline: "अनलाइन",
+    chatOffline: "अफलाइन",
+    voiceHelpTitle: "म के भन्न सक्छु?",
+    tourPrev: "अघिल्लो",
+    tourNext: "अर्को",
+    tourFinish: "समाप्त",
+    tourExit: "बाहिरिने"
+  },
+  fr: {
+    introLead: "Bonjour a tous, je m'appelle Rishikesh Bastakoti. Je viens du Nepal et je vis actuellement aux Etats-Unis, ou je poursuis une licence en informatique a Caldwell University. Je suis en deuxieme annee et je souhaite construire une carriere de developpeur logiciel.",
+    projectsTitle: "Projets en vedette",
+    projectsDesc: "Voici quelques projets sur lesquels j'ai travaille :",
+    viewCode: "Voir le code",
+    projectQuickLoanDesc: "Une application de pret full-stack concue pour simplifier le processus d'emprunt.",
+    projectBudgetDesc: "Un outil de finances personnelles en Python pour suivre les depenses et visualiser les habitudes.",
+    projectPortfolioDesc: "Portfolio personnel avec assistant IA, commandes vocales, appels audio/video, meteo et actualites en direct.",
+    universityTitle: "Universite",
+    highSchoolTitle: "Lycee",
+    hometownTimeLabel: "Heure de Kathmandu :",
+    hometownWeatherLabel: "Meteo :",
+    hometownLocationLabel: "Localisation :",
+    favoritesMusicTitle: "Musique preferee",
+    favoritesCityTitle: "Ville preferee",
+    favoritesMovieTitle: "Film prefere",
+    resumeText: "Voir le CV",
+    voiceCommandsTitle: "Commandes vocales",
+    chatWelcome: "Salut. Posez-moi des questions sur Rishikesh ou essayez des commandes comme jouer la musique et ouvrir les projets.",
+    chipRedTheme: "Theme rouge",
+    chipPlayMusic: "Jouer la musique",
+    chipAboutRishi: "A propos de Rishi",
+    chipProjects: "Projets",
+    quizPromptStart: "Cliquez sur Demarrer pour commencer.",
+    quizComplete: "Quiz termine !",
+    playAgain: "Rejouer",
+    quizResultPerfect: "Parfait ! Vous connaissez tres bien Rishikesh.",
+    quizResultGood: "Bien joue ! Explorez le portfolio pour en savoir plus.",
+    quizResultTry: "Pas de souci — consultez Intro et Projets.",
+    yourScore: "Votre score",
+    chatOnline: "En ligne",
+    chatOffline: "Hors ligne",
+    voiceHelpTitle: "Que puis-je dire ?",
+    tourPrev: "Precedent",
+    tourNext: "Suivant",
+    tourFinish: "Terminer",
+    tourExit: "Quitter"
+  },
+  de: {
+    introLead: "Hallo zusammen, ich heisse Rishikesh Bastakoti. Ich komme aus Nepal und lebe derzeit in den USA, wo ich an der Caldwell University Informatik studiere. Ich bin im zweiten Studienjahr und moechte Softwareentwickler werden.",
+    projectsTitle: "Ausgewaehlte Projekte",
+    projectsDesc: "Hier sind einige Projekte, an denen ich gearbeitet habe:",
+    viewCode: "Code ansehen",
+    projectQuickLoanDesc: "Ein Full-Stack-Kreditsystem, das den Ausleihprozess vereinfacht.",
+    projectBudgetDesc: "Ein Python-Finanztool, um Ausgaben zu verfolgen und Budgets zu planen.",
+    projectPortfolioDesc: "Persoenliche Portfolio-Seite mit KI-Chat, Sprachbefehlen, Audio/Video-Anrufen, Live-Wetter und News.",
+    universityTitle: "Universitaet",
+    highSchoolTitle: "Oberschule",
+    hometownTimeLabel: "Kathmandu-Zeit:",
+    hometownWeatherLabel: "Wetter:",
+    hometownLocationLabel: "Ort:",
+    favoritesMusicTitle: "Lieblingsmusik",
+    favoritesCityTitle: "Lieblingsstadt",
+    favoritesMovieTitle: "Lieblingsfilm",
+    resumeText: "Lebenslauf ansehen",
+    voiceCommandsTitle: "Sprachbefehle",
+    chatWelcome: "Hi. Frag mich zu Rishikesh oder nutze Befehle wie Musik starten, Farbe wechseln oder Projekte anzeigen.",
+    chipRedTheme: "Rotes Design",
+    chipPlayMusic: "Musik starten",
+    chipAboutRishi: "Ueber Rishi",
+    chipProjects: "Projekte",
+    quizPromptStart: "Klicke auf Start, um zu beginnen.",
+    quizComplete: "Quiz abgeschlossen!",
+    playAgain: "Nochmal spielen",
+    quizResultPerfect: "Perfekt! Du kennst Rishikesh sehr gut.",
+    quizResultGood: "Gut gemacht! Schau dir das Portfolio fuer mehr Infos an.",
+    quizResultTry: "Kein Problem — sieh dir Intro und Projekte an.",
+    yourScore: "Dein Ergebnis",
+    chatOnline: "Online",
+    chatOffline: "Offline",
+    voiceHelpTitle: "Was kann ich sagen?",
+    tourPrev: "Zurueck",
+    tourNext: "Weiter",
+    tourFinish: "Fertig",
+    tourExit: "Beenden"
+  },
+  pt: {
+    introLead: "Ola, pessoal. Meu nome e Rishikesh Bastakoti. Sou do Nepal e atualmente moro nos Estados Unidos, onde curso Ciencia da Computacao na Caldwell University. Estou no segundo ano e quero construir minha carreira como desenvolvedor de software.",
+    projectsTitle: "Projetos em destaque",
+    projectsDesc: "Aqui estao alguns projetos em que tenho trabalhado:",
+    viewCode: "Ver codigo",
+    projectQuickLoanDesc: "Um sistema full-stack de emprestimos para simplificar o processo de credito.",
+    projectBudgetDesc: "Uma ferramenta de financas pessoais em Python para acompanhar gastos e metas.",
+    projectPortfolioDesc: "Site de portfolio com assistente de IA, comandos de voz, chamadas, clima e noticias ao vivo.",
+    universityTitle: "Universidade",
+    highSchoolTitle: "Ensino medio",
+    hometownTimeLabel: "Horario de Katmandu:",
+    hometownWeatherLabel: "Clima:",
+    hometownLocationLabel: "Localizacao:",
+    favoritesMusicTitle: "Musica favorita",
+    favoritesCityTitle: "Cidade favorita",
+    favoritesMovieTitle: "Filme favorito",
+    resumeText: "Ver curriculo",
+    voiceCommandsTitle: "Comandos de voz",
+    chatWelcome: "Oi. Pergunte sobre Rishikesh ou use comandos como tocar musica, mudar cor ou abrir projetos.",
+    chipRedTheme: "Tema vermelho",
+    chipPlayMusic: "Tocar musica",
+    chipAboutRishi: "Sobre Rishi",
+    chipProjects: "Projetos",
+    quizPromptStart: "Clique em Iniciar para comecar.",
+    quizComplete: "Quiz concluido!",
+    playAgain: "Jogar novamente",
+    quizResultPerfect: "Perfeito! Voce conhece muito bem o Rishikesh.",
+    quizResultGood: "Bom trabalho! Explore o portfolio para saber mais.",
+    quizResultTry: "Sem problema — veja Intro e Projetos.",
+    yourScore: "Sua pontuacao",
+    chatOnline: "Online",
+    chatOffline: "Offline",
+    voiceHelpTitle: "O que posso dizer?",
+    tourPrev: "Anterior",
+    tourNext: "Proximo",
+    tourFinish: "Finalizar",
+    tourExit: "Sair"
+  },
+  zh: {
+    introLead: "大家好，我叫 Rishikesh Bastakoti。我来自尼泊尔，目前在美国就读 Caldwell University 计算机科学本科二年级，并希望成为软件开发工程师。",
+    projectsTitle: "精选项目",
+    projectsDesc: "以下是我正在进行的一些项目：",
+    viewCode: "查看代码",
+    projectQuickLoanDesc: "一个全栈贷款申请系统，用于简化借贷流程，包含现代前端和稳定后端。",
+    projectBudgetDesc: "使用 Python 开发的个人理财工具，帮助用户记录支出并制定预算。",
+    projectPortfolioDesc: "个人作品集网站，包含 AI 聊天助手、语音命令、音视频通话、实时天气与新闻等功能。",
+    universityTitle: "大学",
+    highSchoolTitle: "高中",
+    hometownTimeLabel: "加德满都时间：",
+    hometownWeatherLabel: "天气：",
+    hometownLocationLabel: "位置：",
+    favoritesMusicTitle: "最喜欢的音乐",
+    favoritesCityTitle: "最喜欢的城市",
+    favoritesMovieTitle: "最喜欢的电影",
+    resumeText: "查看简历",
+    voiceCommandsTitle: "语音指令",
+    chatWelcome: "你好。你可以问我关于 Rishikesh 的信息，或尝试“播放音乐”“切换颜色”“打开项目”等指令。",
+    chipRedTheme: "红色主题",
+    chipPlayMusic: "播放音乐",
+    chipAboutRishi: "关于 Rishi",
+    chipProjects: "项目",
+    quizPromptStart: "点击“开始测验”即可开始。",
+    quizComplete: "测验完成！",
+    playAgain: "再玩一次",
+    quizResultPerfect: "太棒了！你非常了解 Rishikesh。",
+    quizResultGood: "做得不错！继续浏览作品集了解更多。",
+    quizResultTry: "没关系，先看看“简介”和“项目”吧。",
+    yourScore: "你的得分",
+    chatOnline: "在线",
+    chatOffline: "离线",
+    voiceHelpTitle: "我可以说什么？",
+    tourPrev: "上一步",
+    tourNext: "下一步",
+    tourFinish: "完成",
+    tourExit: "退出"
+  }
+};
+
+Object.keys(I18N_EXTENDED).forEach((lang) => {
+  I18N[lang] = { ...(I18N[lang] || {}), ...I18N_EXTENDED[lang] };
+});
+
+let currentLanguage = "en";
+function t(key) {
+  const pack = I18N[currentLanguage] || I18N.en;
+  return pack[key] || I18N.en[key] || key;
+}
+
+function setLanguage(lang) {
+  const nextLang = I18N[lang] ? lang : "en";
+  currentLanguage = nextLang;
+  try { localStorage.setItem(PORTFOLIO_LANG_STORAGE_KEY, nextLang); } catch (e) {}
+
+  const html = document.documentElement;
+  html.setAttribute("lang", nextLang);
+  html.setAttribute("dir", RTL_LANGS.has(nextLang) ? "rtl" : "ltr");
+
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const titleMap = [
+    [".subtitle", "subtitle"],
+    ["#tour-start-btn", "tourStart"],
+    ["#intro-lead", "introLead"],
+    ["#tab-intro", "intro"],
+    ["#tab-projects", "projects"],
+    ["#tab-education", "education"],
+    ["#tab-hometown", "hometown"],
+    ["#tab-favorites", "favorites"],
+    ["#tab-games", "games"],
+    ["#tab-news", "news"],
+    ["#tab-contact", "contact"],
+    ["#games h3", "gamesTitle"],
+    ["#games > p", "gamesDesc"],
+    [".game-title", "gameTitle"],
+    ["#quiz-start", "quizStart"],
+    ["#quiz-next", "quizNext"],
+    ["#news > p", "newsDesc"],
+    ["#contact > h3", "contactTitle"],
+    ["#contact > p", "contactDesc"],
+    [".form-container h3", "sendMessageTitle"],
+    ["#language-label", "languageLabel"],
+    ["#typing-indicator", "typing"],
+    ["#voice-status", "listening"],
+    ["#projects-title", "projectsTitle"],
+    ["#projects-desc", "projectsDesc"],
+    ["#project-quickloan-desc", "projectQuickLoanDesc"],
+    ["#project-budget-desc", "projectBudgetDesc"],
+    ["#project-portfolio-desc", "projectPortfolioDesc"],
+    ["#education-university-title", "universityTitle"],
+    ["#education-highschool-title", "highSchoolTitle"],
+    ["#hometown-time-label", "hometownTimeLabel"],
+    ["#hometown-weather-label", "hometownWeatherLabel"],
+    ["#hometown-location-label", "hometownLocationLabel"],
+    ["#favorites-music-title", "favoritesMusicTitle"],
+    ["#favorites-city-title", "favoritesCityTitle"],
+    ["#favorites-movie-title", "favoritesMovieTitle"],
+    ["#contact-resume-text", "resumeText"],
+    ["#voice-commands-title", "voiceCommandsTitle"],
+    ["#chat-welcome-text", "chatWelcome"],
+    ["#chip-red-theme", "chipRedTheme"],
+    ["#chip-play-music", "chipPlayMusic"],
+    ["#chip-about-rishi", "chipAboutRishi"],
+    ["#chip-projects", "chipProjects"]
+  ];
+  titleMap.forEach(([selector, key]) => {
+    const el = document.querySelector(selector);
+    if (el) {
+      const icon = el.querySelector("i");
+      if (icon && el.childNodes.length > 1) {
+        const textNodes = Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE);
+        if (textNodes.length > 0) {
+          textNodes[textNodes.length - 1].textContent = " " + t(key);
+        } else {
+          el.append(" " + t(key));
+        }
+      } else {
+        el.textContent = t(key);
+      }
+    }
+  });
+
+  const labels = document.querySelectorAll(".input-group label");
+  if (labels[0]) labels[0].textContent = t("name");
+  if (labels[1]) labels[1].textContent = t("email");
+  if (labels[2]) labels[2].textContent = t("yourMessage");
+
+  const input = document.getElementById("user-input");
+  if (input) input.placeholder = t("chatPlaceholder");
+
+  const sendBtnText = document.getElementById("contact-send-btn-text");
+  if (sendBtnText) sendBtnText.textContent = t("sendButton");
+
+  document.querySelectorAll(".view-code-text").forEach((el) => {
+    el.textContent = t("viewCode");
+  });
+
+  const voiceHelpBtn = document.getElementById("voice-help-btn");
+  if (voiceHelpBtn) voiceHelpBtn.title = t("voiceHelpTitle");
+
+  const tourPrev = document.getElementById("tour-prev-btn");
+  const tourNext = document.getElementById("tour-next-btn");
+  const tourExit = document.getElementById("tour-exit-btn");
+  if (tourPrev) tourPrev.textContent = t("tourPrev");
+  if (tourNext) tourNext.textContent = t("tourNext");
+  if (tourExit) tourExit.textContent = t("tourExit");
+}
+
+(function initLanguage() {
+  let saved = "en";
+  try { saved = localStorage.getItem(PORTFOLIO_LANG_STORAGE_KEY) || "en"; } catch (e) {}
+  const selector = document.getElementById("language-select");
+  if (selector) {
+    selector.value = I18N[saved] ? saved : "en";
+    selector.addEventListener("change", (e) => setLanguage(e.target.value));
+  }
+  setLanguage(saved);
+})();
+
 // 0b. Cover: local time, city (reverse geocode), weather (Open-Meteo — no API key)
 (function initCoverVisitor() {
   const timeEl = document.getElementById("cover-local-time");
@@ -428,7 +865,7 @@ if (initialActive) setActiveTab(initialActive);
 async function fetchNews() {
   const listEl = document.getElementById("news-list");
   if (!listEl) return;
-  listEl.innerHTML = "<p class=\"news-loading\">Loading news…</p>";
+  listEl.innerHTML = `<p class="news-loading">${t("newsLoading")}</p>`;
   listEl.setAttribute("aria-busy", "true");
 
   try {
@@ -437,14 +874,14 @@ async function fetchNews() {
     const data = await res.json();
 
     if (!res.ok) {
-      listEl.innerHTML = "<p class=\"news-error\">Unable to load news. Try again later.</p>";
+      listEl.innerHTML = `<p class="news-error">${t("newsUnavailable")}</p>`;
       listEl.setAttribute("aria-busy", "false");
       return;
     }
 
     const articles = data.articles || [];
     if (articles.length === 0) {
-      listEl.innerHTML = "<p class=\"news-empty\">No headlines right now.</p>";
+      listEl.innerHTML = `<p class="news-empty">${t("newsEmpty")}</p>`;
       listEl.setAttribute("aria-busy", "false");
       return;
     }
@@ -469,7 +906,7 @@ async function fetchNews() {
     listEl.setAttribute("aria-busy", "false");
   } catch (err) {
     console.error("fetchNews error:", err);
-    listEl.innerHTML = "<p class=\"news-error\">Could not load news. Check your connection.</p>";
+    listEl.innerHTML = `<p class="news-error">${t("newsConnection")}</p>`;
     listEl.setAttribute("aria-busy", "false");
   }
 }
@@ -496,14 +933,15 @@ function updateNepalTime() {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   };
 
-  if (clockElement) clockElement.innerText = now.toLocaleTimeString("en-US", timeOptions);
-  if (dateElement) dateElement.innerText = now.toLocaleDateString("en-US", dateOptions);
+  if (clockElement) clockElement.innerText = now.toLocaleTimeString(currentLanguage === "en" ? "en-US" : currentLanguage, timeOptions);
+  if (dateElement) dateElement.innerText = now.toLocaleDateString(currentLanguage === "en" ? "en-US" : currentLanguage, dateOptions);
 }
 
 function getNepalTimeForVoice() {
   const now = new Date();
-  const timeStr = now.toLocaleTimeString("en-US", { timeZone: "Asia/Kathmandu", hour: 'numeric', minute: '2-digit', hour12: true });
-  const dateStr = now.toLocaleDateString("en-US", { timeZone: "Asia/Kathmandu", weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const locale = currentLanguage === "en" ? "en-US" : currentLanguage;
+  const timeStr = now.toLocaleTimeString(locale, { timeZone: "Asia/Kathmandu", hour: 'numeric', minute: '2-digit', hour12: true });
+  const dateStr = now.toLocaleDateString(locale, { timeZone: "Asia/Kathmandu", weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   return { timeStr, dateStr };
 }
 
@@ -627,6 +1065,9 @@ const QUIZ_QUESTIONS = [
   let quizIndex = 0;
   let quizScore = 0;
   let answered = false;
+  if (questionEl && questionEl.textContent.trim()) {
+    questionEl.textContent = t("quizPromptStart");
+  }
 
   function shuffle(arr) {
     const a = [...arr];
@@ -644,13 +1085,13 @@ const QUIZ_QUESTIONS = [
 
   function renderQuestion() {
     if (quizIndex >= QUIZ_QUESTIONS.length) {
-      questionEl.textContent = "Quiz complete!";
+      questionEl.textContent = t("quizComplete");
       choicesEl.innerHTML = '';
       showEl(nextBtn, false);
       showEl(startBtn, true);
-      startBtn.textContent = 'Play Again';
+      startBtn.textContent = t("playAgain");
       resultEl.classList.remove('hidden');
-      resultEl.innerHTML = `<strong>Your score: ${quizScore} / ${QUIZ_QUESTIONS.length}</strong><br>${quizScore === QUIZ_QUESTIONS.length ? 'Perfect! You know Rishikesh well.' : quizScore >= QUIZ_QUESTIONS.length / 2 ? 'Nice job! Explore the portfolio to learn more.' : 'No worries — check out Intro and Projects!'}`;
+      resultEl.innerHTML = `<strong>${t("yourScore")}: ${quizScore} / ${QUIZ_QUESTIONS.length}</strong><br>${quizScore === QUIZ_QUESTIONS.length ? t("quizResultPerfect") : quizScore >= QUIZ_QUESTIONS.length / 2 ? t("quizResultGood") : t("quizResultTry")}`;
 
       // Log quiz result to Supabase
       logQuizResult(quizScore, QUIZ_QUESTIONS.length);
@@ -666,7 +1107,7 @@ const QUIZ_QUESTIONS = [
     choicesEl.querySelectorAll('.game-choice').forEach(btn => {
       btn.addEventListener('click', () => handleChoice(parseInt(btn.dataset.index, 10)));
     });
-    scoreEl.textContent = `Score: ${quizScore} / ${quizIndex}`;
+    scoreEl.textContent = `${t("scoreLabel")}: ${quizScore} / ${quizIndex}`;
     resultEl.classList.add('hidden');
     resultEl.innerHTML = '';
     answered = false;
@@ -679,7 +1120,7 @@ const QUIZ_QUESTIONS = [
     const item = QUIZ_QUESTIONS[quizIndex];
     const isCorrect = selectedIndex === item.correct;
     if (isCorrect) quizScore++;
-    scoreEl.textContent = `Score: ${quizScore} / ${quizIndex + 1}`;
+    scoreEl.textContent = `${t("scoreLabel")}: ${quizScore} / ${quizIndex + 1}`;
     const buttons = choicesEl.querySelectorAll('.game-choice');
     buttons.forEach((btn, i) => {
       const idx = parseInt(btn.dataset.index, 10);
@@ -698,7 +1139,7 @@ const QUIZ_QUESTIONS = [
       resultEl.innerHTML = '';
       startBtn.classList.add('hidden');
       nextBtn.classList.remove('hidden');
-      nextBtn.textContent = 'Next Question';
+      nextBtn.textContent = t("quizNext");
       renderQuestion();
     });
   }
@@ -1065,14 +1506,17 @@ const VoiceAssistant = (function() {
 
   function getRecognition() {
     if (!SpeechRecognition) return null;
-    if (recognition) return recognition;
+    if (recognition) {
+      recognition.lang = currentLanguage === "en" ? "en-US" : currentLanguage;
+      return recognition;
+    }
 
     recognition = new SpeechRecognition();
     // Default: single-turn listening to avoid "assistant talks to itself" loops.
     // During calls we restart on end to simulate continuous listening.
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = 'en-US';
+    recognition.lang = currentLanguage === "en" ? "en-US" : currentLanguage;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
@@ -1239,6 +1683,7 @@ const VoiceAssistant = (function() {
     callMode = 'normal';
     const rec = getRecognition();
     if (!rec) return;
+    rec.lang = currentLanguage === "en" ? "en-US" : currentLanguage;
     try {
       rec.start();
     } catch (e) {
@@ -1868,7 +2313,7 @@ function updateChatOnlineStatus(isOnline) {
   if (!chatStatusDot || !chatStatusText) return;
   chatStatusDot.classList.toggle('status-online', isOnline);
   chatStatusDot.classList.toggle('status-offline', !isOnline);
-  chatStatusText.textContent = isOnline ? 'Online' : 'Offline';
+  chatStatusText.textContent = isOnline ? t("chatOnline") : t("chatOffline");
   if (chatAudioBtn) chatAudioBtn.disabled = !isOnline;
   if (chatVideoBtn) chatVideoBtn.disabled = !isOnline;
 }
@@ -2544,7 +2989,7 @@ async function getAIResponse(userMessage, { signal } = {}) {
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: conversationHistory }),
+      body: JSON.stringify({ messages: conversationHistory, language: currentLanguage }),
       signal
     });
 
@@ -2779,7 +3224,7 @@ function showTourStep(index) {
   if (tourText) tourText.textContent = step.text;
   if (tourProgress) tourProgress.textContent = 'Step ' + (index + 1) + ' of ' + total;
   if (tourPrevBtn) tourPrevBtn.disabled = index === 0;
-  if (tourNextBtn) tourNextBtn.textContent = index === total - 1 ? 'Finish' : 'Next';
+  if (tourNextBtn) tourNextBtn.textContent = index === total - 1 ? t("tourFinish") : t("tourNext");
 }
 
 function startTour() {

@@ -312,6 +312,42 @@ body {
 [data-theme="light"] .theme-toggle #theme-icon-dark { display: none; }
 [data-theme="light"] .theme-toggle #theme-icon-light { display: inline-block !important; }
 
+.language-switcher {
+  position: absolute;
+  top: 16px;
+  right: 68px;
+  z-index: 15;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 42%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--primary-color) 14%, rgba(0, 0, 0, 0.45));
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.language-switcher select {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.language-switcher select option {
+  color: #111827;
+}
+
+[data-theme="light"] .language-switcher {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: color-mix(in srgb, var(--primary-color) 38%, rgba(15, 23, 42, 0.12));
+  color: #1e293b;
+}
+
 /* Live local time + location + weather — layout; colors via data-visitor-mood only */
 .cover-visitor {
   position: absolute;
