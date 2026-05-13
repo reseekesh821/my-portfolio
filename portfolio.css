@@ -79,8 +79,15 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
-html { scroll-padding-top: calc(var(--topbar-height) + 12px); }
+html {
+  /* `scroll-behavior: smooth` is intentionally NOT set here because it can
+     fight wheel/trackpad scrolling on some browsers. Smooth-scroll is applied
+     per call from JS (scrollIntoView with behavior: 'smooth') instead. */
+  scroll-padding-top: calc(var(--topbar-height) + 12px);
+  /* Prevent the browser's automatic scroll anchoring from yanking the page
+     back into place when lazy-loaded images / animations cause layout shifts. */
+  overflow-anchor: none;
+}
 
 body {
   font-family: var(--font-main);
@@ -93,6 +100,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  overflow-anchor: none;
 }
 
 a { color: inherit; }
@@ -154,6 +162,11 @@ textarea:focus-visible,
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
+  /* Force the entire background into its own compositor layer so its many
+     looping animations don't trigger paint/layout work on the rest of the page. */
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style paint;
   background:
     radial-gradient(ellipse 70% 55% at 18% 12%, rgba(176, 97, 255, 0.18), transparent 60%),
     radial-gradient(ellipse 60% 50% at 88% 8%,  rgba(0, 240, 255, 0.12), transparent 60%),
@@ -334,9 +347,9 @@ textarea:focus-visible,
   z-index: 100;
   width: 100%;
   height: var(--topbar-height);
-  background: linear-gradient(180deg, rgba(4,5,13,0.82), rgba(4,5,13,0.45));
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background: linear-gradient(180deg, rgba(4,5,13,0.92), rgba(4,5,13,0.78));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
@@ -595,8 +608,6 @@ textarea:focus-visible,
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   font-size: 0.78rem;
   font-weight: 500;
   color: var(--text-main);
@@ -827,8 +838,12 @@ h1 {
 }
 
 /* All sections always visible in single-page layout */
-.tab-content { display: block; animation: section-rise 0.6s ease both; }
+.tab-content { display: block; }
 .tab-content.active { display: block; }
+
+/* Isolate each section so style/paint work in one section doesn't invalidate
+   the rest of the page (huge win during scroll + zoom). */
+.section { contain: layout style; }
 
 @keyframes section-rise {
   from { opacity: 0; transform: translateY(20px); }
@@ -909,8 +924,6 @@ h1 {
   border-radius: var(--radius);
   padding: 26px 28px;
   margin-bottom: 22px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 
@@ -1094,8 +1107,6 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1222,8 +1233,6 @@ h1 {
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--border);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
 }
 .game-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -1436,8 +1445,6 @@ h1 {
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--border);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
 }
 /* Form heading uses the card-level size so it doesn't compete with the section title */
 .form-container h3 {
@@ -1687,8 +1694,8 @@ strong i {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   overflow: hidden;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   box-shadow: var(--shadow-md), 0 0 40px rgba(0,240,255,0.18);
 }
 .chat-box.open { display: flex; animation: section-rise 0.3s ease; }

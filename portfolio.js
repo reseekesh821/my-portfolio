@@ -811,18 +811,27 @@ const tabContents = document.querySelectorAll(".tab-content");
 // Must be declared before first tab activation to avoid TDZ errors.
 let chatSessionId = null;
 
-function setActiveTab(tabEl, { focus = false, scroll = true } = {}) {
+function setActiveTab(tabEl, { focus = false, scroll = true, log = true } = {}) {
   if (!tabEl) return;
   const targetId = tabEl.getAttribute("data-target");
   const panel = targetId ? document.getElementById(targetId) : null;
+
+  // Fast-path: if nothing actually changes, do nothing. This prevents the
+  // scroll-spy from churning the DOM (and the Supabase logger) on every
+  // micro-scroll across a section boundary.
+  if (tabEl.classList.contains("active") && (!panel || panel.classList.contains("active"))) {
+    if (scroll && panel && typeof panel.scrollIntoView === "function") {
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (focus) tabEl.focus();
+    return;
+  }
 
   tabs.forEach((t) => {
     t.classList.remove("active");
     t.setAttribute("aria-selected", "false");
     t.setAttribute("tabindex", "-1");
   });
-  // In the single-page scroll layout, sections are always visible, but we still
-  // toggle the "active" class on the panel for any other styling hooks.
   tabContents.forEach((content) => content.classList.remove("active"));
 
   tabEl.classList.add("active");
@@ -830,7 +839,10 @@ function setActiveTab(tabEl, { focus = false, scroll = true } = {}) {
   tabEl.setAttribute("tabindex", "0");
   if (panel) panel.classList.add("active");
 
-  if (targetId) {
+  // Only log to Supabase on explicit user actions (click / keyboard / voice).
+  // The scroll-spy calls us with log:false so wheel scrolling doesn't fire a
+  // network request on every section boundary.
+  if (log && targetId) {
     logTabEvent(targetId);
   }
 
@@ -838,8 +850,6 @@ function setActiveTab(tabEl, { focus = false, scroll = true } = {}) {
     fetchNews();
   }
 
-  // Smooth-scroll to the matching section (skipped on initial page load and
-  // when scroll-spy is the one calling us back).
   if (scroll && panel && typeof panel.scrollIntoView === "function") {
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -901,34 +911,53 @@ if (initialActive) setActiveTab(initialActive, { scroll: false });
       visibility.forEach((ratio, id) => {
         if (ratio > bestRatio) { best = id; bestRatio = ratio; }
       });
-      if (best && best !== lastActiveId) {
+      if (best && best !== lastActiveId && bestRatio > 0) {
         lastActiveId = best;
         const tab = tabByTarget.get(best);
         if (tab && !tab.classList.contains("active")) {
-          setActiveTab(tab, { scroll: false });
+          setActiveTab(tab, { scroll: false, log: false });
         }
       }
     },
     {
       root: null,
-      rootMargin: "-35% 0px -50% 0px",
-      threshold: [0, 0.25, 0.5, 0.75, 1]
+      // Detect when a section is roughly in the middle of the viewport so we
+      // never flip the active tab while the user is still mid-section.
+      rootMargin: "-40% 0px -45% 0px",
+      threshold: 0
     }
   );
 
   sections.forEach((section) => observer.observe(section));
 })();
 
-// Add a "scrolled" class to the topbar once the page has moved past the hero
+// Add a "scrolled" class to the topbar once the page has moved past the hero.
+// The handler is rAF-throttled so we never do work more than once per frame.
 (function initTopbarScrolledClass() {
   const topbar = document.querySelector(".topbar");
   if (!topbar) return;
-  const update = () => {
-    if (window.scrollY > 12) topbar.classList.add("scrolled");
-    else topbar.classList.remove("scrolled");
+
+  let ticking = false;
+  let lastScrolled = false;
+
+  const apply = () => {
+    const shouldBeScrolled = window.scrollY > 12;
+    if (shouldBeScrolled !== lastScrolled) {
+      topbar.classList.toggle("scrolled", shouldBeScrolled);
+      lastScrolled = shouldBeScrolled;
+    }
+    ticking = false;
   };
-  update();
-  window.addEventListener("scroll", update, { passive: true });
+
+  const onScroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(apply);
+      ticking = true;
+    }
+  };
+
+  apply();
+  window.addEventListener("scroll", onScroll, { passive: true });
 })();
 
 // News: fetch headlines when the News section becomes active
