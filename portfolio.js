@@ -1,4 +1,4 @@
-// 0. THEME (light/dark) — run first so theme is applied ASAP
+// Theme toggle (runs first to avoid a flash of the wrong theme)
 (function() {
   const STORAGE_KEY = 'portfolio-theme';
   const html = document.documentElement;
@@ -38,7 +38,7 @@
   syncThemeToggleAria();
 })();
 
-// 0a. Accent palette (cyan, blue, red, …) — persisted so voice/chat “change color” survives reload
+// Accent color palette, persisted in localStorage so voice/chat color changes survive reload
 var PORTFOLIO_ACCENT_STORAGE_KEY = "portfolio-accent";
 var PORTFOLIO_ACCENT_THEMES = {
   cyan: { primary: "#00d2ff", secondary: "#3a7bd5" },
@@ -76,7 +76,7 @@ function applyPortfolioAccent(name) {
   } catch (e) {}
 })();
 
-// 0c. Language/i18n (no external API required)
+// Language / i18n strings (translated entirely on the client)
 const PORTFOLIO_LANG_STORAGE_KEY = "portfolio-language";
 const RTL_LANGS = new Set([]);
 const I18N = {
@@ -522,7 +522,7 @@ function applyTranslations() {
   setLanguage(saved);
 })();
 
-// 0b. Cover: local time, city (reverse geocode), weather (Open-Meteo — no API key)
+// Visitor card: local time, city (reverse geocode) and weather (Open-Meteo)
 (function initCoverVisitor() {
   const timeEl = document.getElementById("cover-local-time");
   const locEl = document.getElementById("cover-location");
@@ -804,7 +804,7 @@ function applyTranslations() {
   startGeolocation();
 })();
 
-// 1. Tabs (click + keyboard accessible)
+// Navigation tabs (click + keyboard accessible)
 const tabs = document.querySelectorAll(".tabs li");
 const tabContents = document.querySelectorAll(".tab-content");
 // Session ID for Supabase logging (chat, tabs, quiz)
@@ -876,7 +876,7 @@ tabs.forEach((tab, idx) => {
 const initialActive = document.querySelector(".tabs li.active") || tabs[0];
 if (initialActive) setActiveTab(initialActive, { scroll: false });
 
-// 1a. Scroll-spy: update the active tab as the user scrolls between sections
+// Scroll-spy: update the active tab as the user scrolls between sections
 (function initScrollSpy() {
   if (!("IntersectionObserver" in window)) return;
   const sections = Array.from(document.querySelectorAll("main .tab-content[id]"));
@@ -919,7 +919,7 @@ if (initialActive) setActiveTab(initialActive, { scroll: false });
   sections.forEach((section) => observer.observe(section));
 })();
 
-// 1b. Topbar styling: thicker glow once the user has scrolled past the hero
+// Add a "scrolled" class to the topbar once the page has moved past the hero
 (function initTopbarScrolledClass() {
   const topbar = document.querySelector(".topbar");
   if (!topbar) return;
@@ -931,7 +931,7 @@ if (initialActive) setActiveTab(initialActive, { scroll: false });
   window.addEventListener("scroll", update, { passive: true });
 })();
 
-// 1b. News (fetch when News tab is opened)
+// News: fetch headlines when the News section becomes active
 
 async function fetchNews() {
   const listEl = document.getElementById("news-list");
@@ -988,7 +988,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// 2. Real-Time Nepal Clock & Date
+// Live Nepal clock and date in the Hometown section
 function updateNepalTime() {
   const clockElement = document.getElementById("nepal-clock");
   const dateElement = document.getElementById("nepal-date");
@@ -1019,7 +1019,7 @@ function getNepalTimeForVoice() {
 setInterval(updateNepalTime, 1000);
 updateNepalTime();
 
-// 3. Fetch Real Weather (Open-Meteo API) — store for voice assistant
+// Fetch current weather from Open-Meteo (also cached for the voice assistant)
 let lastWeather = { temp: null, wind: null, description: 'Kathmandu' };
 
 async function getWeather() {
@@ -1043,7 +1043,7 @@ async function getWeather() {
 getWeather();
 setInterval(getWeather, 600000);
 
-// 4. Custom Spotify Player Logic
+// Custom audio player used in the Favorites section
 const playBtn = document.getElementById('play-btn');
 const playIcon = document.getElementById('play-icon');
 const progress = document.getElementById('progress');
@@ -1113,7 +1113,7 @@ audio.addEventListener('ended', () => {
 });
 
 
-// 4b. QUIZ GAME — Know Rishikesh?
+// Quiz game logic (questions, scoring, Supabase logging)
 const QUIZ_QUESTIONS = [
   { q: "Where is Rishikesh from?", options: ["India", "Nepal", "USA", "UK"], correct: 1 },
   { q: "Which university does he attend?", options: ["MIT", "Caldwell University", "Stanford", "NYU"], correct: 1 },
@@ -1224,7 +1224,7 @@ const QUIZ_QUESTIONS = [
 })();
 
 
-// 5 VOICE ASSISTANT (Alexa-style for portfolio)
+// Voice assistant: speech recognition, command parsing, and TTS playback
 const VoiceAssistant = (function() {
   const voiceBtn = document.getElementById('voice-btn');
   const voiceStatus = document.getElementById('voice-status');
@@ -1879,7 +1879,7 @@ const VoiceAssistant = (function() {
 })();
 
 
-// 6 AI CHATBOT LOGIC (Groq Powered)
+// AI chatbot powered by Groq
 
 
 // --- a. UI ELEMENTS (SELECTORS) ---
