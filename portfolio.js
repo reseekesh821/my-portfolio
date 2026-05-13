@@ -461,18 +461,27 @@ function applyTranslations() {
   ];
   titleMap.forEach(([selector, key]) => {
     const el = document.querySelector(selector);
-    if (el) {
-      const icon = el.querySelector("i");
-      if (icon && el.childNodes.length > 1) {
-        const textNodes = Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE);
-        if (textNodes.length > 0) {
-          textNodes[textNodes.length - 1].textContent = " " + t(key);
-        } else {
-          el.append(" " + t(key));
-        }
+    if (!el) return;
+
+    // Preferred: a dedicated child <span> holds the label (e.g. top nav tabs
+    // are <li><i></i><span>Intro</span></li>). Update only that span so the
+    // icon stays put and we never duplicate the text on re-translation.
+    const labelSpan = el.querySelector(":scope > span");
+    if (labelSpan) {
+      labelSpan.textContent = t(key);
+      return;
+    }
+
+    const icon = el.querySelector("i");
+    if (icon && el.childNodes.length > 1) {
+      const textNodes = Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE);
+      if (textNodes.length > 0) {
+        textNodes[textNodes.length - 1].textContent = " " + t(key);
       } else {
-        el.textContent = t(key);
+        el.append(" " + t(key));
       }
+    } else {
+      el.textContent = t(key);
     }
   });
 
@@ -802,7 +811,7 @@ const tabContents = document.querySelectorAll(".tab-content");
 // Must be declared before first tab activation to avoid TDZ errors.
 let chatSessionId = null;
 
-function setActiveTab(tabEl, { focus = false } = {}) {
+function setActiveTab(tabEl, { focus = false, scroll = true } = {}) {
   if (!tabEl) return;
   const targetId = tabEl.getAttribute("data-target");
   const panel = targetId ? document.getElementById(targetId) : null;
@@ -812,6 +821,8 @@ function setActiveTab(tabEl, { focus = false } = {}) {
     t.setAttribute("aria-selected", "false");
     t.setAttribute("tabindex", "-1");
   });
+  // In the single-page scroll layout, sections are always visible, but we still
+  // toggle the "active" class on the panel for any other styling hooks.
   tabContents.forEach((content) => content.classList.remove("active"));
 
   tabEl.classList.add("active");
@@ -819,13 +830,18 @@ function setActiveTab(tabEl, { focus = false } = {}) {
   tabEl.setAttribute("tabindex", "0");
   if (panel) panel.classList.add("active");
 
-  // Log tab visit to Supabase (if configured)
   if (targetId) {
     logTabEvent(targetId);
   }
 
   if (targetId === "news") {
     fetchNews();
+  }
+
+  // Smooth-scroll to the matching section (skipped on initial page load and
+  // when scroll-spy is the one calling us back).
+  if (scroll && panel && typeof panel.scrollIntoView === "function") {
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (focus) tabEl.focus();
@@ -856,9 +872,64 @@ tabs.forEach((tab, idx) => {
   });
 });
 
-// Ensure initial ARIA state matches the active tab
+// Ensure initial ARIA state matches the active tab (no scroll on first load)
 const initialActive = document.querySelector(".tabs li.active") || tabs[0];
-if (initialActive) setActiveTab(initialActive);
+if (initialActive) setActiveTab(initialActive, { scroll: false });
+
+// 1a. Scroll-spy: update the active tab as the user scrolls between sections
+(function initScrollSpy() {
+  if (!("IntersectionObserver" in window)) return;
+  const sections = Array.from(document.querySelectorAll("main .tab-content[id]"));
+  if (!sections.length || !tabs.length) return;
+
+  const tabByTarget = new Map();
+  tabs.forEach((tab) => {
+    const target = tab.getAttribute("data-target");
+    if (target) tabByTarget.set(target, tab);
+  });
+
+  let lastActiveId = null;
+  const visibility = new Map();
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        visibility.set(entry.target.id, entry.intersectionRatio);
+      });
+      let best = null;
+      let bestRatio = 0;
+      visibility.forEach((ratio, id) => {
+        if (ratio > bestRatio) { best = id; bestRatio = ratio; }
+      });
+      if (best && best !== lastActiveId) {
+        lastActiveId = best;
+        const tab = tabByTarget.get(best);
+        if (tab && !tab.classList.contains("active")) {
+          setActiveTab(tab, { scroll: false });
+        }
+      }
+    },
+    {
+      root: null,
+      rootMargin: "-35% 0px -50% 0px",
+      threshold: [0, 0.25, 0.5, 0.75, 1]
+    }
+  );
+
+  sections.forEach((section) => observer.observe(section));
+})();
+
+// 1b. Topbar styling: thicker glow once the user has scrolled past the hero
+(function initTopbarScrolledClass() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  const update = () => {
+    if (window.scrollY > 12) topbar.classList.add("scrolled");
+    else topbar.classList.remove("scrolled");
+  };
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+})();
 
 // 1b. News (fetch when News tab is opened)
 

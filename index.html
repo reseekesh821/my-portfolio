@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rishikesh Bastakoti - Portfolio</title>
-    <meta name="description" content="Rishikesh Bastakoti’s portfolio — projects, education, and an interactive AI assistant with voice, live news, and more.">
-    <meta name="theme-color" content="#00d2ff">
+    <meta name="description" content="Rishikesh Bastakoti's portfolio — projects, education, and an interactive AI assistant with voice, live news, and more.">
+    <meta name="theme-color" content="#00f0ff">
     <meta http-equiv="Permissions-Policy" content="geolocation=(self)">
     <meta property="og:title" content="Rishikesh Bastakoti - Portfolio">
     <meta property="og:description" content="Projects, background, and an interactive AI assistant experience.">
@@ -22,37 +22,93 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
-<div class="page-atmosphere" aria-hidden="true">
-  <video class="page-atmosphere__video" autoplay muted loop playsinline preload="metadata">
-    <source src="https://raw.githubusercontent.com/reseekesh821/music/main/15371954_1920_1080_30fps%20(1).mp4" type="video/mp4">
-  </video>
-  <div class="page-atmosphere__scrim"></div>
+<!-- Ambient cosmic background (replaces the old video) -->
+<div class="cosmos" aria-hidden="true">
+  <div class="cosmos-stars cosmos-stars--far"></div>
+  <div class="cosmos-stars cosmos-stars--near"></div>
+  <div class="cosmos-particles"></div>
+  <svg class="cosmos-orbits" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="orbit-stroke" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.85"/>
+        <stop offset="55%" stop-color="#b061ff" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#ff3ec8" stop-opacity="0.25"/>
+      </linearGradient>
+    </defs>
+    <g class="orbit-stack" transform="translate(800 600)">
+      <circle class="orbit orbit-1" r="240"  />
+      <circle class="orbit orbit-2" r="380"  />
+      <circle class="orbit orbit-3" r="560"  />
+      <circle class="orbit orbit-4" r="780"  />
+    </g>
+  </svg>
+  <svg class="cosmos-hourglass" viewBox="0 0 80 120" aria-hidden="true">
+    <defs>
+      <linearGradient id="hg-stroke" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00f0ff"/>
+        <stop offset="100%" stop-color="#b061ff"/>
+      </linearGradient>
+    </defs>
+    <g fill="none" stroke="url(#hg-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 6 H66"/>
+      <path d="M14 114 H66"/>
+      <path d="M14 6 L40 60 L14 114"/>
+      <path d="M66 6 L40 60 L66 114"/>
+      <path d="M22 16 Q40 40 58 16" opacity="0.55"/>
+      <path d="M22 104 Q40 80 58 104" opacity="0.55"/>
+    </g>
+    <circle cx="40" cy="60" r="1.6" fill="#00f0ff"/>
+  </svg>
+  <div class="cosmos-grid"></div>
+  <div class="cosmos-scrim"></div>
 </div>
 
-<div class="container">
-  <div class="cover">
-    <div class="cover-video-bg" aria-hidden="true">
-      <video autoplay muted loop playsinline preload="metadata">
-        <source src="https://raw.githubusercontent.com/reseekesh821/music/main/15371954_1920_1080_30fps%20(1).mp4" type="video/mp4">
-      </video>
+<!-- Sticky top bar -->
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <a class="brand" href="#hero" aria-label="Top of page">
+      <span class="brand-glyph" aria-hidden="true">◇</span>
+      <span class="brand-text">RB<span class="brand-dot">.</span></span>
+    </a>
+    <nav class="navtabs" aria-label="Portfolio sections">
+      <ul class="tabs" role="tablist" title="Use arrow keys to navigate">
+        <li id="tab-intro" role="tab" aria-controls="intro" aria-selected="true" tabindex="0" data-target="intro" class="active"><i class="fa-solid fa-user" aria-hidden="true"></i><span>Intro</span></li>
+        <li id="tab-projects" role="tab" aria-controls="projects" aria-selected="false" tabindex="-1" data-target="projects"><i class="fa-solid fa-code" aria-hidden="true"></i><span>Projects</span></li>
+        <li id="tab-education" role="tab" aria-controls="education" aria-selected="false" tabindex="-1" data-target="education"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Education</span></li>
+        <li id="tab-hometown" role="tab" aria-controls="hometown" aria-selected="false" tabindex="-1" data-target="hometown"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i><span>Hometown</span></li>
+        <li id="tab-favorites" role="tab" aria-controls="favorites" aria-selected="false" tabindex="-1" data-target="favorites"><i class="fa-solid fa-heart" aria-hidden="true"></i><span>Favorites</span></li>
+        <li id="tab-games" role="tab" aria-controls="games" aria-selected="false" tabindex="-1" data-target="games"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span>Games</span></li>
+        <li id="tab-news" role="tab" aria-controls="news" aria-selected="false" tabindex="-1" data-target="news"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></li>
+        <li id="tab-contact" role="tab" aria-controls="contact" aria-selected="false" tabindex="-1" data-target="contact"><i class="fa-solid fa-address-book" aria-hidden="true"></i><span>Contact</span></li>
+      </ul>
+    </nav>
+    <div class="topbar-controls">
+      <label for="language-select" class="language-switcher">
+        <i class="fa-solid fa-globe" aria-hidden="true"></i>
+        <span id="language-label" class="sr-only">Language</span>
+        <select id="language-select" aria-label="Choose language">
+          <option value="en">EN</option>
+          <option value="ne">NE</option>
+          <option value="es">ES</option>
+          <option value="zh">ZH</option>
+          <option value="fr">FR</option>
+          <option value="de">DE</option>
+          <option value="pt">PT</option>
+        </select>
+      </label>
+      <button type="button" id="theme-toggle" class="theme-toggle" title="Light mode" aria-label="Switch to light mode">
+        <i class="fa-solid fa-moon" id="theme-icon-dark"></i>
+        <i class="fa-solid fa-sun hidden" id="theme-icon-light"></i>
+      </button>
     </div>
-    <button type="button" id="theme-toggle" class="theme-toggle" title="Light mode" aria-label="Switch to light mode">
-      <i class="fa-solid fa-moon" id="theme-icon-dark"></i>
-      <i class="fa-solid fa-sun hidden" id="theme-icon-light"></i>
-    </button>
-    <label for="language-select" class="language-switcher">
-      <span id="language-label">Language</span>
-      <select id="language-select" aria-label="Choose language">
-        <option value="en">English</option>
-        <option value="ne">Nepali</option>
-        <option value="es">Spanish</option>
-        <option value="zh">Chinese</option>
-        <option value="fr">French</option>
-        <option value="de">German</option>
-        <option value="pt">Portuguese</option>
-      </select>
-    </label>
-    <div class="cover-visitor" id="cover-visitor" data-visitor-mood="night" aria-live="polite">
+  </div>
+</header>
+
+<main id="main-content" tabindex="-1">
+
+  <!-- HERO -->
+  <section id="hero" class="hero">
+    <div class="hero-chips cover-visitor" id="cover-visitor" data-visitor-mood="night" aria-live="polite">
       <div class="cover-visitor-time">
         <i class="fa-regular fa-clock" aria-hidden="true"></i>
         <time id="cover-local-time" datetime="">--:--:--</time>
@@ -66,36 +122,34 @@
         <span id="cover-weather">…</span>
       </div>
     </div>
+
     <div class="profile-pic">
       <img src="https://avatars.githubusercontent.com/u/140906117?v=4" alt="Rishikesh Bastakoti" loading="lazy" decoding="async">
     </div>
-  </div>
-  
-  <div class="text-center">
+
     <h1>Rishikesh Bastakoti</h1>
     <p class="subtitle">Computer Science Student | Aspiring Software Developer</p>
     <button type="button" id="tour-start-btn" class="tour-start-btn">Walk me through this site</button>
-  </div>
-  
-  <div class="main" id="main-content" tabindex="-1">
-    <ul class="tabs" role="tablist" aria-label="Portfolio sections" title="Scroll or swipe sideways to see all sections">
-      <li id="tab-intro" role="tab" aria-controls="intro" aria-selected="true" tabindex="0" data-target="intro" class="active"><i class="fa-solid fa-user"></i> Intro</li>
-      <li id="tab-projects" role="tab" aria-controls="projects" aria-selected="false" tabindex="-1" data-target="projects"><i class="fa-solid fa-code"></i> Projects</li>
-      <li id="tab-education" role="tab" aria-controls="education" aria-selected="false" tabindex="-1" data-target="education"><i class="fa-solid fa-graduation-cap"></i> Education</li>
-      <li id="tab-hometown" role="tab" aria-controls="hometown" aria-selected="false" tabindex="-1" data-target="hometown"><i class="fa-solid fa-map-location-dot"></i> Hometown</li>
-      <li id="tab-favorites" role="tab" aria-controls="favorites" aria-selected="false" tabindex="-1" data-target="favorites"><i class="fa-solid fa-heart"></i> Favorites</li>
-      <li id="tab-games" role="tab" aria-controls="games" aria-selected="false" tabindex="-1" data-target="games"><i class="fa-solid fa-gamepad"></i> Games</li>
-      <li id="tab-news" role="tab" aria-controls="news" aria-selected="false" tabindex="-1" data-target="news"><i class="fa-solid fa-newspaper"></i> News</li>
-      <li id="tab-contact" role="tab" aria-controls="contact" aria-selected="false" tabindex="-1" data-target="contact"><i class="fa-solid fa-address-book"></i> Contact</li>
-    </ul>
-    
-    <div id="intro" class="tab-content active" role="tabpanel" aria-labelledby="tab-intro" tabindex="0">
+
+    <a class="hero-scroll-cue" href="#intro" aria-label="Scroll to intro">
+      <span></span>
+    </a>
+  </section>
+
+  <!-- INTRO -->
+  <section id="intro" class="tab-content section section--intro active" role="region" aria-labelledby="tab-intro" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">01</span><span class="line"></span><span>Intro</span></div>
       <p class="intro-lead" id="intro-lead">
         Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the United States, where I am pursuing my undergraduate degree in Computer Science at Caldwell University. I am in my sophomore year and aspire to build a career as a software developer. So far, I have completed several projects using Python, HTML, CSS, and JavaScript, and I am continuously expanding my skills in full-stack development.
       </p>
     </div>
+  </section>
 
-    <div id="projects" class="tab-content" role="tabpanel" aria-labelledby="tab-projects" tabindex="0">
+  <!-- PROJECTS -->
+  <section id="projects" class="tab-content section section--projects" role="region" aria-labelledby="tab-projects" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">02</span><span class="line"></span><span>Projects</span></div>
       <h3 id="projects-title"><i class="fa-solid fa-laptop-code"></i> Featured Projects</h3>
       <p id="projects-desc">Here are some of the projects I've been working on:</p>
 
@@ -161,60 +215,76 @@
         </div>
       </div>
     </div>
+  </section>
 
-    <div id="education" class="tab-content" role="tabpanel" aria-labelledby="tab-education" tabindex="0">
-      <div class="info-block">
-        <h3 id="education-university-title"><i class="fa-solid fa-building-columns"></i> University</h3>
-        <p><strong>Caldwell University</strong><br>
-        Caldwell, NJ, USA<br>
-        <span>2024 - 2028 (Bachelor's in CS)</span></p>
-      </div>
-      <hr class="section-divider" aria-hidden="true">
-      <div class="info-block">
-        <h3 id="education-highschool-title"><i class="fa-solid fa-school"></i> High School</h3>
-        <p><strong>National School of Sciences</strong><br>
-        Kathmandu, Nepal<br>
-        <span>2021 - 2023 (High School Diploma)</span></p>
+  <!-- EDUCATION -->
+  <section id="education" class="tab-content section section--education" role="region" aria-labelledby="tab-education" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">03</span><span class="line"></span><span>Education</span></div>
+      <div class="edu-grid">
+        <div class="info-block">
+          <h3 id="education-university-title"><i class="fa-solid fa-building-columns"></i> University</h3>
+          <p><strong>Caldwell University</strong><br>
+          Caldwell, NJ, USA<br>
+          <span>2024 - 2028 (Bachelor's in CS)</span></p>
+        </div>
+        <div class="info-block">
+          <h3 id="education-highschool-title"><i class="fa-solid fa-school"></i> High School</h3>
+          <p><strong>National School of Sciences</strong><br>
+          Kathmandu, Nepal<br>
+          <span>2021 - 2023 (High School Diploma)</span></p>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div id="hometown" class="tab-content" role="tabpanel" aria-labelledby="tab-hometown" tabindex="0">
-      <div class="info-block">
-        <h3><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal </h3>
-        
-        <img src="https://raw.githubusercontent.com/reseekesh821/music/main/kathmandu.png" alt="Kathmandu" class="content-media" loading="lazy" decoding="async">
-        
-        <div class="hometown-time-card">
+  <!-- HOMETOWN -->
+  <section id="hometown" class="tab-content section section--hometown" role="region" aria-labelledby="tab-hometown" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">04</span><span class="line"></span><span>Hometown</span></div>
+
+      <div class="hometown-grid">
+        <div class="info-block hometown-place">
+          <h3><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</h3>
+          <img src="https://raw.githubusercontent.com/reseekesh821/music/main/kathmandu.png" alt="Kathmandu" class="content-media" loading="lazy" decoding="async">
+        </div>
+
+        <div class="info-block hometown-time-card">
           <p class="stack-tight"><strong><i class="fa-solid fa-clock"></i> <span id="hometown-time-label">Kathmandu Time:</span></strong></p>
           <div id="nepal-clock" class="hometown-clock">Loading...</div>
           <div id="nepal-date" class="hometown-date">Loading Date...</div>
-          
+
           <hr class="hometown-card-hr">
-          
+
           <p class="stack-tight"><strong><i class="fa-solid fa-cloud-sun"></i> <span id="hometown-weather-label">Weather:</span></strong></p>
           <div id="nepal-weather" class="hometown-weather">Loading...</div>
         </div>
 
-        <div class="map-container">
+        <div class="info-block map-container hometown-map">
           <p class="map-label"><strong><i class="fa-solid fa-map"></i> <span id="hometown-location-label">Location:</span></strong></p>
-          <iframe 
+          <iframe
             class="map-frame"
             title="Map of Kathmandu, Nepal"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56516.31576360696!2d85.29111319024043!3d27.70895594440733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb198a307baabf%3A0xb5137c1bf18db1ea!2sKathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1707050000000!5m2!1sen!2sus" 
-            width="100%" 
-            height="250" 
-            allowfullscreen="" 
-            loading="lazy" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56516.31576360696!2d85.29111319024043!3d27.70895594440733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb198a307baabf%3A0xb5137c1bf18db1ea!2sKathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1707050000000!5m2!1sen!2sus"
+            width="100%"
+            height="280"
+            allowfullscreen=""
+            loading="lazy"
             referrerpolicy="no-referrer-when-downgrade">
           </iframe>
         </div>
       </div>
     </div>
+  </section>
 
-    <div id="favorites" class="tab-content" role="tabpanel" aria-labelledby="tab-favorites" tabindex="0">
+  <!-- FAVORITES -->
+  <section id="favorites" class="tab-content section section--favorites" role="region" aria-labelledby="tab-favorites" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">05</span><span class="line"></span><span>Favorites</span></div>
+
       <div class="info-block">
         <h3 id="favorites-music-title"><i class="fa-solid fa-music"></i> Favorite Music</h3>
-        
+
         <div class="spotify-player">
           <div class="album-art">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS55ql_XMzMW-2OzEMaZS6A0tQmoLmgxw2Asg&s" alt="Album Art" loading="lazy" decoding="async">
@@ -228,7 +298,7 @@
           <div class="progress-container" id="progress-container">
             <div class="progress" id="progress"></div>
           </div>
-          
+
           <div class="time-stamps">
             <span id="current-time">0:00</span>
             <span id="duration">0:00</span>
@@ -253,20 +323,24 @@
       <div class="info-block">
         <h3 id="favorites-movie-title"><i class="fa-solid fa-film"></i> Favorite Movie</h3>
         <p>Interstellar</p>
-        
+
         <div class="embed-youtube">
-          <iframe 
-            src="https://www.youtube.com/embed/zSWdZVtXT7E" 
-            title="Interstellar Trailer" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          <iframe
+            src="https://www.youtube.com/embed/zSWdZVtXT7E"
+            title="Interstellar Trailer"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen>
           </iframe>
         </div>
       </div>
     </div>
+  </section>
 
-    <div id="games" class="tab-content" role="tabpanel" aria-labelledby="tab-games" tabindex="0">
-      <h3><i class="fa-solid fa-gamepad"></i> Play & Learn</h3>
+  <!-- GAMES -->
+  <section id="games" class="tab-content section section--games" role="region" aria-labelledby="tab-games" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">06</span><span class="line"></span><span>Games</span></div>
+      <h3><i class="fa-solid fa-gamepad"></i> Play &amp; Learn</h3>
       <p>Test what you know about Rishikesh with a quick quiz.</p>
       <div class="game-card">
         <div class="game-header">
@@ -282,72 +356,98 @@
         <div class="game-result hidden" id="quiz-result"></div>
       </div>
     </div>
+  </section>
 
-    <div id="news" class="tab-content" role="tabpanel" aria-labelledby="tab-news" tabindex="0">
+  <!-- NEWS -->
+  <section id="news" class="tab-content section section--news" role="region" aria-labelledby="tab-news" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">07</span><span class="line"></span><span>News</span></div>
       <h3 id="news-title"><i class="fa-solid fa-newspaper"></i> News</h3>
       <p>Top headlines from around the world.</p>
       <div id="news-list" class="news-list" aria-live="polite"></div>
     </div>
+  </section>
 
-    <div id="contact" class="tab-content" role="tabpanel" aria-labelledby="tab-contact" tabindex="0">
-  <h3><i class="fa-solid fa-address-book"></i> Contact & Portfolio</h3>
-  <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
-  
-  <div class="contact-grid">
-    <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti.pdf" target="_blank" rel="noopener noreferrer" class="social-btn resume-btn">
-      <div class="btn-icon">
-        <i class="fa-solid fa-file-pdf"></i>
+  <!-- CONTACT -->
+  <section id="contact" class="tab-content section section--contact" role="region" aria-labelledby="tab-contact" tabindex="0">
+    <div class="section-inner">
+      <div class="section-label"><span class="num">08</span><span class="line"></span><span>Contact</span></div>
+      <h3><i class="fa-solid fa-address-book"></i> Contact &amp; Portfolio</h3>
+      <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
+
+      <div class="contact-grid">
+        <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti.pdf" target="_blank" rel="noopener noreferrer" class="social-btn resume-btn">
+          <div class="btn-icon">
+            <i class="fa-solid fa-file-pdf"></i>
+          </div>
+          <span id="contact-resume-text">View Resume</span>
+          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+        </a>
+
+        <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" rel="noopener noreferrer" class="social-btn linkedin-btn">
+          <div class="btn-icon">
+            <i class="fa-brands fa-linkedin-in"></i>
+          </div>
+          <span>LinkedIn</span>
+          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+        </a>
+
+        <a href="https://github.com/reseekesh821" target="_blank" rel="noopener noreferrer" class="social-btn github-btn">
+          <div class="btn-icon">
+            <i class="fa-brands fa-github"></i>
+          </div>
+          <span>GitHub</span>
+          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+        </a>
       </div>
-      <span id="contact-resume-text">View Resume</span>
-      <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-    </a>
 
-    <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" rel="noopener noreferrer" class="social-btn linkedin-btn">
-      <div class="btn-icon">
+      <div class="form-container">
+        <h3 id="contact-send-title"><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
+
+        <form id="contact-form" action="#" method="POST" class="contact-form">
+          <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
+          <div class="input-group">
+            <input type="text" name="name" id="contact-name" required placeholder=" " minlength="2" autocomplete="name">
+            <label>Name</label>
+          </div>
+
+          <div class="input-group">
+            <input type="email" name="email" id="contact-email" required placeholder=" " autocomplete="email">
+            <label>Email Address</label>
+          </div>
+
+          <div class="input-group">
+            <textarea name="message" id="contact-message" rows="5" required placeholder=" " minlength="10" maxlength="500"></textarea>
+            <label>Your Message</label>
+            <span id="contact-message-count" class="message-count" aria-live="polite">0 / 500</span>
+          </div>
+
+          <button type="submit" class="send-btn" id="contact-submit-btn">
+            <span id="contact-send-btn-text">Send Message</span> <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 Rishikesh Bastakoti</span>
+    <div class="footer-socials">
+      <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
         <i class="fa-brands fa-linkedin-in"></i>
-      </div>
-      <span>LinkedIn</span>
-      <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-    </a>
-
-    <a href="https://github.com/reseekesh821" target="_blank" rel="noopener noreferrer" class="social-btn github-btn">
-      <div class="btn-icon">
+      </a>
+      <a href="https://github.com/reseekesh821" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
         <i class="fa-brands fa-github"></i>
-      </div>
-      <span>GitHub</span>
-      <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-    </a>
+      </a>
+    </div>
   </div>
-  <div class="form-container">
-  <h3 id="contact-send-title"><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
-  
-  <form id="contact-form" action="#" method="POST" class="contact-form">
-    <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
-    <div class="input-group">
-      <input type="text" name="name" id="contact-name" required placeholder=" " minlength="2" autocomplete="name">
-      <label>Name</label>
-    </div>
+</footer>
 
-    <div class="input-group">
-      <input type="email" name="email" id="contact-email" required placeholder=" " autocomplete="email">
-      <label>Email Address</label>
-    </div>
-
-    <div class="input-group">
-      <textarea name="message" id="contact-message" rows="5" required placeholder=" " minlength="10" maxlength="500"></textarea>
-      <label>Your Message</label>
-      <span id="contact-message-count" class="message-count" aria-live="polite">0 / 500</span>
-    </div>
-
-    <button type="submit" class="send-btn" id="contact-submit-btn">
-      <span id="contact-send-btn-text">Send Message</span> <i class="fa-solid fa-paper-plane"></i>
-    </button>
-  </form>
-</div>
-</div>
-  </div>
-</div>
-
+<!-- CHAT WIDGET (functionality preserved) -->
 <div class="chat-widget">
   <div class="voice-actions">
     <button id="voice-help-btn" class="voice-help-btn" title="What can I say?"><i class="fa-solid fa-circle-question"></i></button>
@@ -426,7 +526,7 @@
         </button>
       </div>
     </div>
-    
+
     <div class="chat-messages" id="chat-messages">
       <div class="message bot-message chat-welcome">
         <span id="chat-welcome-text">Hi. Ask me about Rishikesh, or try commands like play music, change color, or show projects.</span>
@@ -438,13 +538,13 @@
         <button type="button" class="chip" onclick="handleQuickReply('show projects')" id="chip-projects">Projects</button>
       </div>
     </div>
-    
+
     <div class="typing-indicator" id="typing-indicator">
       Thinking...
     </div>
-    
+
     <div class="voice-status chat-voice-status" id="voice-status">Listening...</div>
-    
+
     <div class="chat-input-area">
       <input type="text" id="user-input" placeholder="Type a message or command..." autocomplete="off" aria-label="Chat message">
       <button type="button" id="voice-btn" class="voice-btn chat-voice-btn" title="Voice assistant" aria-label="Voice assistant"><i class="fa-solid fa-microphone"></i></button>
@@ -452,6 +552,7 @@
     </div>
   </div>
 </div>
+
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
   const SUPABASE_URL = 'https://oilhydznurstsptwgaqh.supabase.co';
@@ -471,6 +572,6 @@
     </div>
   </div>
 </div>
-<script src="portfolio.js?v=28.1_UX_SAFE"></script>
+<script src="portfolio.js?v=29.0_NEON_COSMOS"></script>
 </body>
 </html>
