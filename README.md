@@ -1,141 +1,58 @@
-# Rishikesh Bastakoti – AI-Powered Portfolio
+# Rishikesh Bastakoti – Portfolio
 
-This is my personal portfolio website where I showcase my background, projects, and an interactive AI-driven experience. Instead of a static page, this behaves more like a small product with chat, voice, calls, and live data.
+My portfolio website. It has my projects and background, plus a chatbot you can talk to (and use with voice). There is also a quiz, live weather and news for Kathmandu, and a contact form.
 
-Built using HTML, CSS, vanilla JavaScript, serverless APIs, and Supabase.
+Built with HTML, CSS, and JavaScript. The backend stuff runs on Vercel serverless functions, and I use Supabase to store chat logs, quiz scores, tab clicks, and contact messages.
 
----
-
-## Features
-
-- AI chat assistant (Groq – Llama 3.3 70B)
-- Voice assistant (speech recognition + text-to-speech)
-- Audio and video call simulation
-- Interactive quiz game
-- Live weather, time, and news
-- Responsive modern UI
-- Supabase logging and analytics
+**Live:** https://rishikeshbastakoti.vercel.app/
 
 ---
 
-## Sections
+## What's on the site
 
-- Intro – About me and what I study  
-- Projects – Featured projects with tech stacks  
-- Education – Academic background  
-- Hometown – Kathmandu with live time, weather, and map  
-- Favorites – Music player, favorite city, movie  
-- Games – “Know Rishikesh?” quiz  
-- News – Live headlines  
-- Contact – Resume, LinkedIn, GitHub, contact form  
-
----
-
-## AI & Interactive Features
-
-### Chat Assistant
-- Context-aware AI assistant
-- Answers questions and controls the site
-- Logs messages to Supabase
-
-### Voice Assistant
-- Built with Web Speech API
-- Supports commands like:
-  - Show projects
-  - Play music
-  - Start video call
-
-### Audio Call
-- Simulated call UI (ringing → active)
-- Continuous voice interaction
-- Mute/unmute and end call
-
-### Video Call
-- AI avatar powered by Anam
-- Live video inside chat widget
-- Mute/unmute and end controls
+- Intro, projects, education, hometown, favorites, games, news, contact
+- AI chat (Groq / Llama 3.3 70B) — can answer questions about me and do things on the site like show projects or play music
+- Voice commands (browser speech recognition)
+- Fake audio call and video call UI (video uses Anam for the avatar)
+- Quiz — "Know Rishikesh?"
+- Light/dark mode and a few accent colors
+- Languages: English, Nepali, Spanish, French, German, Portuguese, Chinese
+- Live time and weather for Kathmandu, news headlines
+- Admin page (`admin.html`) to look at what people submitted or logged
 
 ---
 
-## Live Data
+## Files
 
-- Time & Date – Nepal timezone  
-- Weather – Open-Meteo API  
-- News – GNews API  
-
----
-
-## Data & Analytics (Supabase)
-
-- chat_logs  
-- tab_events  
-- quiz_results  
-- contact_messages  
-
----
-
-## Project Structure
-
-index.html – main UI  
-portfolio.css – styling  
-portfolio.js – frontend logic  
-
-api/
-- chat.js  
-- news.js  
-- anam-session.js  
-- _supabaseAdmin.js  
-- admin/  
+- `index.html` — main page
+- `portfolio.css` — styles
+- `portfolio.js` — most of the logic
+- `admin.html` — admin dashboard
+- `favicon.svg`
+- `api/chat.js` — chat API
+- `api/news.js` — news
+- `api/tts.js` — voice for audio calls (ElevenLabs)
+- `api/anam-session.js` — video call session
+- `api/reverse-geocode.js` — turns lat/lon into a place name
+- `api/_supabaseAdmin.js` — Supabase on the server
+- `api/_requireAdmin.js` — checks admin password
+- `api/admin/` — endpoints for chat logs, tab events, quiz results, contact messages
 
 ---
 
-## Setup
+## Run it locally
 
-### Install
+```bash
 npm install
-
-### Environment variables (.env)
-
-GROQ_API_KEY=  
-SUPABASE_URL=  
-SUPABASE_SERVICE_ROLE_KEY=  
-NEWS_API_KEY=  
-ANAM_API_KEY=  
-ANAM_PERSONA_ID=  
-
-Client:
-SUPABASE_ANON_KEY=  
-
----
-
-## Run
-
 vercel dev
+```
+
+You need a `.env` file in the project root (it is in `.gitignore`, so do not push it). Add your keys from Groq, Supabase, GNews, Anam, and ElevenLabs. You also need `ADMIN_TOKEN` if you want to use the admin page, and `SUPABASE_ANON_KEY` in `index.html` for the client side.
+
+On Vercel, put the same variables in the project settings.
 
 ---
 
-## Security
+## Supabase
 
-- All API keys are stored in environment variables  
-- No sensitive data is exposed in frontend  
-
----
-
-## What This Shows
-
-- Frontend development (UI, responsiveness)
-- AI integration (chat, voice, avatar)
-- Full-stack thinking (APIs + database)
-- Real-time data handling
-
----
-
-## Goal
-
-To build a portfolio that feels like a real product, not just a static page.
-
-
-## Live Demo
-
-Visit the site:
-https://rishikeshbastakoti.vercel.app/
+Tables I use: `chat_logs`, `tab_events`, `quiz_results`, `contact_messages`
