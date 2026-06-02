@@ -2475,7 +2475,7 @@ function initChatPresence() {
 const AGENT_EXTERNAL_LINKS = {
   github: 'https://github.com/reseekesh821',
   linkedin: 'https://www.linkedin.com/in/rbastakoti1/',
-  resume: 'https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti.pdf'
+  resume: 'https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Rishikesh_Bastakoti_Resume-upadted2026.pdf'
 };
 
 function normalizeSearchQuery(value) {
