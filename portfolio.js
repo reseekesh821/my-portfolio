@@ -1404,6 +1404,8 @@ const VoiceAssistant = (function() {
 
   const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028, originally from Kathmandu, Nepal. Projects include AI Compliance Firewall — an LLM middleware with FINRA and HIPAA-style rule scanning, Ollama embeddings, Neo4j disclaimers, and SQLite audit logs; QuickLoan, a React and FastAPI full-stack loan app; BudgetTracker, a Python finance tracker; and this AI-powered portfolio with voice, chat, and video call features. Interests include web development, algorithms, and AI. Favorite movie: Interstellar. Favorite song: Timi Ra Maa by Dixita Karki. Favorite city: Pokhara.";
 
+  const ABOUT_RISHI_VOICE = "Rishikesh is a Computer Science student at Caldwell University, class of 2028, from Kathmandu. He's built AI Compliance Firewall, QuickLoan, BudgetTracker, and this portfolio site. Favorite song: Timi Ra Maa by Dixita Karki.";
+
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
 
   let currentUtterance = null;
@@ -1412,10 +1414,19 @@ const VoiceAssistant = (function() {
   let activeVoiceAbort = null;
   let activeTtsAudio = null;
   let activeTtsAbort = null;
+  let musicWasPlayingBeforeMic = false;
+  let musicTouchedByLastCommand = false;
+
+  function isAssistantSpeaking() {
+    if (synth && (synth.speaking || synth.pending)) return true;
+    if (activeTtsAudio && !activeTtsAudio.paused && !activeTtsAudio.ended) return true;
+    return false;
+  }
 
   function stopSpeaking() {
-    if (!synth) return;
-    synth.cancel();
+    if (synth) {
+      synth.cancel();
+    }
     currentUtterance = null;
     if (activeTtsAudio) {
       try { activeTtsAudio.pause(); } catch (e) {}
@@ -1481,14 +1492,13 @@ const VoiceAssistant = (function() {
 
   function speakBest(text) {
     if (typeof isInVideoCall !== 'undefined' && isInVideoCall) return;
+    speak(text);
+  }
+
+  function speakViaApiForCall(text) {
     const t = String(text ?? '').trim();
-    if (!t) return;
-    // Try ElevenLabs first, fall back to browser TTS.
-    // (Don't block the UI; we only fall back if API fails.)
-    (async () => {
-      const ok = await speakViaApi(t);
-      if (!ok) speak(t);
-    })();
+    if (!t) return Promise.resolve(false);
+    return speakViaApi(t);
   }
 
   function abortPendingAI() {
@@ -1503,18 +1513,23 @@ const VoiceAssistant = (function() {
     if (!synth) return;
     stopSpeaking();
 
-    // Help reduce "assistant hears itself" loops, but still allow the user to say "stop"
-    // mid-sentence (so we do NOT fully stop recognition here).
+    const t = String(text ?? '').trim();
+    if (!t) return;
+
+    const estimatedMs = Math.min(12000, 500 + t.length * 45);
     if (typeof ignoreRecognitionUntilMs !== 'undefined') {
-      ignoreRecognitionUntilMs = Date.now() + 250;
+      ignoreRecognitionUntilMs = Date.now() + estimatedMs;
     }
     resumeRecognitionAfterSpeech = false;
 
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(t);
     u.rate = 0.95;
     u.pitch = 1;
     u.onend = () => {
       currentUtterance = null;
+      if (typeof ignoreRecognitionUntilMs !== 'undefined') {
+        ignoreRecognitionUntilMs = Date.now() + 600;
+      }
     };
     u.onerror = () => {
       currentUtterance = null;
@@ -1557,8 +1572,20 @@ const VoiceAssistant = (function() {
       }
       return actionFn();
     }
-    function reply(msg) {
-      if (!forChat) speakBest(msg);
+    function reply(msg, { silent = false } = {}) {
+      if (!forChat) {
+        if (silent) {
+          if (voiceStatus) {
+            voiceStatus.textContent = msg;
+            voiceStatus.classList.add('active');
+            setTimeout(() => {
+              if (voiceStatus) voiceStatus.classList.remove('active');
+            }, 1400);
+          }
+        } else {
+          speakBest(msg);
+        }
+      }
       return forChat ? msg : true;
     }
 
@@ -1601,7 +1628,7 @@ const VoiceAssistant = (function() {
 
     // About Rishikesh — tolerant of accent and STT mishearings
     if (mentionsRishikeshIntent(text)) {
-      return reply(ABOUT_RISHI);
+      return reply(forChat ? ABOUT_RISHI : ABOUT_RISHI_VOICE);
     }
 
     // Weather — handle phrases like "what's the weather", "weather in Kathmandu", but avoid generic
@@ -1644,16 +1671,44 @@ const VoiceAssistant = (function() {
       return reply(HELP_PHRASE);
     }
 
-    // Play music — understand phrases like "play some music", "start the song", or just "play music"
-    if ((has('play') || has('start')) && hasAny('music','song','songs')) {
-      if (!isPlaying) { doAction(() => togglePlay()); return reply('Playing music.'); }
-      return reply('Music is already playing.');
+    // Favorites — before play/pause so "favorite music" is not treated as a command
+    const isFavoriteMusicIntent =
+      /favo?urite\s+(music|song|track)/.test(lower) ||
+      (hasAny('favorite', 'favourite', 'fav') && hasAny('music', 'song', 'track'));
+    if (isFavoriteMusicIntent) {
+      return reply('His favorite song is Timi Ra Maa by Dixita Karki.');
+    }
+    const isFavoriteMovieIntent =
+      /favo?urite\s+movie/.test(lower) ||
+      (hasAny('favorite', 'favourite') && has('movie'));
+    if (isFavoriteMovieIntent) {
+      return reply('His favorite movie is Interstellar.');
+    }
+    const isFavoriteCityIntent =
+      /favo?urite\s+city/.test(lower) ||
+      (hasAny('favorite', 'favourite') && has('city'));
+    if (isFavoriteCityIntent) {
+      return reply('His favorite city is Pokhara.');
     }
 
-    // Pause music — phrases like "pause the music", "stop song", or "pause music"
+    // Play music — no spoken confirmation (avoids overlap with the song)
+    if ((has('play') || has('start')) && hasAny('music','song','songs')) {
+      if (!isPlaying) {
+        musicTouchedByLastCommand = true;
+        doAction(() => togglePlay());
+        return reply('Playing music.', { silent: true });
+      }
+      return reply('Music is already playing.', { silent: true });
+    }
+
+    // Pause music — no spoken confirmation
     if (hasAny('pause','stop') && hasAny('music','song','songs')) {
-      if (isPlaying) { doAction(() => togglePlay()); return reply('Music paused.'); }
-      return reply('Music is already paused.');
+      if (isPlaying) {
+        musicTouchedByLastCommand = true;
+        doAction(() => togglePlay());
+        return reply('Music paused.', { silent: true });
+      }
+      return reply('Music is already paused.', { silent: true });
     }
 
     // Color / theme (e.g. "change color to red", "make it blue theme").
@@ -1729,7 +1784,6 @@ const VoiceAssistant = (function() {
   // Keep a single SpeechRecognition instance for the whole session
   let recognition = null;
   let noSpeechRetry = false;
-  let wasPlayingBeforeMic = false;
   let isCallListening = false;
   let ignoreRecognitionUntilMs = 0;
   let callMode = 'normal'; // 'normal' | 'push_to_talk'
@@ -1760,10 +1814,6 @@ const VoiceAssistant = (function() {
         voiceStatus.textContent = 'Listening... speak now';
         voiceStatus.classList.add('active');
       }
-      // If the browser auto-paused the music when the mic opened, try to resume it
-      if (wasPlayingBeforeMic && isPlaying && audio.paused) {
-        audio.play().catch(() => {});
-      }
     };
 
     recognition.onend = () => {
@@ -1771,10 +1821,15 @@ const VoiceAssistant = (function() {
       if (voiceBtn) voiceBtn.classList.remove('listening');
       if (voiceStatus) voiceStatus.classList.remove('active');
 
-      // After listening, if music was playing before and got paused, resume it
-      if (wasPlayingBeforeMic && isPlaying && audio.paused) {
+      if (
+        musicWasPlayingBeforeMic &&
+        !musicTouchedByLastCommand &&
+        isPlaying &&
+        audio.paused
+      ) {
         audio.play().catch(() => {});
       }
+      musicWasPlayingBeforeMic = false;
 
       // During an active call, keep recognition running only for continuous call mode.
       // In push-to-talk, we stop after each utterance.
@@ -1805,9 +1860,8 @@ const VoiceAssistant = (function() {
         return;
       }
 
-      // While the assistant is speaking, only pay attention to clear "stop" style interrupts
-      // so it doesn't respond to its own voice but still lets the user pause it.
-      if (synth && (synth.speaking || synth.pending)) {
+      // Ignore mic input while the assistant is speaking (browser or API TTS).
+      if (isAssistantSpeaking()) {
         const lower = transcript.toLowerCase().trim();
         const clean = lower.replace(/[?!.,]/g, ' ');
         const words = clean.split(/\s+/).filter(Boolean);
@@ -1989,9 +2043,9 @@ const VoiceAssistant = (function() {
       return;
     }
     // If the assistant is currently speaking, treat a mic-tap as an interrupt.
-    if (synth && (synth.speaking || synth.pending)) {
+    if (isAssistantSpeaking()) {
       stopSpeaking();
-      if (typeof ignoreRecognitionUntilMs !== 'undefined') ignoreRecognitionUntilMs = Date.now() + 600;
+      if (typeof ignoreRecognitionUntilMs !== 'undefined') ignoreRecognitionUntilMs = Date.now() + 400;
       return;
     }
     // Don't mix voice assistant with calls/video calls
@@ -2007,8 +2061,11 @@ const VoiceAssistant = (function() {
     const rec = getRecognition();
     if (!rec) return;
 
-    // Remember if music was playing before opening the mic
-    wasPlayingBeforeMic = isPlaying;
+    musicWasPlayingBeforeMic = isPlaying && !audio.paused;
+    musicTouchedByLastCommand = false;
+    if (musicWasPlayingBeforeMic) {
+      audio.pause();
+    }
     noSpeechRetry = false;
 
     try {
@@ -2042,7 +2099,7 @@ const VoiceAssistant = (function() {
     });
   }
 
-  return { speak, speakViaApi, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening, hardStop, setCallMode, listenOnceForCall };
+  return { speak, speakViaApi, speakViaApiForCall, handleCommand, applyTheme, beginContinuousListening, stopContinuousListening, hardStop, setCallMode, listenOnceForCall };
 })();
 
 
@@ -2932,7 +2989,9 @@ function startAudioCall() {
     if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode('push_to_talk');
     (async () => {
       const greet = "Hello. How can I help you today?";
-      const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(greet) : false;
+      const ok = VoiceAssistant && VoiceAssistant.speakViaApiForCall
+        ? await VoiceAssistant.speakViaApiForCall(greet)
+        : false;
       if (!ok) VoiceAssistant.speak(greet);
     })();
   }, 9000);
@@ -2960,14 +3019,18 @@ function startAudioCall() {
             ? VoiceAssistant.handleCommand(text, true)
             : false;
           if (commandReply !== false && typeof commandReply === 'string') {
-            const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(commandReply) : false;
+            const ok = VoiceAssistant && VoiceAssistant.speakViaApiForCall
+              ? await VoiceAssistant.speakViaApiForCall(commandReply)
+              : false;
             if (!ok) VoiceAssistant.speak(commandReply);
             return;
           }
 
           const result = runAgentResult(await getAIResponse(text));
           if (!result.reply) return;
-          const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
+          const ok = VoiceAssistant && VoiceAssistant.speakViaApiForCall
+            ? await VoiceAssistant.speakViaApiForCall(result.reply)
+            : false;
           if (!ok) VoiceAssistant.speak(result.reply);
         })
         .catch(() => {
