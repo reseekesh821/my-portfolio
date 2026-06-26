@@ -1480,6 +1480,7 @@ const VoiceAssistant = (function() {
   }
 
   function speakBest(text) {
+    if (typeof isInVideoCall !== 'undefined' && isInVideoCall) return;
     const t = String(text ?? '').trim();
     if (!t) return;
     // Try ElevenLabs first, fall back to browser TTS.
@@ -1498,6 +1499,7 @@ const VoiceAssistant = (function() {
   }
 
   function speak(text) {
+    if (typeof isInVideoCall !== 'undefined' && isInVideoCall) return;
     if (!synth) return;
     stopSpeaking();
 
@@ -1841,6 +1843,9 @@ const VoiceAssistant = (function() {
         return;
       }
 
+      // Anam handles open-mic conversation during video calls.
+      if (typeof isInVideoCall !== 'undefined' && isInVideoCall) return;
+
       // 1) Try command handler first so voice commands stay in control
       if (handleCommand(transcript)) return;
 
@@ -1870,6 +1875,7 @@ const VoiceAssistant = (function() {
     };
 
     recognition.onnomatch = () => {
+      if (typeof isInVideoCall !== 'undefined' && isInVideoCall) return;
       speakBest("I heard you but couldn't match it. Say help to hear options.");
     };
 
@@ -2846,53 +2852,35 @@ function handleVideoCallTalk() {
   if (!isInVideoCall || !videoCallTalkBtn || videoCallTalkBtn.disabled) return;
   if (!VoiceAssistant || !VoiceAssistant.listenOnceForCall) return;
 
-  videoCallTalkBtn.classList.add('recording');
-  videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
-  videoCallTalkBtn.setAttribute('aria-label', 'Listening during video call');
-  if (videoCallStatus) videoCallStatus.textContent = 'Listening...';
+  if (VoiceAssistant.hardStop) VoiceAssistant.hardStop();
+  if (VoiceAssistant.setCallMode) VoiceAssistant.setCallMode("push_to_talk");
+  if (anamClient && typeof anamClient.muteInputAudio === "function" && !isVideoMuted) {
+    try { anamClient.muteInputAudio(); } catch (e) {}
+  }
 
-  VoiceAssistant.listenOnceForCall({ timeoutMs: 10000 })
+  videoCallTalkBtn.classList.add("recording");
+  videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
+  videoCallTalkBtn.setAttribute("aria-label", "Listening during video call");
+  if (videoCallStatus) videoCallStatus.textContent = "Listening...";
+
+  VoiceAssistant.listenOnceForCall({ timeoutMs: 12000 })
     .then(async (transcript) => {
       if (!isInVideoCall) return;
-      const text = normalizeSpeechTranscript(transcript || '').trim();
-      if (!text) return;
-
-      const commandReply = VoiceAssistant && VoiceAssistant.handleCommand
-        ? VoiceAssistant.handleCommand(text, true)
-        : false;
-      if (commandReply !== false && typeof commandReply === 'string') {
-        if (videoCallStatus) videoCallStatus.textContent = commandReply;
-        const ok = VoiceAssistant && VoiceAssistant.speakViaApi
-          ? await VoiceAssistant.speakViaApi(commandReply)
-          : false;
-        if (!ok && VoiceAssistant) VoiceAssistant.speak(commandReply);
-        setTimeout(() => {
-          if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
-        }, 2200);
-        return;
-      }
-
-      if (videoCallStatus) videoCallStatus.textContent = 'Working on it...';
-      const result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
-      const reply = result.reply || 'Done.';
-      if (videoCallStatus) videoCallStatus.textContent = reply;
-      const ok = VoiceAssistant && VoiceAssistant.speakViaApi
-        ? await VoiceAssistant.speakViaApi(reply)
-        : false;
-      if (!ok && VoiceAssistant) VoiceAssistant.speak(reply);
-      setTimeout(() => {
-        if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
-      }, 2200);
+      await processVideoCallSpeech(transcript);
     })
     .catch(() => {
-      // timeout/cancel/no-speech: stay quiet
-      if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'On video call';
+      if (isInVideoCall && videoCallStatus) {
+        videoCallStatus.textContent = "Didn't catch that — speak again or tap wave";
+      }
     })
     .finally(() => {
+      if (anamClient && typeof anamClient.unmuteInputAudio === "function" && !isVideoMuted) {
+        try { anamClient.unmuteInputAudio(); } catch (e) {}
+      }
       if (!videoCallTalkBtn) return;
-      videoCallTalkBtn.classList.remove('recording');
+      videoCallTalkBtn.classList.remove("recording");
       videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
-      videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
+      videoCallTalkBtn.setAttribute("aria-label", "Speak during video call");
     });
 }
 
@@ -3050,6 +3038,72 @@ function endAudioCall() {
 
 // --- VIDEO CALL (Anam) ---
 
+function isVideoCallLocalCommand(text) {
+  const t = String(text || "").trim().toLowerCase();
+  if (!t) return false;
+  if (looksLikePortfolioCommand(text)) return true;
+  if (/\b(weather|time in|play music|pause music)\b/.test(t)) return true;
+  if (/\b(end|stop|hang up)\s+(the\s+)?(video\s+)?call\b/.test(t)) return true;
+  return false;
+}
+
+async function anamTalk(message) {
+  const msg = String(message ?? "").trim();
+  if (!msg || !anamClient) return false;
+  if (VoiceAssistant && VoiceAssistant.hardStop) VoiceAssistant.hardStop();
+  try {
+    if (typeof anamClient.talk === "function") {
+      await anamClient.talk(msg);
+      return true;
+    }
+  } catch (e) {
+    console.warn("[Anam] talk failed:", e);
+  }
+  return false;
+}
+
+function sendToAnamPersona(text) {
+  const msg = normalizeSpeechTranscript(text).trim();
+  if (!msg || !anamClient) return false;
+  if (VoiceAssistant && VoiceAssistant.hardStop) VoiceAssistant.hardStop();
+  try {
+    if (typeof anamClient.sendUserMessage === "function") {
+      anamClient.sendUserMessage(msg);
+      return true;
+    }
+  } catch (e) {
+    console.warn("[Anam] sendUserMessage failed:", e);
+  }
+  return false;
+}
+
+async function processVideoCallSpeech(text) {
+  const normalized = normalizeSpeechTranscript(text).trim();
+  if (!normalized || !isInVideoCall) return;
+
+  if (videoCallStatus) videoCallStatus.textContent = "Thinking...";
+
+  if (isVideoCallLocalCommand(normalized)) {
+    const reply = VoiceAssistant && VoiceAssistant.handleCommand
+      ? VoiceAssistant.handleCommand(normalized, true)
+      : false;
+    if (reply !== false && typeof reply === "string") {
+      await anamTalk(reply);
+      if (videoCallStatus) videoCallStatus.textContent = "On video call — speak anytime";
+      return;
+    }
+  }
+
+  if (sendToAnamPersona(normalized)) {
+    if (videoCallStatus) videoCallStatus.textContent = "On video call — speak anytime";
+    return;
+  }
+
+  const result = runAgentResult(await getAIResponse(normalized), { deferVisualActions: true });
+  if (result.reply) await anamTalk(result.reply);
+  if (videoCallStatus) videoCallStatus.textContent = "On video call — speak anytime";
+}
+
 function destroyVideoCallSession() {
   // Stop Anam if active
   if (anamClient && typeof anamClient.stopStreaming === 'function') {
@@ -3077,15 +3131,17 @@ async function startVideoCall() {
   if (videoCallStatus) videoCallStatus.textContent = 'Ringing...';
   if (videoCallEndBtn) videoCallEndBtn.disabled = false;
   if (videoCallMuteBtn) {
-    videoCallMuteBtn.classList.add('hidden');
-    videoCallMuteBtn.setAttribute('aria-hidden', 'true');
+    videoCallMuteBtn.classList.remove("hidden", "muted");
+    videoCallMuteBtn.removeAttribute("aria-hidden");
+    videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+    videoCallMuteBtn.setAttribute("aria-label", "Mute microphone");
   }
   if (videoCallTalkBtn) {
     videoCallTalkBtn.disabled = false;
-    videoCallTalkBtn.classList.remove('recording');
+    videoCallTalkBtn.classList.remove("recording");
     videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
-    videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
-    videoCallTalkBtn.setAttribute('title', 'Tap and speak');
+    videoCallTalkBtn.setAttribute("aria-label", "Speak during video call");
+    videoCallTalkBtn.setAttribute("title", "Tap for clearer speech (optional)");
   }
 
   if (chatMessages) chatMessages.style.display = 'none';
@@ -3121,8 +3177,8 @@ async function startVideoCall() {
     if (remainingRing) await new Promise((r) => setTimeout(r, remainingRing));
 
     stopRingtone();
-    if (videoCallStatus) videoCallStatus.textContent = 'Connecting...';
-    if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode('push_to_talk');
+    if (videoCallStatus) videoCallStatus.textContent = "Connecting...";
+    if (VoiceAssistant && VoiceAssistant.hardStop) VoiceAssistant.hardStop();
 
     // 2) Load Anam SDK in-browser (no bundler required)
     if (!anamSdk) {
@@ -3141,13 +3197,14 @@ async function startVideoCall() {
       `</div>`;
 
     anamClient = anamSdk.createClient(data.session_token, {
-      disableInputAudio: true
+      disableInputAudio: false
     });
 
-    if (anamSdk.AnamEvent && typeof anamClient.addListener === 'function') {
+    if (anamSdk.AnamEvent && typeof anamClient.addListener === "function") {
       anamClient.addListener(anamSdk.AnamEvent.CONNECTION_ESTABLISHED, () => {
-        if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
-        if (videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
+        if (videoCallConnecting) videoCallConnecting.classList.add("hidden");
+        if (VoiceAssistant && VoiceAssistant.hardStop) VoiceAssistant.hardStop();
+        if (videoCallStatus) videoCallStatus.textContent = "On video call — speak anytime";
       });
       anamClient.addListener(anamSdk.AnamEvent.CONNECTION_CLOSED, () => {
         endVideoCall();
@@ -3176,8 +3233,8 @@ async function startVideoCall() {
       }
     }
 
-    if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
-    if (videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
+    if (videoCallConnecting) videoCallConnecting.classList.add("hidden");
+    if (videoCallStatus) videoCallStatus.textContent = "On video call — speak anytime";
 
     // Fallback: hide connecting overlay after 10s
     setTimeout(() => {
@@ -3204,6 +3261,8 @@ function endVideoCall() {
   if (!isInVideoCall && !anamClient) return;
   isInVideoCall = false;
   setVoiceButtonDisabled(false);
+  if (VoiceAssistant && VoiceAssistant.hardStop) VoiceAssistant.hardStop();
+  if (VoiceAssistant && VoiceAssistant.setCallMode) VoiceAssistant.setCallMode("normal");
   stopRingtone();
   playHangup();
 
