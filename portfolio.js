@@ -76,6 +76,136 @@ function applyPortfolioAccent(name) {
   } catch (e) {}
 })();
 
+const PORTFOLIO_RESUME_URL =
+  "https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf";
+
+function levenshteinDistance(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+
+function normalizeSpeechTranscript(text) {
+  let t = String(text || "").trim();
+  if (!t) return t;
+  const replacements = [
+    [/\bwho\s+is\s+ridiculous\b/gi, "who is Rishikesh"],
+    [/\bi\s+mean\s+ridiculous\b/gi, "I mean Rishikesh"],
+    [/\bwho\s+is\s+recites\b/gi, "who is Rishikesh"],
+    [/\bplease\s*,?\s*recites\b/gi, "Rishikesh"],
+    [/\bi\s+said\s*,?\s*recites\b/gi, "I said Rishikesh"],
+    [/\brusso\s*-?\s*guest\b/gi, "Rishikesh"],
+    [/\britikesh\b/gi, "Rishikesh"],
+    [/\britkesh\b/gi, "Rishikesh"],
+    [/\briteshk?\b/gi, "Rishikesh"],
+    [/\brishikash\b/gi, "Rishikesh"],
+    [/\briscus\b/gi, "Rishikesh"],
+    [/\brish\s+case\b/gi, "Rishikesh"],
+    [/\bricketh\b/gi, "Rishikesh"],
+    [/\brickesh\b/gi, "Rishikesh"],
+    [/\brishi\s*kesh\b/gi, "Rishikesh"],
+    [/\brishi\s*cash\b/gi, "Rishikesh"],
+    [/\brishi\s*kish\b/gi, "Rishikesh"],
+    [/\brich\s*kesh\b/gi, "Rishikesh"],
+    [/\brichesh\b/gi, "Rishikesh"],
+    [/\brishy\b/gi, "Rishikesh"],
+    [/\breeshi\b/gi, "Rishikesh"],
+    [/\breeshikesh\b/gi, "Rishikesh"],
+    [/\breshikesh\b/gi, "Rishikesh"],
+    [/\brishikish\b/gi, "Rishikesh"],
+    [/\brish\s*kotty\b/gi, "Rishikesh Bastakoti"],
+    [/\bbastakotty\b/gi, "Bastakoti"],
+    [/\bresheekesh\b/gi, "Rishikesh"],
+    [/\brishi\s*koti\b/gi, "Rishikesh Bastakoti"]
+  ];
+  for (const [pattern, replacement] of replacements) {
+    t = t.replace(pattern, replacement);
+  }
+  return t;
+}
+
+const FAMOUS_NAME_BLOCKLIST = new Set([
+  "elon", "musk", "bill", "gates", "obama", "trump", "biden", "bezos", "zuckerberg",
+  "taylor", "swift", "einstein", "newton", "jobs", "steve", "mark", "zuckerberg"
+]);
+
+function isLikelyGarbledOwnerNameQuestion(text) {
+  const lower = String(text || "").toLowerCase();
+  const whoMatch = lower.match(/\bwho\s+(?:is|'s)\s+([a-z][a-z\s-]{2,30})/i);
+  const aboutMatch = lower.match(/\b(?:about|tell\s+me\s+about)\s+([a-z][a-z\s-]{2,30})/i);
+  const subject = (whoMatch && whoMatch[1]) || (aboutMatch && aboutMatch[1]) || "";
+  if (!subject) return false;
+  const words = subject.trim().split(/\s+/);
+  if (words.some((w) => FAMOUS_NAME_BLOCKLIST.has(w.replace(/[^a-z]/g, "")))) return false;
+  if (/russo|guest|recites|ridiculous|rick|rish|resh|ritk|rite|basta/i.test(subject)) return true;
+  return words.some(soundsLikeRishikesh);
+}
+
+function isNameCorrectionPhrase(text) {
+  const lower = String(text || "").toLowerCase();
+  return (
+    /\bi\s+mean\b/.test(lower) ||
+    /\bno\s+i\s+said\b/.test(lower) ||
+    /\bi\s+said\b/.test(lower) ||
+    /\bnot\s+that\b/.test(lower)
+  );
+}
+
+function soundsLikeRishikesh(word) {
+  const w = String(word || "").toLowerCase().replace(/[^a-z]/g, "");
+  if (!w || w.length < 4) return false;
+  if (/^(ricketh|rickesh|richesh|rishy|reeshi|reshikesh|richkesh|rishkesh|rishicash|rishikish|resheekesh|rishikoti|bastakoti|ritikesh|ritkesh|ritesh|rishikash|riscus|recites|ridiculous|russo)$/i.test(w)) {
+    return true;
+  }
+  const targets = ["rishikesh", "bastakoti"];
+  return targets.some((target) => levenshteinDistance(w, target) <= Math.max(2, Math.floor(target.length * 0.34)));
+}
+
+function mentionsRishikeshIntent(text) {
+  const normalized = normalizeSpeechTranscript(text);
+  const lower = normalized.toLowerCase();
+  if (/rishikesh|bastakoti|\brishi\b/.test(lower)) return true;
+  const words = lower.replace(/[?!.,]/g, " ").split(/\s+/).filter(Boolean);
+  if (words.some(soundsLikeRishikesh)) return true;
+  const whoMatch = lower.match(/\bwho\s+(?:is|'s)\s+([a-z]+)/i);
+  if (whoMatch && soundsLikeRishikesh(whoMatch[1])) return true;
+  const aboutMatch = lower.match(/\b(?:about|tell\s+me\s+about)\s+([a-z]+)/i);
+  if (aboutMatch && soundsLikeRishikesh(aboutMatch[1])) return true;
+  if (/\bwho\s+(?:is|'s)\s+(?:he|him|this\s+guy|the\s+owner|the\s+developer)\b/.test(lower)) return true;
+  if (/\b(?:about|tell\s+me\s+about)\s+(?:him|the\s+owner|the\s+developer)\b/.test(lower)) return true;
+  if (/\bdo\s+you\s+know\s+(?:him|this\s+guy)\b/.test(lower)) return true;
+  if (isNameCorrectionPhrase(lower)) return true;
+  if (isLikelyGarbledOwnerNameQuestion(text)) return true;
+  if (/^(ridiculous|recites|please\s+recites)$/i.test(lower.trim())) return true;
+  return false;
+}
+
+function pickBestSpeechTranscript(result) {
+  if (!result || !result.length) return "";
+  const candidates = [];
+  for (let i = 0; i < result.length; i++) {
+    const raw = (result[i].transcript || "").trim();
+    if (!raw) continue;
+    const normalized = normalizeSpeechTranscript(raw);
+    let score = typeof result[i].confidence === "number" ? result[i].confidence : 0;
+    if (mentionsRishikeshIntent(normalized)) score += 0.55;
+    if (/rishikesh/i.test(normalized)) score += 0.25;
+    candidates.push({ text: normalized, score });
+  }
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0]?.text || normalizeSpeechTranscript(result[0]?.transcript || "");
+}
+
 // Language / i18n strings (translated entirely on the client)
 const PORTFOLIO_LANG_STORAGE_KEY = "portfolio-language";
 const RTL_LANGS = new Set([]);
@@ -128,6 +258,7 @@ const I18N_EXTENDED = {
     projectsTitle: "Featured Projects",
     projectsDesc: "Here are some of the projects I've been working on:",
     viewCode: "View Code",
+    projectComplianceDesc: "LLM middleware that scans prompts and outputs against FINRA-style and HIPAA-style rules using regex plus Ollama semantic embeddings, enforces pass/flag/redact/block actions, and logs events with Neo4j disclaimers and SQLite audit trails.",
     projectQuickLoanDesc: "A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.",
     projectBudgetDesc: "A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.",
     projectPortfolioDesc: "Personal portfolio site with an AI chat assistant (Groq), voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.",
@@ -166,6 +297,7 @@ const I18N_EXTENDED = {
     projectsTitle: "Proyectos Destacados",
     projectsDesc: "Estos son algunos de los proyectos en los que he estado trabajando:",
     viewCode: "Ver codigo",
+    projectComplianceDesc: "Middleware de LLM que escanea prompts y respuestas con reglas estilo FINRA/HIPAA, embeddings semanticos de Ollama y acciones de cumplimiento con Neo4j y SQLite.",
     projectQuickLoanDesc: "Un sistema de prestamos full-stack disenado para agilizar el proceso de solicitud y aprobacion.",
     projectBudgetDesc: "Una herramienta de finanzas personales en Python para registrar gastos y visualizar habitos de consumo.",
     projectPortfolioDesc: "Portafolio personal con asistente de IA, comandos de voz, llamadas, clima y noticias en vivo, quiz y analiticas en Supabase.",
@@ -204,6 +336,7 @@ const I18N_EXTENDED = {
     projectsTitle: "विशेष प्रोजेक्टहरू",
     projectsDesc: "मैले काम गरिरहेका केही प्रोजेक्टहरू यहाँ छन्:",
     viewCode: "कोड हेर्नुहोस्",
+    projectComplianceDesc: "LLM मध्यस्थ तह जसले FINRA/HIPAA शैलीका नियम, Ollama semantic embedding, Neo4j disclaimer र SQLite audit log मार्फत prompt/output compliance जाँच गर्छ।",
     projectQuickLoanDesc: "ऋण प्रक्रिया सजिलो बनाउने फुल-स्ट्याक लोन प्रणाली। आधुनिक फ्रन्टएन्ड र बलियो ब्याकएन्डमा आधारित।",
     projectBudgetDesc: "Python मा बनेको व्यक्तिगत वित्त उपकरण जसले खर्च ट्र्याक, बजेट सेट र खर्च विश्लेषण गर्न मद्दत गर्छ।",
     projectPortfolioDesc: "AI सहायक, भ्वाइस कमाण्ड, कल, मौसम/समाचार, क्विज र Supabase एनालिटिक्स भएको व्यक्तिगत पोर्टफोलियो साइट।",
@@ -242,6 +375,7 @@ const I18N_EXTENDED = {
     projectsTitle: "Projets en vedette",
     projectsDesc: "Voici quelques projets sur lesquels j'ai travaille :",
     viewCode: "Voir le code",
+    projectComplianceDesc: "Couche middleware LLM qui analyse prompts et reponses selon des regles FINRA/HIPAA, embeddings Ollama, actions de conformite, Neo4j et journal SQLite.",
     projectQuickLoanDesc: "Une application de pret full-stack concue pour simplifier le processus d'emprunt.",
     projectBudgetDesc: "Un outil de finances personnelles en Python pour suivre les depenses et visualiser les habitudes.",
     projectPortfolioDesc: "Portfolio personnel avec assistant IA, commandes vocales, appels audio/video, meteo et actualites en direct.",
@@ -280,6 +414,7 @@ const I18N_EXTENDED = {
     projectsTitle: "Ausgewaehlte Projekte",
     projectsDesc: "Hier sind einige Projekte, an denen ich gearbeitet habe:",
     viewCode: "Code ansehen",
+    projectComplianceDesc: "LLM-Middleware mit FINRA/HIPAA-Regeln, Ollama-Embeddings, Compliance-Aktionen sowie Neo4j-Disclaimer und SQLite-Audit-Log.",
     projectQuickLoanDesc: "Ein Full-Stack-Kreditsystem, das den Ausleihprozess vereinfacht.",
     projectBudgetDesc: "Ein Python-Finanztool, um Ausgaben zu verfolgen und Budgets zu planen.",
     projectPortfolioDesc: "Persoenliche Portfolio-Seite mit KI-Chat, Sprachbefehlen, Audio/Video-Anrufen, Live-Wetter und News.",
@@ -318,6 +453,7 @@ const I18N_EXTENDED = {
     projectsTitle: "Projetos em destaque",
     projectsDesc: "Aqui estao alguns projetos em que tenho trabalhado:",
     viewCode: "Ver codigo",
+    projectComplianceDesc: "Middleware de LLM com regras estilo FINRA/HIPAA, embeddings semanticos do Ollama, acoes de conformidade, Neo4j e auditoria em SQLite.",
     projectQuickLoanDesc: "Um sistema full-stack de emprestimos para simplificar o processo de credito.",
     projectBudgetDesc: "Uma ferramenta de financas pessoais em Python para acompanhar gastos e metas.",
     projectPortfolioDesc: "Site de portfolio com assistente de IA, comandos de voz, chamadas, clima e noticias ao vivo.",
@@ -356,6 +492,7 @@ const I18N_EXTENDED = {
     projectsTitle: "精选项目",
     projectsDesc: "以下是我正在进行的一些项目：",
     viewCode: "查看代码",
+    projectComplianceDesc: "LLM 中间件，使用 FINRA/HIPAA 风格规则、Ollama 语义嵌入、合规动作，以及 Neo4j 免责声明和 SQLite 审计日志。",
     projectQuickLoanDesc: "一个全栈贷款申请系统，用于简化借贷流程，包含现代前端和稳定后端。",
     projectBudgetDesc: "使用 Python 开发的个人理财工具，帮助用户记录支出并制定预算。",
     projectPortfolioDesc: "个人作品集网站，包含 AI 聊天助手、语音命令、音视频通话、实时天气与新闻等功能。",
@@ -440,6 +577,7 @@ function applyTranslations() {
     ["#voice-status", "listening"],
     ["#projects-title", "projectsTitle"],
     ["#projects-desc", "projectsDesc"],
+    ["#project-compliance-desc", "projectComplianceDesc"],
     ["#project-quickloan-desc", "projectQuickLoanDesc"],
     ["#project-budget-desc", "projectBudgetDesc"],
     ["#project-portfolio-desc", "projectPortfolioDesc"],
@@ -1147,11 +1285,13 @@ const QUIZ_QUESTIONS = [
   { q: "Where is Rishikesh from?", options: ["India", "Nepal", "USA", "UK"], correct: 1 },
   { q: "Which university does he attend?", options: ["MIT", "Caldwell University", "Stanford", "NYU"], correct: 1 },
   { q: "What is the QuickLoan App built with?", options: ["Vue + Django", "React + FastAPI", "Angular + Node", "Svelte + Flask"], correct: 1 },
-  { q: "What is his favorite movie?", options: ["Inception", "Interstellar", "The Matrix", "Tenet"], correct: 1 },
+  { q: "What does AI Compliance Firewall scan?", options: ["Network packets", "LLM prompts and outputs", "Email attachments", "Image metadata"], correct: 1 },
   { q: "Which city does he love to visit?", options: ["Kathmandu", "Pokhara", "Lumbini", "Chitwan"], correct: 1 },
   { q: "What does BudgetTracker use?", options: ["React", "Python + File I/O", "Java", "C#"], correct: 1 },
-  { q: "His favorite song is by which artist?", options: ["Pritam", "Dixita Karki", "A.R. Rahman", "Taylor Swift"], correct: 1 },
-  { q: "What is his major?", options: ["Electrical Engineering", "Computer Science", "Data Science", "Mathematics"], correct: 1 }
+  { q: "Which runtime powers AI Compliance Firewall's LLM layer?", options: ["OpenAI API", "Ollama", "Gemini", "Claude API"], correct: 1 },
+  { q: "What is his major?", options: ["Electrical Engineering", "Computer Science", "Data Science", "Mathematics"], correct: 1 },
+  { q: "What features does the AI-Powered Portfolio include?", options: ["E-commerce checkout", "Voice commands and AI chat", "Blockchain wallet", "3D game engine"], correct: 1 },
+  { q: "His favorite movie is which Christopher Nolan film?", options: ["Inception", "Interstellar", "The Matrix", "Tenet"], correct: 1 }
 ];
 
 (function initQuiz() {
@@ -1262,7 +1402,7 @@ const VoiceAssistant = (function() {
 
   const THEMES = PORTFOLIO_ACCENT_THEMES;
 
-  const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028. He's from Kathmandu, Nepal, and is building a career in software development. He's built a full-stack QuickLoan app with React and FastAPI, and a Python Budget Tracker. He loves web development, algorithms, and in his free time enjoys the song Teemi Ra Maa by Dixita Karki, the movie Interstellar, and the city of Pokhara.";
+  const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028, originally from Kathmandu, Nepal. Projects include AI Compliance Firewall — an LLM middleware with FINRA and HIPAA-style rule scanning, Ollama embeddings, Neo4j disclaimers, and SQLite audit logs; QuickLoan, a React and FastAPI full-stack loan app; BudgetTracker, a Python finance tracker; and this AI-powered portfolio with voice, chat, and video call features. Interests include web development, algorithms, and AI. Favorite movie: Interstellar. Favorite song: Timi Ra Maa by Dixita Karki. Favorite city: Pokhara.";
 
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
 
@@ -1394,7 +1534,7 @@ const VoiceAssistant = (function() {
   }
 
   function handleCommand(text, forChat) {
-    const t = String(text || "")
+    const t = normalizeSpeechTranscript(text)
       .trim()
       .toLowerCase()
       .replace(/\bthem\b/g, "theme")
@@ -1457,16 +1597,8 @@ const VoiceAssistant = (function() {
       return reply("Hello! What can I help you with?");
     }
 
-    // About Rishikesh — maximum forgiveness: catch every possible mishearing
-    const rishiLike = /rishi|rishikesh|rishy|reeshi|reishikesh|reshikesh|rish\s*ikesh|rish\s*kesh/i;
-    const hasRishiAnywhere = rishiLike.test(lower) ||
-      words.some((w) => /rishi|rishikesh|rishy|reeshi|resh/i.test(w)) ||
-      hasAny('rishi', 'rishikesh');
-    const whoPlusRish = (has('who') || lower.includes('who is')) && /rish|resh/i.test(lower);
-    const aboutPlusRish = lower.includes('about') && /rish|resh|rishi|about him/i.test(lower);
-    // Only answer with ABOUT_RISHI if the user clearly mentioned Rishikesh / Rishi,
-    // not for generic "who is X" questions like "who is Bill Gates"
-    if (hasRishiAnywhere || whoPlusRish || aboutPlusRish) {
+    // About Rishikesh — tolerant of accent and STT mishearings
+    if (mentionsRishikeshIntent(text)) {
       return reply(ABOUT_RISHI);
     }
 
@@ -1617,7 +1749,7 @@ const VoiceAssistant = (function() {
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = currentLanguage === "en" ? "en-US" : currentLanguage;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 5;
 
     recognition.onstart = () => {
       isRecognizing = true;
@@ -1662,7 +1794,7 @@ const VoiceAssistant = (function() {
       if (Date.now() < ignoreRecognitionUntilMs) return;
 
       const result = e.results[e.results.length - 1];
-      const transcript = (result[0]?.transcript || '').trim();
+      const transcript = pickBestSpeechTranscript(result).trim();
       const isFinal = result.isFinal;
 
       if (!transcript) return;
@@ -2105,11 +2237,16 @@ Originally from Kathmandu, Nepal.
 Currently in Caldwell, New Jersey, USA.
 
 Technical Skills:
-Python, JavaScript, React, FastAPI, SQL/SQLAlchemy, HTML5, CSS3.
+Python, JavaScript/TypeScript, React, FastAPI, Streamlit, FastHTML, SQL/SQLAlchemy, Ollama, LangChain, Rust (PyO3), HTML5, CSS3.
 
 Projects:
+AI Compliance Firewall — LLM middleware with FINRA-style and HIPAA-style rule scanning, regex plus Ollama semantic embeddings, policy actions (pass, flag, redact, block, append disclaimers), Neo4j knowledge graph, and SQLite audit logs. Built with FastAPI, FastHTML, and optional Rust rule engine.
 QuickLoan App — Full-stack application built with React, FastAPI, SQLAlchemy.
 BudgetTracker — Python project using data structures and file I/O.
+AI-Powered Portfolio — This site: Groq chat assistant, voice commands, Anam video calls, live weather/news, quiz, Supabase analytics on Vercel.
+
+SPEECH / TYPOS:
+Users may misspell or mispronounce Rishikesh (e.g., Ricketh, Russo-Guest, Richesh, Rishi, Ritikesh, Recites, Ridiculous). Treat those as questions about Rishikesh Bastakoti, the portfolio owner. If they say "I mean..." after a wrong answer, they are correcting a mishearing. Never say you do not know him when the intent is clearly about this site owner.
 
 Interests:
 Web development, algorithms, AI/ML.
@@ -2350,7 +2487,7 @@ function looksLikePortfolioCommand(input) {
 async function sendMessage() {
   if (isCoolingDown) return;
 
-  const text = userInput.value.trim();
+  const text = normalizeSpeechTranscript(userInput.value.trim());
   if (!text) return;
 
   isCoolingDown = true;
@@ -2475,7 +2612,7 @@ function initChatPresence() {
 const AGENT_EXTERNAL_LINKS = {
   github: 'https://github.com/reseekesh821',
   linkedin: 'https://www.linkedin.com/in/rbastakoti1/',
-  resume: 'https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Rishikesh_Bastakoti_Resume-upadted2026.pdf'
+  resume: PORTFOLIO_RESUME_URL
 };
 
 function normalizeSearchQuery(value) {
@@ -2717,30 +2854,35 @@ function handleVideoCallTalk() {
   VoiceAssistant.listenOnceForCall({ timeoutMs: 10000 })
     .then(async (transcript) => {
       if (!isInVideoCall) return;
-      const text = (transcript || '').trim();
+      const text = normalizeSpeechTranscript(transcript || '').trim();
       if (!text) return;
 
       const commandReply = VoiceAssistant && VoiceAssistant.handleCommand
         ? VoiceAssistant.handleCommand(text, true)
         : false;
       if (commandReply !== false && typeof commandReply === 'string') {
-        if (videoCallStatus) {
-          videoCallStatus.textContent = commandReply;
-          setTimeout(() => {
-            if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'On video call';
-          }, 2200);
-        }
+        if (videoCallStatus) videoCallStatus.textContent = commandReply;
+        const ok = VoiceAssistant && VoiceAssistant.speakViaApi
+          ? await VoiceAssistant.speakViaApi(commandReply)
+          : false;
+        if (!ok && VoiceAssistant) VoiceAssistant.speak(commandReply);
+        setTimeout(() => {
+          if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
+        }, 2200);
         return;
       }
 
       if (videoCallStatus) videoCallStatus.textContent = 'Working on it...';
       const result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
-      if (videoCallStatus) {
-        videoCallStatus.textContent = result.reply || 'Done.';
-        setTimeout(() => {
-          if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'On video call';
-        }, 2200);
-      }
+      const reply = result.reply || 'Done.';
+      if (videoCallStatus) videoCallStatus.textContent = reply;
+      const ok = VoiceAssistant && VoiceAssistant.speakViaApi
+        ? await VoiceAssistant.speakViaApi(reply)
+        : false;
+      if (!ok && VoiceAssistant) VoiceAssistant.speak(reply);
+      setTimeout(() => {
+        if (isInVideoCall && videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
+      }, 2200);
     })
     .catch(() => {
       // timeout/cancel/no-speech: stay quiet
@@ -2823,9 +2965,18 @@ function startAudioCall() {
       VoiceAssistant.listenOnceForCall({ timeoutMs: 10000 })
         .then(async (transcript) => {
           if (!isInCall) return;
-          const text = (transcript || '').trim();
+          const text = normalizeSpeechTranscript(transcript || '').trim();
           if (!text) return;
-          // Feed it through the same AI pipeline used by chat, then speak the reply.
+
+          const commandReply = VoiceAssistant && VoiceAssistant.handleCommand
+            ? VoiceAssistant.handleCommand(text, true)
+            : false;
+          if (commandReply !== false && typeof commandReply === 'string') {
+            const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(commandReply) : false;
+            if (!ok) VoiceAssistant.speak(commandReply);
+            return;
+          }
+
           const result = runAgentResult(await getAIResponse(text));
           if (!result.reply) return;
           const ok = VoiceAssistant && VoiceAssistant.speakViaApi ? await VoiceAssistant.speakViaApi(result.reply) : false;
@@ -2926,14 +3077,15 @@ async function startVideoCall() {
   if (videoCallStatus) videoCallStatus.textContent = 'Ringing...';
   if (videoCallEndBtn) videoCallEndBtn.disabled = false;
   if (videoCallMuteBtn) {
-    videoCallMuteBtn.classList.remove('muted');
-    videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+    videoCallMuteBtn.classList.add('hidden');
+    videoCallMuteBtn.setAttribute('aria-hidden', 'true');
   }
   if (videoCallTalkBtn) {
     videoCallTalkBtn.disabled = false;
     videoCallTalkBtn.classList.remove('recording');
     videoCallTalkBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i>';
     videoCallTalkBtn.setAttribute('aria-label', 'Speak during video call');
+    videoCallTalkBtn.setAttribute('title', 'Tap and speak');
   }
 
   if (chatMessages) chatMessages.style.display = 'none';
@@ -2989,12 +3141,13 @@ async function startVideoCall() {
       `</div>`;
 
     anamClient = anamSdk.createClient(data.session_token, {
-      disableInputAudio: false
+      disableInputAudio: true
     });
 
     if (anamSdk.AnamEvent && typeof anamClient.addListener === 'function') {
       anamClient.addListener(anamSdk.AnamEvent.CONNECTION_ESTABLISHED, () => {
         if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
+        if (videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
       });
       anamClient.addListener(anamSdk.AnamEvent.CONNECTION_CLOSED, () => {
         endVideoCall();
@@ -3024,6 +3177,7 @@ async function startVideoCall() {
     }
 
     if (videoCallConnecting) videoCallConnecting.classList.add('hidden');
+    if (videoCallStatus) videoCallStatus.textContent = 'Tap wave button to speak';
 
     // Fallback: hide connecting overlay after 10s
     setTimeout(() => {
@@ -3059,7 +3213,8 @@ function endVideoCall() {
   if (videoCallConnecting) videoCallConnecting.classList.remove('hidden');
   if (videoCallEndBtn) videoCallEndBtn.disabled = true;
   if (videoCallMuteBtn) {
-    videoCallMuteBtn.classList.remove('muted');
+    videoCallMuteBtn.classList.remove('muted', 'hidden');
+    videoCallMuteBtn.removeAttribute('aria-hidden');
     videoCallMuteBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
   }
   if (videoCallTalkBtn) {

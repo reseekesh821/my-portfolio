@@ -114,12 +114,13 @@ export default async function handler(req, res) {
         "If the user asks to play music in the site/player without asking for a specific external song/video search, use play_music. If they ask to pause or stop the music, use pause_music. " +
         "If the user asks for adult content, porn, explicit sexual material, or adult websites, do not open anything. Use reply_only with a short refusal like sorry I can't help with that. " +
         "2) If the user wants a portfolio section, use switch_tab with params.target equal to one of intro, projects, education, hometown, favorites, games, news, contact. " +
-        "3) If the user wants resume, LinkedIn, or GitHub, use open_external_link with params.url and a short reply. " +
-        "4) For normal conversation or questions, use reply_only. " +
-        "5) Keep reply concise and helpful. " +
-        "6) Never invent unsupported actions. " +
-        "7) If uncertain, use reply_only. " +
-        `8) Always write the user-facing 'reply' in ${responseLanguage}.`
+        "3) If the user wants resume, LinkedIn, or GitHub, use open_external_link with params.url set to resume, linkedin, or github, or a full https URL. Resume URL: https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf. " +
+        "4) Rishikesh Bastakoti owns this portfolio. Users may misspell his name (Ricketh, Russo-Guest, Richesh, Rishi, Ritikesh, Recites, Ridiculous). Treat that as questions about him. If they say I mean after a wrong answer, assume Rishikesh. Projects: AI Compliance Firewall, QuickLoan App, BudgetTracker, AI-Powered Portfolio. " +
+        "5) For normal conversation or questions, use reply_only. " +
+        "6) Keep reply concise and helpful. " +
+        "7) Never invent unsupported actions. " +
+        "8) If uncertain, use reply_only. " +
+        `9) Always write the user-facing 'reply' in ${responseLanguage}.`
     };
 
     const payloadMessages = firstMessage && firstMessage.role === "system"
