@@ -206,6 +206,51 @@ function pickBestSpeechTranscript(result) {
   return candidates[0]?.text || normalizeSpeechTranscript(result[0]?.transcript || "");
 }
 
+function parseMusicControlIntent(text) {
+  const lower = normalizeSpeechTranscript(text).toLowerCase().replace(/[?!.,]/g, " ");
+  if (!/\b(music|song|songs|track)\b/.test(lower)) return null;
+  if (/\b(pause|paused|stop|halt)\b/.test(lower)) return "pause";
+  if (/\b(play|start|resume|playing)\b/.test(lower)) return "play";
+  return null;
+}
+
+function executeMusicControl(intent) {
+  if (intent === "play") {
+    if (!isPlaying) togglePlay();
+    return true;
+  }
+  if (intent === "pause") {
+    if (isPlaying) togglePlay();
+    return true;
+  }
+  return false;
+}
+
+function handleVoiceMusicFeedback(intent, speak) {
+  if (!intent || typeof speak !== "function") return;
+  if (intent === "play") {
+    if (!isPlaying) {
+      togglePlay();
+      speak("Playing music.");
+    } else {
+      speak("Music is already playing.");
+    }
+    return;
+  }
+  if (intent === "pause") {
+    if (isPlaying) {
+      togglePlay();
+      speak("Music paused.");
+    } else {
+      speak("Music is already paused.");
+    }
+  }
+}
+
+function isVoiceMusicAction(action) {
+  return action === "play_music" || action === "pause_music";
+}
+
 // Language / i18n strings (translated entirely on the client)
 const PORTFOLIO_LANG_STORAGE_KEY = "portfolio-language";
 const RTL_LANGS = new Set([]);
@@ -1220,6 +1265,7 @@ const durTime = document.getElementById('duration');
 
 const songUrl = "https://raw.githubusercontent.com/reseekesh821/music/main/Timi%20Ra%20Ma%20Lyrics%20Video%20Dixita%20Karki.mp3"; 
 const audio = new Audio(songUrl);
+audio.volume = 1;
 let isPlaying = false;
 
 function togglePlay() {
@@ -1414,8 +1460,6 @@ const VoiceAssistant = (function() {
   let activeVoiceAbort = null;
   let activeTtsAudio = null;
   let activeTtsAbort = null;
-  let musicWasPlayingBeforeMic = false;
-  let musicTouchedByLastCommand = false;
 
   function isAssistantSpeaking() {
     if (synth && (synth.speaking || synth.pending)) return true;
@@ -1525,14 +1569,21 @@ const VoiceAssistant = (function() {
     const u = new SpeechSynthesisUtterance(t);
     u.rate = 0.95;
     u.pitch = 1;
+    const shouldDuckMusic = isPlaying && !audio.paused;
+    if (shouldDuckMusic) audio.volume = 0.35;
+    const restoreMusicVolume = () => {
+      if (shouldDuckMusic) audio.volume = 1;
+    };
     u.onend = () => {
       currentUtterance = null;
+      restoreMusicVolume();
       if (typeof ignoreRecognitionUntilMs !== 'undefined') {
         ignoreRecognitionUntilMs = Date.now() + 600;
       }
     };
     u.onerror = () => {
       currentUtterance = null;
+      restoreMusicVolume();
     };
     currentUtterance = u;
     synth.speak(u);
@@ -1574,26 +1625,34 @@ const VoiceAssistant = (function() {
     }
     function reply(msg, { silent = false } = {}) {
       if (!forChat) {
-        if (silent) {
-          if (voiceStatus) {
-            voiceStatus.textContent = msg;
-            voiceStatus.classList.add('active');
-            setTimeout(() => {
-              if (voiceStatus) voiceStatus.classList.remove('active');
-            }, 1400);
-          }
-        } else {
-          speakBest(msg);
-        }
+        if (!silent) speakBest(msg);
       }
       return forChat ? msg : true;
     }
 
-    // Stop speaking / cancel current voice response (but don't touch music)
+    // Music play/pause — first, so "stop music" is not treated as "stop speaking"
+    const musicIntent = parseMusicControlIntent(text);
+    if (musicIntent) {
+      if (!forChat) {
+        handleVoiceMusicFeedback(musicIntent, speakBest);
+        return true;
+      }
+      if (musicIntent === "play") {
+        const alreadyPlaying = isPlaying;
+        executeMusicControl("play");
+        return alreadyPlaying ? "Music is already playing." : "Playing music.";
+      }
+      const wasPlaying = isPlaying;
+      executeMusicControl("pause");
+      return wasPlaying ? "Music paused." : "Music is already paused.";
+    }
+
+    // Stop speaking / cancel assistant voice (not music)
     const isStopCommand =
-      (has('stop') && words.length <= 3) ||
-      clean === 'ok stop' ||
-      clean === 'okay stop';
+      !hasAny("music", "song", "songs") &&
+      ((has("stop") && words.length <= 3) ||
+        clean === "ok stop" ||
+        clean === "okay stop");
 
     if (isStopCommand) {
       if (!forChat) {
@@ -1689,26 +1748,6 @@ const VoiceAssistant = (function() {
       (hasAny('favorite', 'favourite') && has('city'));
     if (isFavoriteCityIntent) {
       return reply('His favorite city is Pokhara.');
-    }
-
-    // Play music — no spoken confirmation (avoids overlap with the song)
-    if ((has('play') || has('start')) && hasAny('music','song','songs')) {
-      if (!isPlaying) {
-        musicTouchedByLastCommand = true;
-        doAction(() => togglePlay());
-        return reply('Playing music.', { silent: true });
-      }
-      return reply('Music is already playing.', { silent: true });
-    }
-
-    // Pause music — no spoken confirmation
-    if (hasAny('pause','stop') && hasAny('music','song','songs')) {
-      if (isPlaying) {
-        musicTouchedByLastCommand = true;
-        doAction(() => togglePlay());
-        return reply('Music paused.', { silent: true });
-      }
-      return reply('Music is already paused.', { silent: true });
     }
 
     // Color / theme (e.g. "change color to red", "make it blue theme").
@@ -1814,22 +1853,16 @@ const VoiceAssistant = (function() {
         voiceStatus.textContent = 'Listening... speak now';
         voiceStatus.classList.add('active');
       }
+      // Browser may duck/pause other audio when the mic opens — keep the song going.
+      if (isPlaying && audio.paused) {
+        audio.play().catch(() => {});
+      }
     };
 
     recognition.onend = () => {
       isRecognizing = false;
       if (voiceBtn) voiceBtn.classList.remove('listening');
       if (voiceStatus) voiceStatus.classList.remove('active');
-
-      if (
-        musicWasPlayingBeforeMic &&
-        !musicTouchedByLastCommand &&
-        isPlaying &&
-        audio.paused
-      ) {
-        audio.play().catch(() => {});
-      }
-      musicWasPlayingBeforeMic = false;
 
       // During an active call, keep recognition running only for continuous call mode.
       // In push-to-talk, we stop after each utterance.
@@ -1900,6 +1933,14 @@ const VoiceAssistant = (function() {
       // Anam handles open-mic conversation during video calls.
       if (typeof isInVideoCall !== 'undefined' && isInVideoCall) return;
 
+      const musicIntent = parseMusicControlIntent(transcript);
+      if (musicIntent) {
+        abortPendingAI();
+        handleVoiceMusicFeedback(musicIntent, speakBest);
+        if (voiceStatus) voiceStatus.classList.remove('active');
+        return;
+      }
+
       // 1) Try command handler first so voice commands stay in control
       if (handleCommand(transcript)) return;
 
@@ -1915,7 +1956,9 @@ const VoiceAssistant = (function() {
       getAIResponse(transcript, { signal: activeVoiceAbort.signal })
         .then((result) => {
           const finalResult = runAgentResult(result);
-          if (finalResult.reply) speakBest(finalResult.reply);
+          if (finalResult.reply && !isVoiceMusicAction(finalResult.action)) {
+            speakBest(finalResult.reply);
+          }
         })
         .catch(() => {
           // If we intentionally aborted (e.g., user ended call), stay quiet.
@@ -2061,11 +2104,6 @@ const VoiceAssistant = (function() {
     const rec = getRecognition();
     if (!rec) return;
 
-    musicWasPlayingBeforeMic = isPlaying && !audio.paused;
-    musicTouchedByLastCommand = false;
-    if (musicWasPlayingBeforeMic) {
-      audio.pause();
-    }
     noSpeechRetry = false;
 
     try {
@@ -2782,12 +2820,10 @@ function finalizeAgentResult(result) {
     }
   }
 
-  if (safeResult.action === 'play_music' && !safeReply) {
-    safeReply = 'Playing music.';
-  }
-
-  if (safeResult.action === 'pause_music' && !safeReply) {
-    safeReply = 'Pausing the music.';
+  if (safeResult.action === 'play_music' || safeResult.action === 'pause_music') {
+    if (!safeReply) {
+      safeReply = safeResult.action === 'play_music' ? 'Playing music.' : 'Music paused.';
+    }
   }
 
   return {
