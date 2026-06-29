@@ -3353,20 +3353,38 @@ function getLastAssistantMessage() {
   return "";
 }
 
+function isIdentityClarificationQuestion(text) {
+  const lower = String(text || "").toLowerCase();
+  if (/\b(who are you|are you rishikesh|you rishikesh)\b/.test(lower)) return true;
+  if (/\b(your|yours|you)\b/.test(lower) && /\b(rishikesh|his|him)\b/.test(lower)) return true;
+  if (/\b(your|yours)\b/.test(lower) && /\b(project|projects|work)\b/.test(lower)) return true;
+  return false;
+}
+
 /** Add brief context for short replies so Groq stays on-thread (raw user text kept in history). */
 function enrichShortChatMessage(userMessage) {
   const trimmed = String(userMessage || "").trim();
   const lower = trimmed.toLowerCase();
-  if (trimmed.length > 32 || lower.split(/\s+/).filter(Boolean).length > 4) return trimmed;
-
   const lastBot = getLastAssistantMessage();
+
+  if (isIdentityClarificationQuestion(trimmed)) {
+    return (
+      `User asked: "${trimmed}". Identity clarification only — NOT a bio request. ` +
+      `Reply in 1-2 short sentences: assistant is Rishikesh's digital helper (not Rishikesh); ` +
+      `"projects" means his work. Continue prior thread if relevant. ` +
+      `Do NOT list projects, education, skills, or favorites. Last assistant message: "${lastBot}".`
+    );
+  }
+
+  if (trimmed.length > 32 || lower.split(/\s+/).filter(Boolean).length > 4) return trimmed;
   if (!lastBot) return trimmed;
 
   if (/^(yes|yeah|yep|sure|ok|okay|yup|no|nah|nothing|not much|idk|good|great|nice|cool)$/i.test(lower)) {
     return (
-      `User said: "${trimmed}". Continue naturally from your last message: "${lastBot}". ` +
-      "Refer to the portfolio owner as Rishikesh (not vague 'he/his' without context). " +
-      "If they agreed to see projects, education, or similar, you may use switch_tab."
+      `User said: "${trimmed}". Continue naturally from the last assistant message: "${lastBot}". ` +
+      `Refer to the portfolio owner as Rishikesh — never say "my projects" or "my work". ` +
+      `Use "Rishikesh's projects" or "his projects". Mention ONE project or offer the Projects tab; do not list all. ` +
+      `If they agreed to see projects, education, or similar, switch_tab is allowed.`
     );
   }
   return trimmed;

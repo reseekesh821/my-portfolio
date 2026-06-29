@@ -5,6 +5,29 @@ const GROQ_TIMEOUT_MS = 10000;
 const GROQ_MODEL_HEAVY = "llama-3.3-70b-versatile";
 const GROQ_MODEL_FAST = "llama-3.1-8b-instant";
 
+function isIdentityClarificationQuestion(text) {
+  const t = String(text || "").toLowerCase();
+  if (/\b(who are you|are you rishikesh|you rishikesh)\b/.test(t)) return true;
+  if (/\b(your|yours|you)\b/.test(t) && /\b(rishikesh|his|him)\b/.test(t)) return true;
+  if (/\b(your|yours)\b/.test(t) && /\b(project|projects|work)\b/.test(t)) return true;
+  return false;
+}
+
+function looksLikeUnwantedBioDump(reply, userMessage) {
+  const r = String(reply || "");
+  const u = String(userMessage || "").toLowerCase();
+  if (r.length < 220) return false;
+  if (/\b(everything|all projects|full bio|tell me (all )?about)\b/.test(u)) return false;
+  const factSignals =
+    (/\bcompliance firewall\b/i.test(r) ? 1 : 0) +
+    (/\bquickloan\b/i.test(r) ? 1 : 0) +
+    (/\bbudgettracker\b/i.test(r) ? 1 : 0) +
+    (/\binterstellar\b/i.test(r) ? 1 : 0) +
+    (/\bcaldwell university\b/i.test(r) ? 1 : 0) +
+    (/\bgpa\b/i.test(r) ? 1 : 0);
+  return factSignals >= 3 || r.split(/\s+/).length > 55;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -249,6 +272,19 @@ export default async function handler(req, res) {
     const shortReply = String(lastUserMessage || "").trim().split(/\s+/).length <= 2;
     if (shortReply && safeAction !== "reply_only") {
       safeAction = "reply_only";
+    }
+
+    if (isIdentityClarificationQuestion(lastUserMessage)) {
+      safeAction = "reply_only";
+      safeReply =
+        "I'm Rishikesh's digital assistant — not Rishikesh himself. I don't have my own projects; when I mention projects, I mean his work. Want me to open the Projects tab or tell you about one of them?";
+    } else if (
+      looksLikeUnwantedBioDump(safeReply, lastUserMessage) &&
+      lastUserMessage.trim().split(/\s+/).length <= 8
+    ) {
+      safeAction = "reply_only";
+      safeReply =
+        "Rishikesh has built a few projects — want the Projects tab, or should I start with AI Compliance Firewall?";
     }
 
     return res.status(200).json({
