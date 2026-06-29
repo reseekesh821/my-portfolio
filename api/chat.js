@@ -1,3 +1,10 @@
+// POST /api/chat — Groq chat completion with JSON action routing for the portfolio assistant.
+import { buildChatSystemPrompt } from "./prompts/chat-system.js";
+
+const GROQ_TIMEOUT_MS = 10000;
+const GROQ_MODEL_HEAVY = "llama-3.3-70b-versatile";
+const GROQ_MODEL_FAST = "llama-3.1-8b-instant";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -14,6 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // --- Shopping intent helpers (guard premature search-tab opens) ---
     function getUserMessages(list) {
       return list.filter((msg) => msg && msg.role === "user" && typeof msg.content === "string");
     }
@@ -77,12 +85,11 @@ export default async function handler(req, res) {
       return /\b(porn|porno|pornhub|xvideos|xnxx|sex video|adult video|adult site|nude|nudes|nsfw|xxx|explicit sex|erotic)\b/.test(t);
     }
 
-    const baseMessages = [...messages];
-    const firstMessage = baseMessages[0];
-    const remainingMessages =
-      firstMessage && firstMessage.role === "system"
-        ? baseMessages.slice(1)
-        : baseMessages;
+    // --- Build Groq payload (system prompt stays server-side) ---
+    // Client sends user/assistant history only; strip any legacy system messages.
+    const conversationMessages = messages.filter(
+      (msg) => msg && (msg.role === "user" || msg.role === "assistant") && typeof msg.content === "string"
+    );
 
     const normalizedLang = typeof language === "string" ? language.trim().toLowerCase() : "en";
     const languageMap = {
@@ -96,60 +103,76 @@ export default async function handler(req, res) {
     };
     const responseLanguage = languageMap[normalizedLang] || "English";
 
-    const agentInstruction = {
-      role: "system",
-      content:
-        "You are an action-oriented AI assistant for a personal portfolio website. " +
-        "Always respond with valid JSON only. Do not include markdown fences or any extra text. " +
-        "Return this exact shape: " +
-        '{"reply":"short natural reply for the user","action":"reply_only | switch_tab | open_search_tab | open_external_link | play_music | pause_music | start_audio_call | end_audio_call | start_video_call | end_video_call | fetch_news","params":{}}. ' +
-        "Rules: " +
-        "1) You may use action open_search_tab for general web requests too, not only shopping. If the user wants to search the internet, look something up, open web results, open videos, reviews, tutorials, trailers, or find information online, you can use open_search_tab with a clean params.query. " +
-        "Only use action open_search_tab for shopping when the user clearly wants to search or shop right now, or after enough details have been provided in the conversation. " +
-        "If the user is still asking exploratory questions like which is best, what do you recommend, help me choose, or they have not yet shared important details like budget/use case, stay in reply_only and ask a short follow-up question instead of opening a search. " +
-        "If the user later provides a concrete budget, price range, model, or shopping intent, then you may use open_search_tab with params.query. " +
-        "For open_search_tab, also include params.provider when helpful. Allowed providers are google, amazon, bestbuy, ebay, youtube. " +
-        "Use amazon for general shopping/product intent, bestbuy for electronics/phones/laptops/tvs/accessories, ebay for used/collectible items, youtube for videos/reviews/tutorials/trailers/music videos, and google for broad web/information searches or when unsure. " +
-        "If the user asks to open YouTube, show YouTube videos, search YouTube, watch a trailer, watch reviews, tutorials, songs, or videos about a topic, use open_search_tab with params.provider set to youtube. " +
-        "If the user asks to play music in the site/player without asking for a specific external song/video search, use play_music. If they ask to pause or stop the music, use pause_music. " +
-        "If the user asks for adult content, porn, explicit sexual material, or adult websites, do not open anything. Use reply_only with a short refusal like sorry I can't help with that. " +
-        "2) If the user wants a portfolio section, use switch_tab with params.target equal to one of intro, projects, education, hometown, favorites, games, news, contact. " +
-        "3) If the user wants resume, LinkedIn, or GitHub, use open_external_link with params.url set to resume, linkedin, or github, or a full https URL. Resume URL: https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf. " +
-        "4) Rishikesh Bastakoti owns this portfolio. Users may misspell his name (Ricketh, Russo-Guest, Richesh, Rishi, Ritikesh, Recites, Ridiculous). Treat that as questions about him. If they say I mean after a wrong answer, assume Rishikesh. Projects: AI Compliance Firewall, QuickLoan App, BudgetTracker, AI-Powered Portfolio. " +
-        "5) For normal conversation or questions, use reply_only. " +
-        "6) Keep reply concise and helpful. " +
-        "7) Never invent unsupported actions. " +
-        "8) If uncertain, use reply_only. " +
-        `9) Always write the user-facing 'reply' in ${responseLanguage}.`
-    };
+    const systemPromptOverride = process.env.CHAT_SYSTEM_PROMPT;
+    const systemContent = systemPromptOverride || buildChatSystemPrompt(responseLanguage);
 
-    const payloadMessages = firstMessage && firstMessage.role === "system"
-      ? [firstMessage, agentInstruction, ...remainingMessages]
-      : [agentInstruction, ...remainingMessages];
+    const payloadMessages = [
+      { role: "system", content: systemContent },
+      ...conversationMessages
+    ];
 
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: payloadMessages,
-          response_format: { type: "json_object" },
-          temperature: 0.2,
-          top_p: 0.9,
-          max_tokens: 200
-        })
+    const userMessages = getUserMessages(conversationMessages);
+    const lastUserMessage = userMessages[userMessages.length - 1]?.content || "";
+    const previousUserMessage = userMessages[userMessages.length - 2]?.content || "";
+
+    const lastUserWords = lastUserMessage.trim().split(/\s+/).filter(Boolean).length;
+    const useHeavyModel = lastUserMessage.trim().length > 48 || lastUserWords > 7;
+    const primaryModel = useHeavyModel ? GROQ_MODEL_HEAVY : GROQ_MODEL_FAST;
+
+    // --- Call Groq (heavy vs fast model, with timeout and fallback) ---
+    async function callGroq(model) {
+      const groqController = new AbortController();
+      const groqTimeoutId = setTimeout(() => groqController.abort(), GROQ_TIMEOUT_MS);
+      try {
+        return await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model,
+            messages: payloadMessages,
+            response_format: { type: "json_object" },
+            temperature: 0.45,
+            top_p: 0.9,
+            max_tokens: 180
+          }),
+          signal: groqController.signal
+        });
+      } finally {
+        clearTimeout(groqTimeoutId);
       }
-    );
+    }
+
+    let response;
+    try {
+      response = await callGroq(primaryModel);
+      if (!response.ok && (response.status === 429 || response.status >= 500)) {
+        console.warn("Groq model error, trying alternate:", response.status, primaryModel);
+        const fallbackModel = primaryModel === GROQ_MODEL_FAST ? GROQ_MODEL_HEAVY : GROQ_MODEL_FAST;
+        response = await callGroq(fallbackModel);
+      }
+    } catch (groqErr) {
+      if (groqErr && groqErr.name === "AbortError") {
+        console.warn("Groq timed out, trying fast model");
+        response = await callGroq(GROQ_MODEL_FAST);
+      } else {
+        throw groqErr;
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Groq API Error:", errorText);
-      return res.status(response.status).json({ error: "Error from AI provider" });
+      console.error("Groq API Error:", response.status, errorText);
+      const isRateLimit = response.status === 429;
+      return res.status(200).json({
+        reply: isRateLimit
+          ? "I'm getting a lot of requests right now — give me a second and try again."
+          : "I'm having a little trouble thinking right now. Please try again.",
+        action: "reply_only",
+        params: {}
+      });
     }
 
     const data = await response.json();
@@ -170,6 +193,7 @@ export default async function handler(req, res) {
       };
     }
 
+    // --- Parse JSON reply and sanitize action/params ---
     const allowedActions = new Set([
       "reply_only",
       "switch_tab",
@@ -183,10 +207,6 @@ export default async function handler(req, res) {
       "end_video_call",
       "fetch_news"
     ]);
-
-    const userMessages = getUserMessages(baseMessages);
-    const lastUserMessage = userMessages[userMessages.length - 1]?.content || "";
-    const previousUserMessage = userMessages[userMessages.length - 2]?.content || "";
 
     let safeAction = allowedActions.has(parsed?.action) ? parsed.action : "reply_only";
     let safeReply =
@@ -225,6 +245,12 @@ export default async function handler(req, res) {
       safeReply = "Sorry, I can't help open adult content or porn sites.";
     }
 
+    // Never trigger site actions on one-word chat replies (yes, ok, nothing, etc.)
+    const shortReply = String(lastUserMessage || "").trim().split(/\s+/).length <= 2;
+    if (shortReply && safeAction !== "reply_only") {
+      safeAction = "reply_only";
+    }
+
     return res.status(200).json({
       reply: safeReply,
       action: safeAction,
@@ -233,6 +259,13 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("Server Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    const timedOut = error && error.name === "AbortError";
+    return res.status(200).json({
+      reply: timedOut
+        ? "That took too long — please try again."
+        : "Something went wrong on my end. Please try again.",
+      action: "reply_only",
+      params: {}
+    });
   }
 }

@@ -1,4 +1,5 @@
-import { ANAM_PORTFOLIO_SYSTEM_PROMPT } from "./anam-portfolio-prompt.js";
+// POST /api/anam-session — exchange Anam API credentials for a short-lived video-call session token.
+import { ANAM_SYSTEM_PROMPT } from "./prompts/anam-system.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -7,7 +8,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ANAM_API_KEY;
   const personaId = process.env.ANAM_PERSONA_ID;
-  const portfolioPrompt = process.env.ANAM_SYSTEM_PROMPT || ANAM_PORTFOLIO_SYSTEM_PROMPT;
+  const portfolioPrompt = process.env.ANAM_SYSTEM_PROMPT || ANAM_SYSTEM_PROMPT;
 
   if (!apiKey || !personaId) {
     console.error("Missing Anam env vars:", {
@@ -21,6 +22,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Try persona with inline system prompt first; fall back to dashboard persona only.
     const personaConfigs = [
       { personaId, systemPrompt: portfolioPrompt },
       { personaId },

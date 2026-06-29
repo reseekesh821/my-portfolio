@@ -79,6 +79,7 @@ function applyPortfolioAccent(name) {
 const PORTFOLIO_RESUME_URL =
   "https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf";
 
+// Speech/STT helpers — normalize misheard names and score recognition candidates.
 function levenshteinDistance(a, b) {
   const m = a.length;
   const n = b.length;
@@ -171,6 +172,61 @@ function soundsLikeRishikesh(word) {
   return targets.some((target) => levenshteinDistance(w, target) <= Math.max(2, Math.floor(target.length * 0.34)));
 }
 
+function isNameCorrectionAboutOwner(text) {
+  const lower = String(text || "").toLowerCase();
+  if (!isNameCorrectionPhrase(lower)) return false;
+  if (/rishikesh|bastakoti/i.test(lower)) return true;
+  const words = lower.replace(/[?!.,]/g, " ").split(/\s+/).filter(Boolean);
+  if (words.some(soundsLikeRishikesh)) return true;
+  return isLikelyGarbledOwnerNameQuestion(text);
+}
+
+function isShortOwnerIdentityQuestion(text) {
+  const normalized = normalizeSpeechTranscript(text);
+  const lower = normalized.toLowerCase().trim();
+  const words = lower.replace(/[?!.,]/g, " ").split(/\s+/).filter(Boolean);
+
+  // Conversational follow-ups belong to the AI, not a static bio dump.
+  if (/\b(yes|yeah|yep|sure|okay|ok|want|wanna|like to|tell me more|more about|go on|please)\b/.test(lower)) {
+    return false;
+  }
+
+  if (/^(ridiculous|recites|please\s+recites)$/i.test(lower)) return true;
+
+  if (isLikelyGarbledOwnerNameQuestion(text)) return true;
+  if (isNameCorrectionAboutOwner(text)) return true;
+
+  const specificIntent =
+    /\b(what|which|how|when|why|does|did|can|stack|built|using|use|internship|hiring|resume|github|linkedin)\b/.test(lower) ||
+    /\b(is\s+he|his\s+project|project\s+did|project\s+does)\b/.test(lower);
+
+  if (/rishikesh|bastakoti/i.test(lower)) {
+    if (specificIntent) return false;
+    if (/\b(who\s+(?:is|'s)|tell\s+me\s+about)\b/.test(lower) && words.length <= 5) return true;
+    return false;
+  }
+
+  if (/\bwho\s+(?:is|'s)\s+(?:he|him|this\s+guy|the\s+owner|the\s+developer)\b/.test(lower)) {
+    return words.length <= 5;
+  }
+  if (/\b(?:about|tell\s+me\s+about)\s+(?:him|the\s+owner|the\s+developer)\b/.test(lower)) {
+    return words.length <= 4;
+  }
+  if (/\bdo\s+you\s+know\s+(?:him|this\s+guy)\b/.test(lower)) {
+    return words.length <= 5;
+  }
+
+  const whoMatch = lower.match(/\bwho\s+(?:is|'s)\s+([a-z]+)/i);
+  if (whoMatch && soundsLikeRishikesh(whoMatch[1])) return true;
+
+  const aboutMatch = lower.match(/\b(?:about|tell\s+me\s+about)\s+([a-z]+)/i);
+  if (aboutMatch && soundsLikeRishikesh(aboutMatch[1]) && words.length <= 5) return true;
+
+  if (words.some(soundsLikeRishikesh) && !specificIntent && words.length <= 4) return true;
+
+  return false;
+}
+
 function mentionsRishikeshIntent(text) {
   const normalized = normalizeSpeechTranscript(text);
   const lower = normalized.toLowerCase();
@@ -184,7 +240,7 @@ function mentionsRishikeshIntent(text) {
   if (/\bwho\s+(?:is|'s)\s+(?:he|him|this\s+guy|the\s+owner|the\s+developer)\b/.test(lower)) return true;
   if (/\b(?:about|tell\s+me\s+about)\s+(?:him|the\s+owner|the\s+developer)\b/.test(lower)) return true;
   if (/\bdo\s+you\s+know\s+(?:him|this\s+guy)\b/.test(lower)) return true;
-  if (isNameCorrectionPhrase(lower)) return true;
+  if (isNameCorrectionAboutOwner(text)) return true;
   if (isLikelyGarbledOwnerNameQuestion(text)) return true;
   if (/^(ridiculous|recites|please\s+recites)$/i.test(lower.trim())) return true;
   return false;
@@ -1040,6 +1096,15 @@ function setActiveTab(tabEl, { focus = false, scroll = true, log = true } = {}) 
   if (focus) tabEl.focus();
 }
 
+function switchPortfolioTab(targetId) {
+  const id = String(targetId || "").trim().toLowerCase();
+  if (!id) return false;
+  const tab = document.querySelector(`.tabs li[data-target="${id}"]`);
+  if (!tab) return false;
+  setActiveTab(tab);
+  return true;
+}
+
 tabs.forEach((tab, idx) => {
   tab.addEventListener("click", () => setActiveTab(tab));
   tab.addEventListener("keydown", (e) => {
@@ -1448,8 +1513,6 @@ const VoiceAssistant = (function() {
 
   const THEMES = PORTFOLIO_ACCENT_THEMES;
 
-  const ABOUT_RISHI = "Rishikesh Bastakoti is a Computer Science student at Caldwell University, class of 2028, originally from Kathmandu, Nepal. Projects include AI Compliance Firewall — an LLM middleware with FINRA and HIPAA-style rule scanning, Ollama embeddings, Neo4j disclaimers, and SQLite audit logs; QuickLoan, a React and FastAPI full-stack loan app; BudgetTracker, a Python finance tracker; and this AI-powered portfolio with voice, chat, and video call features. Interests include web development, algorithms, and AI. Favorite movie: Interstellar. Favorite song: Timi Ra Maa by Dixita Karki. Favorite city: Pokhara.";
-
   const ABOUT_RISHI_VOICE = "Rishikesh is a Computer Science student at Caldwell University, class of 2028, from Kathmandu. He's built AI Compliance Firewall, QuickLoan, BudgetTracker, and this portfolio site. Favorite song: Timi Ra Maa by Dixita Karki.";
 
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
@@ -1594,11 +1657,7 @@ const VoiceAssistant = (function() {
   }
 
   function switchTab(targetId) {
-    const tab = document.querySelector(`.tabs li[data-target="${targetId}"]`);
-    if (!tab) return false;
-    // Reuse the main tab logic so analytics + special behaviors (like News fetching) run
-    setActiveTab(tab);
-    return true;
+    return switchPortfolioTab(targetId);
   }
 
   function handleCommand(text, forChat) {
@@ -1685,9 +1744,9 @@ const VoiceAssistant = (function() {
       return reply("Hello! What can I help you with?");
     }
 
-    // About Rishikesh — tolerant of accent and STT mishearings
-    if (mentionsRishikeshIntent(text)) {
-      return reply(forChat ? ABOUT_RISHI : ABOUT_RISHI_VOICE);
+    // Voice only: short identity questions get a brief spoken summary. Text chat uses Groq.
+    if (!forChat && isShortOwnerIdentityQuestion(text)) {
+      return reply(ABOUT_RISHI_VOICE);
     }
 
     // Weather — handle phrases like "what's the weather", "weather in Kathmandu", but avoid generic
@@ -1751,7 +1810,7 @@ const VoiceAssistant = (function() {
     }
 
     // Color / theme (e.g. "change color to red", "make it blue theme").
-    // Require an action verb to avoid hijacking questions like "what is your favorite color".
+    // Require an action verb so questions like "what is the favorite color" stay in chat.
     const colorNames = Object.keys(THEMES);
     let pickedColor = null;
     for (const c of colorNames) {
@@ -2143,8 +2202,7 @@ const VoiceAssistant = (function() {
 
 // AI chatbot powered by Groq
 
-
-// --- a. UI ELEMENTS (SELECTORS) ---
+// Chat UI element selectors
 const chatToggle = document.getElementById('chat-toggle-btn');
 const chatBox = document.getElementById('chat-box');
 const closeChat = document.getElementById('close-chat');
@@ -2175,9 +2233,10 @@ let anamClient = null;
 let anamSdk = null;
 let isVideoMuted = false;
 
-// --- b. CONFIGURATION & STATE ---
+// Chat configuration and call state
 const API_URL = "/api/chat";
-const MAX_HISTORY = 20; // Increased to allow better context retention
+const MAX_HISTORY = 16;
+const CHAT_FETCH_TIMEOUT_MS = 20000;
 let isCoolingDown = false;
 let isInCall = false;
 let callTimerInterval = null;
@@ -2189,7 +2248,7 @@ let ringtoneAudio = null;
 let hangupAudio = null;
 let callRingTimeoutId = null;
 
-// Session ID for Supabase logging (chat, tabs, quiz)
+// Restore or create analytics session ID (shared by chat, tab, and quiz logging)
 const CHAT_SESSION_STORAGE_KEY = 'portfolio-chat-session-id';
 
 (function initChatSessionId() {
@@ -2247,152 +2306,10 @@ async function logQuizResult(score, totalQuestions) {
   }
 }
 
-// --- c. SYSTEM PROMPT (improved, modern, helpful) ---
-const SYSTEM_PROMPT = `
-You are Rishikesh Bastakoti’s official digital assistant on his portfolio website.
+// Conversation history sent to /api/chat (system prompt lives in api/prompts/)
+let conversationHistory = [];
 
-CORE ROLE
-You represent Rishikesh professionally and confidently.
-Your purpose is to clearly communicate who he is, what he does, and why he is valuable — while functioning like a modern conversational AI.
-
-IDENTITY
-- You are a chatbot. Never pretend to be human.
-- Only explain who you are if the user directly asks (e.g., “who are you?”).
-- If asked who you are, respond:
-  “I’m Rishikesh’s digital assistant. I’m here to share information about him and answer questions about his work.”
-- Do NOT randomly introduce yourself.
-- Do NOT repeat your identity unless explicitly asked.
-
-STYLE
-- 1–3 sentences maximum.
-- Friendly, modern, conversational.
-- Use natural contractions (“I’m”, “don’t”, “that’s”).
-- No markdown. Only plain text or simple HTML like <a>.
-- Do NOT list commands.
-- Do NOT show feature menus.
-- Do NOT sound robotic.
-- Avoid generic filler responses.
-
-GREETING BEHAVIOR
-If the user sends a greeting or casual opener (hi, hello, hey, yo, yooo, sup, etc.):
-
-- Reply briefly and casually.
-- Example: “Hey!” or “Hi! What’s up?”
-- Do NOT say “I’m doing well” unless they actually asked how you are.
-
-If they ask how you are (e.g., “how are you”, “how you doing”, “what’s up”, “how’s it going”):
-
-- You may respond:
-  “I’m doing well — how are you doing?”
-- Keep it short.
-
-SHORT ACKNOWLEDGEMENT HANDLING
-If the user replies with a short acknowledgement such as:
-“good”, “nice”, “cool”, “okay”, “great”, “alright”, “yeah”, etc.:
-
-- Do NOT introduce yourself.
-- Do NOT restate your identity.
-- Do NOT abruptly change topic.
-- Keep the conversation flowing naturally.
-
-Examples:
-- “Nice 👍 What’s on your mind?”
-- “Good to hear. What are you up to?”
-- “Cool. Anything you’d like to talk about?”
-
-INTERACTIVE RESPONSE RULE
-Always respond directly to what the user actually said.
-Never give generic deflections.
-Never repeat the default UI greeting.
-Be conversational and context-aware from the first message.
-
-QUESTION PRIORITY
-1. Always answer the literal question first.
-2. If it relates to Rishikesh → advocate clearly and confidently.
-3. If it is general → answer briefly and clearly.
-4. Do not over-explain.
-
-CONTEXTUAL CONNECTION RULE
-When answering general questions:
-
-- If the topic has a natural connection to Rishikesh (Kathmandu, Nepal, USA, Caldwell NJ, Computer Science, web development, AI/ML, his tech stack, Caldwell University), you may briefly connect it in one short sentence.
-
-Example:
-“Kathmandu is the capital of Nepal, known for its culture and temples. It’s also where Rishikesh is originally from.”
-
-- If there is no meaningful connection (e.g., Brazil, ancient Rome, unrelated celebrities), do NOT force a link.
-- Answer normally.
-- If deeper detail is required beyond your scope, suggest:
-  “You might find more detailed information on Google or Wikipedia.”
-
-Never create weak or artificial connections.
-
-ABOUT RISHIKESH
-
-Education:
-Sophomore, Computer Science, Caldwell University (Class of 2028).
-High School: National School of Sciences, Kathmandu.
-
-Background:
-Originally from Kathmandu, Nepal.
-Currently in Caldwell, New Jersey, USA.
-
-Technical Skills:
-Python, JavaScript/TypeScript, React, FastAPI, Streamlit, FastHTML, SQL/SQLAlchemy, Ollama, LangChain, Rust (PyO3), HTML5, CSS3.
-
-Projects:
-AI Compliance Firewall — LLM middleware with FINRA-style and HIPAA-style rule scanning, regex plus Ollama semantic embeddings, policy actions (pass, flag, redact, block, append disclaimers), Neo4j knowledge graph, and SQLite audit logs. Built with FastAPI, FastHTML, and optional Rust rule engine.
-QuickLoan App — Full-stack application built with React, FastAPI, SQLAlchemy.
-BudgetTracker — Python project using data structures and file I/O.
-AI-Powered Portfolio — This site: Groq chat assistant, voice commands, Anam video calls, live weather/news, quiz, Supabase analytics on Vercel.
-
-SPEECH / TYPOS:
-Users may misspell or mispronounce Rishikesh (e.g., Ricketh, Russo-Guest, Richesh, Rishi, Ritikesh, Recites, Ridiculous). Treat those as questions about Rishikesh Bastakoti, the portfolio owner. If they say "I mean..." after a wrong answer, they are correcting a mishearing. Never say you do not know him when the intent is clearly about this site owner.
-
-Interests:
-Web development, algorithms, AI/ML.
-
-Personal:
-Favorite movie: Interstellar
-Favorite song: “Timi Ra Ma” by Dixita Karki
-Favorite city: Pokhara
-
-CONTACT & PROFESSIONAL INQUIRIES
-If a user asks about collaboration, hiring, internships, networking, resume, projects, GitHub, or LinkedIn:
-
-Provide:
-
-<a href="https://www.linkedin.com/in/rbastakoti1/" target="_blank">LinkedIn</a>
-<a href="https://github.com/reseekesh821" target="_blank">GitHub</a>
-
-Keep it short.
-Do not randomly promote links.
-
-BOUNDARIES
-If user says “please don’t help me” →
-“Alright. I’ll stay quiet. Let me know if you need anything.”
-
-If insulted →
-Stay calm. Do not argue.
-
-If unsure →
-Say you’re not sure and suggest looking it up.
-
-CONVERSATION STABILITY RULE
-Never revert to an identity statement unless explicitly asked.
-Never reset the conversation after short replies.
-Maintain conversational continuity at all times.
-
-Your goal is to sound like a smart, confident digital representative of Rishikesh — not a generic AI and not a command system.
-
-Keep responses concise, natural, and professional.
-`;
-
-let conversationHistory = [
-  { role: "system", content: SYSTEM_PROMPT }
-];
-
-// --- d. EVENT LISTENERS ---
+// Chat panel open/close and input handlers
 function setChatFabLabels(open) {
   if (!chatToggle) return;
   chatToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -2553,36 +2470,67 @@ document.addEventListener('keydown', (e) => {
 
 initChatPresence();
 
-// --- e. CORE LOGIC ---
+// Chat send flow, Groq API, and agent action routing
 function looksLikePortfolioCommand(input) {
-  const t = (input || '').toLowerCase();
+  const t = (input || '').toLowerCase().trim();
   if (!t) return false;
 
-  // common typos / variants
   const normalized = t
     .replace(/\bthem\b/g, 'theme')
     .replace(/\bthme\b/g, 'theme')
     .replace(/\bcolou?r\b/g, 'color');
 
-  const hasAny = (arr) => arr.some((w) => normalized.includes(w));
-
   const colors = ["cyan", "blue", "purple", "green", "red", "orange", "pink", "teal", "yellow"];
   const colorIntent =
-    hasAny(colors) &&
-    hasAny(["change", "set", "switch", "make", "theme", "color", "update", "turn"]);
+    colors.some((c) => normalized.includes(c)) &&
+    /\b(change|set|switch|make|theme|color|update|turn)\b/.test(normalized);
 
-  const musicIntent = hasAny(['play music','play song','pause music','pause song','play','pause']) && hasAny(['music','song','songs','track','audio']);
+  const musicIntent =
+    /\b(play|pause|stop)\s+(the\s+)?(music|song|songs|track|audio)\b/.test(normalized) ||
+    /\b(play music|pause music|play song|pause song|stop music)\b/.test(normalized);
 
   const callIntent =
-    hasAny(['video call','start video','end video','hang up','call me','audio call','start call','end call']) ||
-    (normalized.includes('call') && hasAny(['start','end','video','audio','hang']));
+    /\b(video call|start video call|end video call|audio call|start audio call|end audio call)\b/.test(normalized) ||
+    (/\bcall\s+me\b/.test(normalized) && !/\bvideo\b/.test(normalized)) ||
+    (/\bhang\s+up\b/.test(normalized) && /\b(call|video)\b/.test(normalized));
 
-  const navIntent = hasAny(['show ','open ','go to ','switch to ']) &&
-    hasAny(['intro','projects','education','hometown','favorites','games','news','contact']);
+  const navIntent =
+    /\b(show|open|go to|switch to)\s+(intro|projects|education|hometown|favorites|games|news|contact)\b/.test(normalized);
 
-  const helpIntent = hasAny(['what can you do','show commands','help']);
+  const helpIntent =
+    normalized === 'help' ||
+    normalized === 'what can you do' ||
+    normalized === 'show commands' ||
+    normalized === 'what should i say';
 
   return colorIntent || musicIntent || callIntent || navIntent || helpIntent;
+}
+
+function trimConversationHistory() {
+  if (conversationHistory.length > MAX_HISTORY) {
+    conversationHistory = conversationHistory.slice(-MAX_HISTORY);
+  }
+}
+
+function appendChatTurn(userText, assistantText) {
+  conversationHistory.push({ role: "user", content: userText });
+  conversationHistory.push({ role: "assistant", content: assistantText });
+  trimConversationHistory();
+}
+
+function restoreQuickReplies() {
+  if (quickRepliesContainer) {
+    quickRepliesContainer.style.display = 'flex';
+    chatMessages.appendChild(quickRepliesContainer);
+  }
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function finishChatSendCooldown(ms = 1000) {
+  setTimeout(() => {
+    isCoolingDown = false;
+    sendBtn.disabled = false;
+  }, ms);
 }
 
 async function sendMessage() {
@@ -2598,53 +2546,56 @@ async function sendMessage() {
   addMessage(text, 'user-message');
   logChatMessage('user', text);
 
-  // Run portfolio commands first (color, play music, show tab, etc.)
-  const commandReply = VoiceAssistant && VoiceAssistant.handleCommand(text, true);
-  if (commandReply !== false && typeof commandReply === 'string') {
-    addMessage(commandReply, 'bot-message');
-    logChatMessage('assistant', commandReply);
-    if (quickRepliesContainer) {
-      quickRepliesContainer.style.display = 'flex';
-      chatMessages.appendChild(quickRepliesContainer);
+  try {
+    const commandReply = VoiceAssistant && VoiceAssistant.handleCommand(text, true);
+    if (commandReply !== false && typeof commandReply === 'string') {
+      addMessage(commandReply, 'bot-message');
+      logChatMessage('assistant', commandReply);
+      appendChatTurn(text, commandReply);
+      restoreQuickReplies();
+      finishChatSendCooldown(600);
+      return;
     }
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    setTimeout(() => { isCoolingDown = false; sendBtn.disabled = false; }, 600);
-    return;
-  }
 
-  // If it *looks like* a portfolio command but didn't match, don't send it to Groq.
-  // This prevents "conflicts" where Groq answers instead of executing a command.
-  if (looksLikePortfolioCommand(text)) {
-    const fallback = "I think you're trying to use a portfolio command. Try: “change color to green”, “play music”, “show projects”, “start video call”, or “help”.";
-    addMessage(fallback, 'bot-message');
-    logChatMessage('assistant', fallback);
-    if (quickRepliesContainer) {
-      quickRepliesContainer.style.display = 'flex';
-      chatMessages.appendChild(quickRepliesContainer);
+    if (looksLikePortfolioCommand(text)) {
+      const fallback = "I think you're trying to use a portfolio command. Try: “change color to green”, “play music”, “show projects”, “start video call”, or “help”.";
+      addMessage(fallback, 'bot-message');
+      logChatMessage('assistant', fallback);
+      appendChatTurn(text, fallback);
+      restoreQuickReplies();
+      finishChatSendCooldown(600);
+      return;
     }
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    setTimeout(() => { isCoolingDown = false; sendBtn.disabled = false; }, 600);
-    return;
+
+    showTyping();
+    let result = { reply: "", action: "reply_only", params: {} };
+    try {
+      result = runAgentResult(await getAIResponse(text), { deferVisualActions: true });
+    } finally {
+      hideTyping();
+    }
+
+    const replyText =
+      result && result.reply && result.reply.trim()
+        ? result.reply.trim()
+        : "I'm having trouble connecting. Please try again.";
+    addMessage(replyText, 'bot-message');
+    logChatMessage('assistant', replyText);
+    restoreQuickReplies();
+    finishChatSendCooldown(1000);
+  } catch (err) {
+    console.error('sendMessage error:', err);
+    hideTyping();
+    const errReply =
+      err?.message === "TIMEOUT"
+        ? "Sorry, that took too long. Please try again."
+        : "Something went wrong. Please try again.";
+    addMessage(errReply, 'bot-message');
+    logChatMessage('assistant', errReply);
+    appendChatTurn(text, errReply);
+    restoreQuickReplies();
+    finishChatSendCooldown(1000);
   }
-
-  showTyping();
-  const result = runAgentResult(await getAIResponse(text), {
-    deferVisualActions: true
-  });
-  hideTyping();
-  addMessage(result.reply, 'bot-message');
-  logChatMessage('assistant', result.reply);
-
-  if (quickRepliesContainer) {
-    quickRepliesContainer.style.display = 'flex';
-    chatMessages.appendChild(quickRepliesContainer);
-  }
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  setTimeout(() => {
-    isCoolingDown = false;
-    sendBtn.disabled = false;
-  }, 1000);
 }
 
 function updateChatOnlineStatus(isOnline) {
@@ -2855,7 +2806,7 @@ function executeAgentAction(action, params = {}) {
     case 'reply_only':
       return true;
     case 'switch_tab':
-      return switchTab(String(params.target || '').toLowerCase());
+      return switchPortfolioTab(String(params.target || '').toLowerCase());
     case 'open_search_tab':
       return openSearchTab(params.query, params.provider);
     case 'open_external_link': {
@@ -2881,6 +2832,8 @@ function executeAgentAction(action, params = {}) {
     case 'end_video_call':
       endVideoCall();
       return true;
+    case 'fetch_news':
+      return switchPortfolioTab('news');
     default:
       return false;
   }
@@ -3135,7 +3088,7 @@ function endAudioCall() {
   }
 }
 
-// --- VIDEO CALL (Anam) ---
+// --- VIDEO CALL (Anam SDK) ---
 
 function isVideoCallLocalCommand(text) {
   const t = String(text || "").trim().toLowerCase();
@@ -3393,22 +3346,85 @@ function endVideoCall() {
   }
 }
 
-async function getAIResponse(userMessage, { signal } = {}) {
-  try {
-    // Add User Message to History BEFORE sending
-    conversationHistory.push({ role: "user", content: userMessage });
+function getLastAssistantMessage() {
+  for (let i = conversationHistory.length - 1; i >= 0; i--) {
+    if (conversationHistory[i].role === "assistant") return conversationHistory[i].content;
+  }
+  return "";
+}
 
-    // Fetch from Backend
-    const response = await fetch(API_URL, {
+/** Add brief context for short replies so Groq stays on-thread (raw user text kept in history). */
+function enrichShortChatMessage(userMessage) {
+  const trimmed = String(userMessage || "").trim();
+  const lower = trimmed.toLowerCase();
+  if (trimmed.length > 32 || lower.split(/\s+/).filter(Boolean).length > 4) return trimmed;
+
+  const lastBot = getLastAssistantMessage();
+  if (!lastBot) return trimmed;
+
+  if (/^(yes|yeah|yep|sure|ok|okay|yup|no|nah|nothing|not much|idk|good|great|nice|cool)$/i.test(lower)) {
+    return (
+      `User said: "${trimmed}". Continue naturally from your last message: "${lastBot}". ` +
+      "Refer to the portfolio owner as Rishikesh (not vague 'he/his' without context). " +
+      "If they agreed to see projects, education, or similar, you may use switch_tab."
+    );
+  }
+  return trimmed;
+}
+
+function fetchChatApi(body, signal) {
+  const timeoutMs = CHAT_FETCH_TIMEOUT_MS;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("TIMEOUT")), timeoutMs);
+    fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: conversationHistory, language: currentLanguage }),
+      body: JSON.stringify(body),
       signal
-    });
+    })
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
-    if (!response.ok) throw new Error("API Error");
+async function getAIResponse(userMessage, { signal } = {}) {
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), CHAT_FETCH_TIMEOUT_MS);
 
-    const data = await response.json();
+  const onExternalAbort = () => timeoutController.abort();
+  if (signal) {
+    if (signal.aborted) timeoutController.abort();
+    else signal.addEventListener('abort', onExternalAbort);
+  }
+
+  try {
+    const apiUserMessage = enrichShortChatMessage(userMessage);
+    const messagesForApi = [
+      ...conversationHistory,
+      { role: "user", content: apiUserMessage }
+    ];
+
+    const response = await fetchChatApi(
+      { messages: messagesForApi, language: currentLanguage },
+      timeoutController.signal
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errReply =
+        typeof data?.reply === "string" && data.reply.trim()
+          ? data.reply.trim()
+          : "I'm a bit busy right now — please try again in a moment.";
+      throw new Error(errReply);
+    }
+
     const botReply =
       typeof data?.reply === 'string' && data.reply.trim()
         ? data.reply.trim()
@@ -3422,30 +3438,49 @@ async function getAIResponse(userMessage, { signal } = {}) {
         ? data.params
         : {};
 
-    // Add Assistant Reply to History
+    conversationHistory.push({ role: "user", content: userMessage });
     conversationHistory.push({ role: "assistant", content: botReply });
-
-    // Manage History Size
-    if (conversationHistory.length > MAX_HISTORY + 1) {
-      conversationHistory = [
-        conversationHistory[0], 
-        ...conversationHistory.slice(-MAX_HISTORY)
-      ];
-    }
+    trimConversationHistory();
 
     return { reply: botReply, action, params };
-
   } catch (error) {
-    // If request was intentionally aborted (e.g. end call), don't speak "offline".
     if (error && (error.name === 'AbortError' || error.code === 20)) {
-      return { reply: "", action: "reply_only", params: {} };
+      if (signal && signal.aborted) {
+        return { reply: "", action: "reply_only", params: {} };
+      }
     }
-    console.error("Chat Error:", error);
-    return { reply: "Sorry, I'm currently offline. Please try again later.", action: "reply_only", params: {} };
+
+    const failReply =
+      error?.message === "TIMEOUT" ||
+      (error && (error.name === 'AbortError' || error.code === 20) && !(signal && signal.aborted))
+        ? "Sorry, that took too long. Please try again."
+        : typeof error?.message === "string" &&
+            error.message &&
+            !/^API Error$/i.test(error.message) &&
+            error.message.length < 120
+          ? error.message
+          : "Sorry, I'm currently offline. Please try again later.";
+
+    if (!(signal && signal.aborted)) {
+      conversationHistory.push({ role: "user", content: userMessage });
+      conversationHistory.push({ role: "assistant", content: failReply });
+      trimConversationHistory();
+    }
+
+    if (error && (error.name === 'AbortError' || error.code === 20) && !(signal && signal.aborted)) {
+      console.warn("Chat request timed out");
+    } else if (!(signal && signal.aborted)) {
+      console.error("Chat Error:", error);
+    }
+
+    return { reply: failReply, action: "reply_only", params: {} };
+  } finally {
+    clearTimeout(timeoutId);
+    if (signal) signal.removeEventListener('abort', onExternalAbort);
   }
 }
 
-// --- HELPER FUNCTIONS ---
+// Chat DOM helpers — messages, typing indicator, and safe HTML for bot replies
 function addMessage(text, className) {
   const div = document.createElement('div');
   div.classList.add('message', className);
@@ -3557,7 +3592,7 @@ window.handleQuickReply = function(text) {
   sendMessage();
 };
 
-// --- STORY MODE TOUR ---
+// Guided site tour (story mode overlay)
 const tourSteps = [
   { id: 'intro', label: 'Step 1 – Intro', targetSelector: '#intro', tabSelector: '#tab-intro', text: "This is the introduction where I share who I am, my background, and what I'm working on.", tooltipPosition: 'bottom' },
   { id: 'projects', label: 'Step 2 – Projects', targetSelector: '#projects', tabSelector: '#tab-projects', text: 'Here are some of my favorite projects, with descriptions and the technologies I use.', tooltipPosition: 'bottom' },
