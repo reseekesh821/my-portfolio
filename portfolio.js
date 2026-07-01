@@ -38,6 +38,10 @@
   syncThemeToggleAria();
 })();
 
+function iconHtml(name, className = "icon") {
+  return `<iconify-icon icon="${name}" class="${className}" aria-hidden="true"></iconify-icon>`;
+}
+
 // Accent color palette, persisted in localStorage so voice/chat color changes survive reload
 var PORTFOLIO_ACCENT_STORAGE_KEY = "portfolio-accent";
 var PORTFOLIO_ACCENT_THEMES = {
@@ -362,7 +366,7 @@ const I18N_EXTENDED = {
     projectComplianceDesc: "LLM middleware that scans prompts and outputs against FINRA-style and HIPAA-style rules using regex plus Ollama semantic embeddings, enforces pass/flag/redact/block actions, and logs events with Neo4j disclaimers and SQLite audit trails.",
     projectQuickLoanDesc: "A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.",
     projectBudgetDesc: "A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.",
-    projectPortfolioDesc: "Personal portfolio site with an AI chat assistant (Groq), voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.",
+    projectPortfolioDesc: "Personal portfolio site with a Gemini-powered AI chat assistant, voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.",
     universityTitle: "University",
     highSchoolTitle: "High School",
     hometownTimeLabel: "Kathmandu Time:",
@@ -711,7 +715,7 @@ function applyTranslations() {
       return;
     }
 
-    const icon = el.querySelector("i");
+    const icon = el.querySelector("iconify-icon, i");
     if (icon && el.childNodes.length > 1) {
       const textNodes = Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE);
       if (textNodes.length > 0) {
@@ -806,15 +810,15 @@ function applyTranslations() {
   function setWeatherIcon(code) {
     if (!weatherIconEl) return;
     const c = code | 0;
-    let cls = "fa-solid fa-cloud-sun";
-    if (c === 0) cls = "fa-solid fa-sun";
-    else if (c <= 3) cls = "fa-solid fa-cloud-sun";
-    else if (c <= 48) cls = "fa-solid fa-smog";
-    else if (c <= 67) cls = "fa-solid fa-cloud-rain";
-    else if (c <= 77) cls = "fa-solid fa-snowflake";
-    else if (c <= 86) cls = "fa-solid fa-cloud-showers-heavy";
-    else if (c >= 95) cls = "fa-solid fa-bolt";
-    weatherIconEl.className = cls;
+    let name = "lucide:cloud-sun";
+    if (c === 0) name = "lucide:sun";
+    else if (c <= 3) name = "lucide:cloud-sun";
+    else if (c <= 48) name = "lucide:cloud-fog";
+    else if (c <= 67) name = "lucide:cloud-rain";
+    else if (c <= 77) name = "lucide:snowflake";
+    else if (c <= 86) name = "lucide:cloud-drizzle";
+    else if (c >= 95) name = "lucide:zap";
+    weatherIconEl.setAttribute("icon", name);
   }
 
   function isRainMoodCode(code) {
@@ -1333,14 +1337,19 @@ const audio = new Audio(songUrl);
 audio.volume = 1;
 let isPlaying = false;
 
+function setPlayIcon(playing) {
+  if (!playIcon) return;
+  playIcon.innerHTML = iconHtml(playing ? "lucide:pause" : "lucide:play");
+}
+
 function togglePlay() {
   if (isPlaying) {
     audio.pause();
-    playIcon.innerText = "▶";
+    setPlayIcon(false);
     isPlaying = false;
   } else {
     audio.play();
-    playIcon.innerText = "⏸";
+    setPlayIcon(true);
     isPlaying = true;
   }
   if (playBtn) {
@@ -1382,7 +1391,7 @@ progressContainer.addEventListener('click', (e) => {
 
 audio.addEventListener('ended', () => {
   isPlaying = false;
-  playIcon.innerText = "▶";
+  setPlayIcon(false);
   progress.style.width = "0%";
   if (playBtn) {
     playBtn.setAttribute('aria-pressed', 'false');
@@ -1744,7 +1753,7 @@ const VoiceAssistant = (function() {
       return reply("Hello! What can I help you with?");
     }
 
-    // Voice only: short identity questions get a brief spoken summary. Text chat uses Groq.
+    // Voice only: short identity questions get a brief spoken summary. Text chat uses /api/chat.
     if (!forChat && isShortOwnerIdentityQuestion(text)) {
       return reply(ABOUT_RISHI_VOICE);
     }
@@ -2200,7 +2209,7 @@ const VoiceAssistant = (function() {
 })();
 
 
-// AI chatbot powered by Groq
+// AI chatbot (Gemini primary, Groq fallback via /api/chat)
 
 // Chat UI element selectors
 const chatToggle = document.getElementById('chat-toggle-btn');
@@ -2470,7 +2479,7 @@ document.addEventListener('keydown', (e) => {
 
 initChatPresence();
 
-// Chat send flow, Groq API, and agent action routing
+// Chat send flow, /api/chat, and agent action routing
 function looksLikePortfolioCommand(input) {
   const t = (input || '').toLowerCase().trim();
   if (!t) return false;
@@ -3354,14 +3363,37 @@ function getLastAssistantMessage() {
 }
 
 function isIdentityClarificationQuestion(text) {
-  const lower = String(text || "").toLowerCase();
+  const lower = String(text || "").toLowerCase().trim();
+  if (!lower || /^user (said|asked):/i.test(lower)) return false;
+  if (/^(ok|okay|yes|yeah|yep|sure|yup|no|nah|thanks|thank you|thx|cool|great|nice|good|bye|goodbye)$/i.test(lower)) {
+    return false;
+  }
   if (/\b(who are you|are you rishikesh|you rishikesh)\b/.test(lower)) return true;
-  if (/\b(your|yours|you)\b/.test(lower) && /\b(rishikesh|his|him)\b/.test(lower)) return true;
   if (/\b(your|yours)\b/.test(lower) && /\b(project|projects|work)\b/.test(lower)) return true;
+  if (
+    /\b(you|your|yours)\b/.test(lower) &&
+    /\b(rishikesh|his|him)\b/.test(lower) &&
+    /\b(or|vs|versus|who|project|projects|work|are you)\b/.test(lower)
+  ) {
+    return true;
+  }
   return false;
 }
 
-/** Add brief context for short replies so Groq stays on-thread (raw user text kept in history). */
+function looksLikeFarewell(text) {
+  const t = String(text || "").toLowerCase();
+  return (
+    /\b(you're welcome|you are welcome|anytime|feel free|change your mind|no problem|glad to help|good talking|take care)\b/.test(t) ||
+    /\bif you change your mind\b/.test(t)
+  );
+}
+
+function isBriefAcknowledgment(text) {
+  const t = String(text || "").trim().toLowerCase();
+  return /^(ok|okay|yes|yeah|yep|sure|yup|cool|great|nice|good|thanks|thank you|thx|bye|goodbye)$/.test(t);
+}
+
+/** Add brief context for short replies so the assistant stays on-thread (raw user text kept in history). */
 function enrichShortChatMessage(userMessage) {
   const trimmed = String(userMessage || "").trim();
   const lower = trimmed.toLowerCase();
@@ -3379,12 +3411,35 @@ function enrichShortChatMessage(userMessage) {
   if (trimmed.length > 32 || lower.split(/\s+/).filter(Boolean).length > 4) return trimmed;
   if (!lastBot) return trimmed;
 
-  if (/^(yes|yeah|yep|sure|ok|okay|yup|no|nah|nothing|not much|idk|good|great|nice|cool)$/i.test(lower)) {
+  if (isBriefAcknowledgment(lower) && looksLikeFarewell(lastBot)) {
+    return (
+      `User said: "${trimmed}". The assistant just wrapped up politely. ` +
+      `Reply with ONE brief friendly sign-off only (e.g. "Sounds good!" or "Anytime!"). ` +
+      `Do NOT mention projects, identity, or Rishikesh's bio. Last assistant message: "${lastBot}".`
+    );
+  }
+
+  if (/^(yes|yeah|yep|sure|ok|okay|yup)$/i.test(lower)) {
     return (
       `User said: "${trimmed}". Continue naturally from the last assistant message: "${lastBot}". ` +
       `Refer to the portfolio owner as Rishikesh — never say "my projects" or "my work". ` +
       `Use "Rishikesh's projects" or "his projects". Mention ONE project or offer the Projects tab; do not list all. ` +
       `If they agreed to see projects, education, or similar, switch_tab is allowed.`
+    );
+  }
+
+  if (/^(no|nah|nothing|not much|idk)$/i.test(lower)) {
+    return (
+      `User said: "${trimmed}". Continue naturally from the last assistant message: "${lastBot}". ` +
+      `If they declined, close politely in one sentence without pushing projects again. ` +
+      `Last assistant message: "${lastBot}".`
+    );
+  }
+
+  if (/^(good|great|nice|cool|thanks|thank you|thx)$/i.test(lower)) {
+    return (
+      `User said: "${trimmed}". Continue naturally from the last assistant message: "${lastBot}". ` +
+      `Keep it brief. Do not repeat Rishikesh's full bio. Last assistant message: "${lastBot}".`
     );
   }
   return trimmed;
@@ -3429,7 +3484,7 @@ async function getAIResponse(userMessage, { signal } = {}) {
     ];
 
     const response = await fetchChatApi(
-      { messages: messagesForApi, language: currentLanguage },
+      { messages: messagesForApi, language: currentLanguage, rawLastUserMessage: userMessage },
       timeoutController.signal
     );
 

@@ -17,6 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="portfolio.css">
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -72,19 +73,19 @@
     </a>
     <nav class="navtabs" aria-label="Portfolio sections">
       <ul class="tabs" role="tablist" title="Use arrow keys to navigate">
-        <li id="tab-intro" role="tab" aria-controls="intro" aria-selected="true" tabindex="0" data-target="intro" class="active"><i class="fa-solid fa-user" aria-hidden="true"></i><span>Intro</span></li>
-        <li id="tab-projects" role="tab" aria-controls="projects" aria-selected="false" tabindex="-1" data-target="projects"><i class="fa-solid fa-code" aria-hidden="true"></i><span>Projects</span></li>
-        <li id="tab-education" role="tab" aria-controls="education" aria-selected="false" tabindex="-1" data-target="education"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Education</span></li>
-        <li id="tab-hometown" role="tab" aria-controls="hometown" aria-selected="false" tabindex="-1" data-target="hometown"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i><span>Hometown</span></li>
-        <li id="tab-favorites" role="tab" aria-controls="favorites" aria-selected="false" tabindex="-1" data-target="favorites"><i class="fa-solid fa-heart" aria-hidden="true"></i><span>Favorites</span></li>
-        <li id="tab-games" role="tab" aria-controls="games" aria-selected="false" tabindex="-1" data-target="games"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span>Games</span></li>
-        <li id="tab-news" role="tab" aria-controls="news" aria-selected="false" tabindex="-1" data-target="news"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></li>
-        <li id="tab-contact" role="tab" aria-controls="contact" aria-selected="false" tabindex="-1" data-target="contact"><i class="fa-solid fa-address-book" aria-hidden="true"></i><span>Contact</span></li>
+        <li id="tab-intro" role="tab" aria-controls="intro" aria-selected="true" tabindex="0" data-target="intro" class="active"><iconify-icon icon="lucide:user" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Intro</span></li>
+        <li id="tab-projects" role="tab" aria-controls="projects" aria-selected="false" tabindex="-1" data-target="projects"><iconify-icon icon="lucide:code-xml" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Projects</span></li>
+        <li id="tab-education" role="tab" aria-controls="education" aria-selected="false" tabindex="-1" data-target="education"><iconify-icon icon="lucide:graduation-cap" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Education</span></li>
+        <li id="tab-hometown" role="tab" aria-controls="hometown" aria-selected="false" tabindex="-1" data-target="hometown"><iconify-icon icon="lucide:map-pin" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Hometown</span></li>
+        <li id="tab-favorites" role="tab" aria-controls="favorites" aria-selected="false" tabindex="-1" data-target="favorites"><iconify-icon icon="lucide:heart" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Favorites</span></li>
+        <li id="tab-games" role="tab" aria-controls="games" aria-selected="false" tabindex="-1" data-target="games"><iconify-icon icon="lucide:gamepad-2" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Games</span></li>
+        <li id="tab-news" role="tab" aria-controls="news" aria-selected="false" tabindex="-1" data-target="news"><iconify-icon icon="lucide:newspaper" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>News</span></li>
+        <li id="tab-contact" role="tab" aria-controls="contact" aria-selected="false" tabindex="-1" data-target="contact"><iconify-icon icon="lucide:contact" class="icon icon--nav" aria-hidden="true"></iconify-icon><span>Contact</span></li>
       </ul>
     </nav>
     <div class="topbar-controls">
       <label for="language-select" class="language-switcher">
-        <i class="fa-solid fa-globe" aria-hidden="true"></i>
+        <iconify-icon icon="lucide:globe" class="icon" aria-hidden="true"></iconify-icon>
         <span id="language-label" class="sr-only">Language</span>
         <select id="language-select" aria-label="Choose language">
           <option value="en">EN</option>
@@ -97,8 +98,8 @@
         </select>
       </label>
       <button type="button" id="theme-toggle" class="theme-toggle" title="Light mode" aria-label="Switch to light mode">
-        <i class="fa-solid fa-moon" id="theme-icon-dark"></i>
-        <i class="fa-solid fa-sun hidden" id="theme-icon-light"></i>
+        <iconify-icon icon="lucide:moon" class="icon" id="theme-icon-dark" aria-hidden="true"></iconify-icon>
+        <iconify-icon icon="lucide:sun" class="icon hidden" id="theme-icon-light" aria-hidden="true"></iconify-icon>
       </button>
     </div>
   </div>
@@ -110,15 +111,15 @@
   <section id="hero" class="hero">
     <div class="hero-chips cover-visitor" id="cover-visitor" data-visitor-mood="night" aria-live="polite">
       <div class="cover-visitor-time">
-        <i class="fa-regular fa-clock" aria-hidden="true"></i>
+        <iconify-icon icon="lucide:clock" class="icon" aria-hidden="true"></iconify-icon>
         <time id="cover-local-time" datetime="">--:--:--</time>
       </div>
       <div class="cover-visitor-location">
-        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+        <iconify-icon icon="lucide:map-pin" class="icon" aria-hidden="true"></iconify-icon>
         <span id="cover-location">…</span>
       </div>
       <div class="cover-visitor-weather">
-        <i class="fa-solid fa-cloud-sun" id="cover-weather-icon" aria-hidden="true"></i>
+        <iconify-icon icon="lucide:cloud-sun" id="cover-weather-icon" class="icon" aria-hidden="true"></iconify-icon>
         <span id="cover-weather">…</span>
       </div>
     </div>
@@ -150,17 +151,17 @@
   <section id="projects" class="tab-content section section--projects" role="region" aria-labelledby="tab-projects" tabindex="0">
     <div class="section-inner">
       <div class="section-label"><span class="num">02</span><span class="line"></span><span>Projects</span></div>
-      <h3 id="projects-title"><i class="fa-solid fa-laptop-code"></i> Featured Projects</h3>
+      <h3 id="projects-title"><iconify-icon icon="lucide:laptop" class="icon"></iconify-icon> Featured Projects</h3>
       <p id="projects-desc">Here are some of the projects I've been working on:</p>
 
       <div class="project-grid">
         <div class="project-card">
           <div class="card-top">
             <div class="icon-box">
-              <i class="fa-solid fa-shield-halved"></i>
+              <iconify-icon icon="lucide:shield" class="icon icon--box"></iconify-icon>
             </div>
             <a href="https://github.com/reseekesh821/AIComplianceFirewall" target="_blank" rel="noopener noreferrer" class="code-btn">
-              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
             </a>
           </div>
           <div class="card-content">
@@ -178,10 +179,10 @@
         <div class="project-card">
           <div class="card-top">
             <div class="icon-box">
-              <i class="fa-solid fa-folder-open"></i>
+              <iconify-icon icon="lucide:folder-open" class="icon icon--box"></iconify-icon>
             </div>
             <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" rel="noopener noreferrer" class="code-btn">
-              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
             </a>
           </div>
           <div class="card-content">
@@ -198,10 +199,10 @@
         <div class="project-card">
           <div class="card-top">
             <div class="icon-box">
-              <i class="fa-solid fa-chart-pie"></i>
+              <iconify-icon icon="lucide:chart-pie" class="icon icon--box"></iconify-icon>
             </div>
             <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" rel="noopener noreferrer" class="code-btn">
-              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
             </a>
           </div>
           <div class="card-content">
@@ -218,15 +219,15 @@
         <div class="project-card">
           <div class="card-top">
             <div class="icon-box">
-              <i class="fa-solid fa-robot"></i>
+              <iconify-icon icon="lucide:bot" class="icon icon--box"></iconify-icon>
             </div>
             <a href="https://github.com/reseekesh821/my-portfolio" target="_blank" rel="noopener noreferrer" class="code-btn">
-              <span class="view-code-text">View Code</span> <i class="fa-brands fa-github"></i>
+              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
             </a>
           </div>
           <div class="card-content">
             <h4>AI-Powered Portfolio</h4>
-            <p id="project-portfolio-desc">Personal portfolio site with an AI chat assistant (Groq), voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.</p>
+            <p id="project-portfolio-desc">Personal portfolio site with a Gemini-powered AI chat assistant, voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.</p>
             <div class="tech-stack">
               <span>HTML / CSS / JS</span>
               <span>Supabase</span>
@@ -244,13 +245,13 @@
       <div class="section-label"><span class="num">03</span><span class="line"></span><span>Education</span></div>
       <div class="edu-grid">
         <div class="info-block">
-          <h3 id="education-university-title"><i class="fa-solid fa-building-columns"></i> University</h3>
+          <h3 id="education-university-title"><iconify-icon icon="lucide:building-2" class="icon"></iconify-icon> University</h3>
           <p><strong>Caldwell University</strong><br>
           Caldwell, NJ, USA<br>
           <span>2024 - 2028 (Bachelor's in CS)</span></p>
         </div>
         <div class="info-block">
-          <h3 id="education-highschool-title"><i class="fa-solid fa-school"></i> High School</h3>
+          <h3 id="education-highschool-title"><iconify-icon icon="lucide:school" class="icon"></iconify-icon> High School</h3>
           <p><strong>National School of Sciences</strong><br>
           Kathmandu, Nepal<br>
           <span>2021 - 2023 (High School Diploma)</span></p>
@@ -266,23 +267,23 @@
 
       <div class="hometown-grid">
         <div class="info-block hometown-place">
-          <h3><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</h3>
+          <h3><iconify-icon icon="lucide:map-pin" class="icon"></iconify-icon> Kathmandu, Nepal</h3>
           <img src="https://raw.githubusercontent.com/reseekesh821/music/main/kathmandu.png" alt="Kathmandu" class="content-media" loading="lazy" decoding="async">
         </div>
 
         <div class="info-block hometown-time-card">
-          <p class="stack-tight"><strong><i class="fa-solid fa-clock"></i> <span id="hometown-time-label">Kathmandu Time:</span></strong></p>
+          <p class="stack-tight"><strong><iconify-icon icon="lucide:clock" class="icon"></iconify-icon> <span id="hometown-time-label">Kathmandu Time:</span></strong></p>
           <div id="nepal-clock" class="hometown-clock">Loading...</div>
           <div id="nepal-date" class="hometown-date">Loading Date...</div>
 
           <hr class="hometown-card-hr">
 
-          <p class="stack-tight"><strong><i class="fa-solid fa-cloud-sun"></i> <span id="hometown-weather-label">Weather:</span></strong></p>
+          <p class="stack-tight"><strong><iconify-icon icon="lucide:cloud-sun" class="icon"></iconify-icon> <span id="hometown-weather-label">Weather:</span></strong></p>
           <div id="nepal-weather" class="hometown-weather">Loading...</div>
         </div>
 
         <div class="info-block map-container hometown-map">
-          <p class="map-label"><strong><i class="fa-solid fa-map"></i> <span id="hometown-location-label">Location:</span></strong></p>
+          <p class="map-label"><strong><iconify-icon icon="lucide:map" class="icon"></iconify-icon> <span id="hometown-location-label">Location:</span></strong></p>
           <iframe
             class="map-frame"
             title="Map of Kathmandu, Nepal"
@@ -304,7 +305,7 @@
       <div class="section-label"><span class="num">05</span><span class="line"></span><span>Favorites</span></div>
 
       <div class="info-block">
-        <h3 id="favorites-music-title"><i class="fa-solid fa-music"></i> Favorite Music</h3>
+        <h3 id="favorites-music-title"><iconify-icon icon="lucide:music" class="icon"></iconify-icon> Favorite Music</h3>
 
         <div class="spotify-player">
           <div class="album-art">
@@ -326,23 +327,23 @@
           </div>
 
           <div class="controls">
-            <button type="button" class="control-btn" id="prev-btn" aria-label="Previous track"><i class="fa-solid fa-backward-step" aria-hidden="true"></i></button>
+            <button type="button" class="control-btn" id="prev-btn" aria-label="Previous track"><iconify-icon icon="lucide:skip-back" class="icon" aria-hidden="true"></iconify-icon></button>
             <button type="button" class="play-btn" id="play-btn" aria-label="Play" aria-pressed="false">
-              <span id="play-icon"><i class="fa-solid fa-play"></i></span>
+              <span id="play-icon"><iconify-icon icon="lucide:play" class="icon" aria-hidden="true"></iconify-icon></span>
             </button>
-            <button type="button" class="control-btn" id="next-btn" aria-label="Next track"><i class="fa-solid fa-forward-step" aria-hidden="true"></i></button>
+            <button type="button" class="control-btn" id="next-btn" aria-label="Next track"><iconify-icon icon="lucide:skip-forward" class="icon" aria-hidden="true"></iconify-icon></button>
           </div>
         </div>
       </div>
 
       <div id="favcity" class="info-block">
-        <h3 id="favorites-city-title"><i class="fa-solid fa-mountain-sun"></i> Favorite City</h3>
+        <h3 id="favorites-city-title"><iconify-icon icon="lucide:mountain" class="icon"></iconify-icon> Favorite City</h3>
         <p>Pokhara, Nepal</p>
         <img src="https://raw.githubusercontent.com/reseekesh821/music/main/pokhara.jpg" alt="Pokhara" class="content-media" loading="lazy" decoding="async">
       </div>
 
       <div class="info-block">
-        <h3 id="favorites-movie-title"><i class="fa-solid fa-film"></i> Favorite Movie</h3>
+        <h3 id="favorites-movie-title"><iconify-icon icon="lucide:clapperboard" class="icon"></iconify-icon> Favorite Movie</h3>
         <p>Interstellar</p>
 
         <div class="embed-youtube">
@@ -361,7 +362,7 @@
   <section id="games" class="tab-content section section--games" role="region" aria-labelledby="tab-games" tabindex="0">
     <div class="section-inner">
       <div class="section-label"><span class="num">06</span><span class="line"></span><span>Games</span></div>
-      <h3><i class="fa-solid fa-gamepad"></i> Play &amp; Learn</h3>
+      <h3><iconify-icon icon="lucide:gamepad-2" class="icon"></iconify-icon> Play &amp; Learn</h3>
       <p>Test what you know about Rishikesh with a quick quiz.</p>
       <div class="game-card">
         <div class="game-header">
@@ -383,7 +384,7 @@
   <section id="news" class="tab-content section section--news" role="region" aria-labelledby="tab-news" tabindex="0">
     <div class="section-inner">
       <div class="section-label"><span class="num">07</span><span class="line"></span><span>News</span></div>
-      <h3 id="news-title"><i class="fa-solid fa-newspaper"></i> News</h3>
+      <h3 id="news-title"><iconify-icon icon="lucide:newspaper" class="icon"></iconify-icon> News</h3>
       <p>Top headlines from around the world.</p>
       <div id="news-list" class="news-list" aria-live="polite"></div>
     </div>
@@ -393,37 +394,37 @@
   <section id="contact" class="tab-content section section--contact" role="region" aria-labelledby="tab-contact" tabindex="0">
     <div class="section-inner">
       <div class="section-label"><span class="num">08</span><span class="line"></span><span>Contact</span></div>
-      <h3><i class="fa-solid fa-address-book"></i> Contact &amp; Portfolio</h3>
+      <h3><iconify-icon icon="lucide:contact" class="icon"></iconify-icon> Contact &amp; Portfolio</h3>
       <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
 
       <div class="contact-grid">
         <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf" target="_blank" rel="noopener noreferrer" class="social-btn resume-btn">
           <div class="btn-icon">
-            <i class="fa-solid fa-file-pdf"></i>
+            <iconify-icon icon="lucide:file-text" class="icon"></iconify-icon>
           </div>
           <span id="contact-resume-text">View Resume</span>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+          <iconify-icon icon="lucide:external-link" class="icon arrow-icon"></iconify-icon>
         </a>
 
         <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" rel="noopener noreferrer" class="social-btn linkedin-btn">
           <div class="btn-icon">
-            <i class="fa-brands fa-linkedin-in"></i>
+            <iconify-icon icon="mdi:linkedin" class="icon"></iconify-icon>
           </div>
           <span>LinkedIn</span>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+          <iconify-icon icon="lucide:external-link" class="icon arrow-icon"></iconify-icon>
         </a>
 
         <a href="https://github.com/reseekesh821" target="_blank" rel="noopener noreferrer" class="social-btn github-btn">
           <div class="btn-icon">
-            <i class="fa-brands fa-github"></i>
+            <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
           </div>
           <span>GitHub</span>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+          <iconify-icon icon="lucide:external-link" class="icon arrow-icon"></iconify-icon>
         </a>
       </div>
 
       <div class="form-container">
-        <h3 id="contact-send-title"><i class="fa-solid fa-envelope-open-text"></i> Send a Message</h3>
+        <h3 id="contact-send-title"><iconify-icon icon="lucide:mail" class="icon"></iconify-icon> Send a Message</h3>
 
         <form id="contact-form" action="#" method="POST" class="contact-form">
           <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
@@ -444,7 +445,7 @@
           </div>
 
           <button type="submit" class="send-btn" id="contact-submit-btn">
-            <span id="contact-send-btn-text">Send Message</span> <i class="fa-solid fa-paper-plane"></i>
+            <span id="contact-send-btn-text">Send Message</span> <iconify-icon icon="lucide:send" class="icon"></iconify-icon>
           </button>
         </form>
       </div>
@@ -459,10 +460,10 @@
     <span class="footer-copy">© 2026 Rishikesh Bastakoti</span>
     <div class="footer-socials">
       <a href="https://www.linkedin.com/in/rbastakoti1" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-        <i class="fa-brands fa-linkedin-in"></i>
+        <iconify-icon icon="mdi:linkedin" class="icon" aria-hidden="true"></iconify-icon>
       </a>
       <a href="https://github.com/reseekesh821" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-        <i class="fa-brands fa-github"></i>
+        <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
       </a>
     </div>
   </div>
@@ -593,6 +594,6 @@
     </div>
   </div>
 </div>
-<script src="portfolio.js?v=31"></script>
+<script src="portfolio.js?v=34"></script>
 </body>
 </html>

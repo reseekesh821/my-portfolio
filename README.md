@@ -11,7 +11,7 @@ Built with HTML, CSS, and JavaScript. The backend stuff runs on Vercel serverles
 ## What's on the site
 
 - Intro, projects, education, hometown, favorites, games, news, contact
-- AI chat (Groq / Llama 3.3 70B) — can answer questions about me and do things on the site like show projects or play music
+- AI chat (Google Gemini, Groq fallback) — answers questions about me in plain language and can navigate the site (projects, music, news, etc.)
 - Voice commands (browser speech recognition)
 - Fake audio call and video call UI (video uses Anam for the avatar)
 - Quiz — "Know Rishikesh?"
@@ -47,7 +47,7 @@ npm install
 vercel dev
 ```
 
-You need a `.env` file in the project root (it is in `.gitignore`, so do not push it). Add your keys from Groq, Supabase, GNews, Anam, and ElevenLabs. You also need `ADMIN_TOKEN` if you want to use the admin page, and `SUPABASE_ANON_KEY` in `index.html` for the client side.
+You need a `.env` file in the project root (it is in `.gitignore`, so do not push it). Add `GEMINI_API_KEY` (primary chat), `GROQ_API_KEY` (optional fallback), Supabase, GNews, Anam, and ElevenLabs keys. Optional: `CHAT_PROVIDER=gemini` (default) or `groq` to force a provider. You also need `ADMIN_TOKEN` for the admin page, and `SUPABASE_ANON_KEY` in `index.html` for the client side.
 
 On Vercel, put the same variables in the project settings.
 

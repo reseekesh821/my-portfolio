@@ -10,7 +10,7 @@ export const PORTFOLIO_FACTS = {
     "AI Compliance Firewall — LLM middleware with FINRA-style and HIPAA-style rule scanning, regex plus Ollama semantic embeddings, policy actions (pass, flag, redact, block, append disclaimers), Neo4j knowledge graph, and SQLite audit logs. Built with FastAPI, FastHTML, and optional Rust rule engine.",
     "QuickLoan App — Full-stack application built with React, FastAPI, SQLAlchemy.",
     "BudgetTracker — Python project using data structures and file I/O.",
-    "AI-Powered Portfolio — This site: Groq chat assistant, voice commands, Anam video calls, live weather/news, quiz, Supabase analytics on Vercel."
+    "AI-Powered Portfolio — This site: Gemini-powered chat assistant (Groq fallback), voice commands, Anam video calls, live weather/news, quiz, Supabase analytics on Vercel."
   ],
   interests: "Web development, algorithms, AI/ML",
   personal: {
