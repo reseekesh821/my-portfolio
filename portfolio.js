@@ -45,15 +45,15 @@ function iconHtml(name, className = "icon") {
 // Accent color palette, persisted in localStorage so voice/chat color changes survive reload
 var PORTFOLIO_ACCENT_STORAGE_KEY = "portfolio-accent";
 var PORTFOLIO_ACCENT_THEMES = {
-  cyan: { primary: "#00d2ff", secondary: "#3a7bd5" },
-  blue: { primary: "#4dabf7", secondary: "#228be6" },
-  purple: { primary: "#9775fa", secondary: "#7950f2" },
-  green: { primary: "#51cf66", secondary: "#37b24d" },
-  red: { primary: "#ff6b6b", secondary: "#fa5252" },
-  orange: { primary: "#ff922b", secondary: "#fd7e14" },
-  pink: { primary: "#f06595", secondary: "#e64980" },
-  teal: { primary: "#20c997", secondary: "#0ca678" },
-  yellow: { primary: "#ffd43b", secondary: "#fab005" }
+  cyan: { primary: "#3f7d6e", secondary: "#5c6d7c" },
+  blue: { primary: "#4a6f8c", secondary: "#3d5a73" },
+  purple: { primary: "#6d6285", secondary: "#5a5368" },
+  green: { primary: "#4f7a5a", secondary: "#3f6350" },
+  red: { primary: "#9a5a52", secondary: "#7a4a44" },
+  orange: { primary: "#a67b4a", secondary: "#8a5a3a" },
+  pink: { primary: "#8a6570", secondary: "#6f525c" },
+  teal: { primary: "#3f7d6e", secondary: "#2f6358" },
+  yellow: { primary: "#a08a4a", secondary: "#7d6c3a" }
 };
 
 function applyPortfolioAccent(name) {
