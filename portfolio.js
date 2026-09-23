@@ -81,7 +81,7 @@ function applyPortfolioAccent(name) {
 })();
 
 const PORTFOLIO_RESUME_URL =
-  "https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf";
+  "https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026.pdf";
 
 // Speech/STT helpers — normalize misheard names and score recognition candidates.
 function levenshteinDistance(a, b) {
@@ -316,9 +316,9 @@ const PORTFOLIO_LANG_STORAGE_KEY = "portfolio-language";
 const RTL_LANGS = new Set([]);
 const I18N = {
   en: {
-    introLead: "Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the United States, where I am pursuing my undergraduate degree in Computer Science at Caldwell University. I am in my sophomore year and aspire to build a career as a software developer. So far, I have completed several projects using Python, HTML, CSS, and JavaScript, and I am continuously expanding my skills in full-stack development.",
+    introLead: "Hi, I'm Rishikesh Bastakoti, a Computer Science student at William Paterson University, originally from Nepal and currently based in Newark, New Jersey. I'm focused on AI application engineering—building practical, production-oriented software on top of already-trained AI models by combining LLMs with backend systems, APIs, databases, RAG, tool integration, and solid software engineering. My goal is to create AI systems that are secure, scalable, and genuinely useful in the real world—not just demos.",
     languageLabel: "Language",
-    subtitle: "Computer Science Student | Aspiring Software Developer",
+    subtitle: "Computer Science Student | Aspiring AI Engineer",
     tourStart: "Walk me through this site",
     intro: "Intro",
     projects: "Projects",
@@ -350,12 +350,12 @@ const I18N = {
     newsEmpty: "No headlines right now.",
     newsConnection: "Could not load news. Check your connection."
   },
-  ne: { languageLabel: "भाषा", subtitle: "कम्प्युटर विज्ञान विद्यार्थी | सफ्टवेयर विकासकर्ता बन्ने लक्ष्य", tourStart: "यो साइट देखाइदिनुहोस्", intro: "परिचय", projects: "प्रोजेक्टहरू", education: "शिक्षा", hometown: "गृहनगर", favorites: "मनपर्ने", games: "खेल", news: "समाचार", contact: "सम्पर्क", gamesTitle: "खेल्दै सिकौं", gamesDesc: "रिशिकेशबारे छोटो क्विज खेल्नुहोस्।", gameTitle: "रिशिकेशलाई चिन्नुहुन्छ?", scoreLabel: "स्कोर", quizStart: "क्विज सुरु गर्नुहोस्", quizNext: "अर्को प्रश्न", newsDesc: "विश्वभरिका मुख्य समाचारहरू।", contactTitle: "सम्पर्क र पोर्टफोलियो", contactDesc: "तलका लिङ्कमार्फत सम्पर्क गर्नुहोस् वा सन्देश पठाउनुहोस्।", sendMessageTitle: "सन्देश पठाउनुहोस्", name: "नाम", email: "इमेल ठेगाना", yourMessage: "तपाईंको सन्देश", sendButton: "सन्देश पठाउनुहोस्", chatPlaceholder: "सन्देश वा कमाण्ड टाइप गर्नुहोस्...", typing: "सोच्दै...", listening: "सुनिरहेको...", newsLoading: "समाचार लोड हुँदैछ…", newsUnavailable: "समाचार लोड गर्न सकिएन।", newsEmpty: "अहिले हेडलाइन छैन।", newsConnection: "समाचार लोड भएन। इन्टरनेट जाँच्नुहोस्।" },
-  es: { languageLabel: "Idioma", subtitle: "Estudiante de Informática | Futuro desarrollador de software", tourStart: "Muéstrame este sitio", intro: "Introducción", projects: "Proyectos", education: "Educación", hometown: "Ciudad natal", favorites: "Favoritos", games: "Juegos", news: "Noticias", contact: "Contacto", gamesTitle: "Jugar y aprender", gamesDesc: "Pon a prueba lo que sabes sobre Rishikesh.", gameTitle: "¿Conoces a Rishikesh?", scoreLabel: "Puntuación", quizStart: "Iniciar quiz", quizNext: "Siguiente pregunta", newsDesc: "Titulares principales del mundo.", contactTitle: "Contacto y Portafolio", contactDesc: "Contáctame por los enlaces o envía un mensaje.", sendMessageTitle: "Enviar un mensaje", name: "Nombre", email: "Correo electrónico", yourMessage: "Tu mensaje", sendButton: "Enviar mensaje", chatPlaceholder: "Escribe un mensaje o comando...", typing: "Pensando...", listening: "Escuchando...", newsLoading: "Cargando noticias…", newsUnavailable: "No se pudieron cargar las noticias.", newsEmpty: "No hay titulares por ahora.", newsConnection: "No se pudieron cargar. Revisa tu conexión." },
-  fr: { languageLabel: "Langue", subtitle: "Etudiant en informatique | Futur developpeur logiciel", tourStart: "Faire la visite du site", intro: "Intro", projects: "Projets", education: "Etudes", hometown: "Ville natale", favorites: "Favoris", games: "Jeux", news: "Actualites", contact: "Contact", gamesTitle: "Jouer & apprendre", gamesDesc: "Testez vos connaissances sur Rishikesh.", gameTitle: "Connaissez-vous Rishikesh ?", scoreLabel: "Score", quizStart: "Demarrer le quiz", quizNext: "Question suivante", newsDesc: "Les grands titres du monde.", contactTitle: "Contact & Portfolio", contactDesc: "Contactez-moi via les liens ou envoyez un message.", sendMessageTitle: "Envoyer un message", name: "Nom", email: "Adresse e-mail", yourMessage: "Votre message", sendButton: "Envoyer", chatPlaceholder: "Tapez un message ou une commande...", typing: "Reflexion...", listening: "Ecoute...", newsLoading: "Chargement des actualites…", newsUnavailable: "Impossible de charger les actualites.", newsEmpty: "Aucun titre pour le moment.", newsConnection: "Chargement impossible. Verifiez votre connexion." },
-  de: { languageLabel: "Sprache", subtitle: "Informatikstudent | Zukuenftiger Softwareentwickler", tourStart: "Fuehre mich durch die Seite", intro: "Intro", projects: "Projekte", education: "Ausbildung", hometown: "Heimatstadt", favorites: "Favoriten", games: "Spiele", news: "Nachrichten", contact: "Kontakt", gamesTitle: "Spielen & Lernen", gamesDesc: "Teste dein Wissen ueber Rishikesh.", gameTitle: "Kennst du Rishikesh?", scoreLabel: "Punktzahl", quizStart: "Quiz starten", quizNext: "Naechste Frage", newsDesc: "Top-Schlagzeilen aus aller Welt.", contactTitle: "Kontakt & Portfolio", contactDesc: "Kontaktiere mich ueber die Links oder sende eine Nachricht.", sendMessageTitle: "Nachricht senden", name: "Name", email: "E-Mail-Adresse", yourMessage: "Deine Nachricht", sendButton: "Nachricht senden", chatPlaceholder: "Nachricht oder Befehl eingeben...", typing: "Denke nach...", listening: "Hoere zu...", newsLoading: "Nachrichten werden geladen…", newsUnavailable: "Nachrichten konnten nicht geladen werden.", newsEmpty: "Aktuell keine Schlagzeilen.", newsConnection: "Konnte nicht laden. Verbindung pruefen." },
-  pt: { languageLabel: "Idioma", subtitle: "Estudante de Ciencia da Computacao | Futuro desenvolvedor de software", tourStart: "Guie-me por este site", intro: "Introducao", projects: "Projetos", education: "Educacao", hometown: "Cidade natal", favorites: "Favoritos", games: "Jogos", news: "Noticias", contact: "Contato", gamesTitle: "Jogar e aprender", gamesDesc: "Teste o que voce sabe sobre Rishikesh.", gameTitle: "Conhece o Rishikesh?", scoreLabel: "Pontuacao", quizStart: "Iniciar quiz", quizNext: "Proxima pergunta", newsDesc: "Principais manchetes do mundo.", contactTitle: "Contato e Portfolio", contactDesc: "Entre em contato pelos links ou envie uma mensagem.", sendMessageTitle: "Enviar mensagem", name: "Nome", email: "Endereco de e-mail", yourMessage: "Sua mensagem", sendButton: "Enviar mensagem", chatPlaceholder: "Digite uma mensagem ou comando...", typing: "Pensando...", listening: "Ouvindo...", newsLoading: "Carregando noticias…", newsUnavailable: "Nao foi possivel carregar noticias.", newsEmpty: "Sem manchetes no momento.", newsConnection: "Falha ao carregar. Verifique a conexao." },
-  zh: { languageLabel: "语言", subtitle: "计算机科学学生 | 未来软件开发者", tourStart: "带我浏览这个网站", intro: "简介", projects: "项目", education: "教育", hometown: "家乡", favorites: "喜好", games: "游戏", news: "新闻", contact: "联系", gamesTitle: "边玩边学", gamesDesc: "通过小测验了解你对 Rishikesh 的认识。", gameTitle: "你了解 Rishikesh 吗？", scoreLabel: "得分", quizStart: "开始测验", quizNext: "下一题", newsDesc: "来自世界各地的头条新闻。", contactTitle: "联系与作品集", contactDesc: "你可以通过以下链接联系我，或直接留言。", sendMessageTitle: "发送消息", name: "姓名", email: "邮箱地址", yourMessage: "你的消息", sendButton: "发送消息", chatPlaceholder: "输入消息或指令...", typing: "思考中...", listening: "正在聆听...", newsLoading: "正在加载新闻…", newsUnavailable: "暂时无法加载新闻。", newsEmpty: "目前没有新闻。", newsConnection: "加载失败，请检查网络连接。" }
+  ne: { languageLabel: "भाषा", subtitle: "कम्प्युटर विज्ञान विद्यार्थी | AI इन्जिनियर बन्ने लक्ष्य", tourStart: "यो साइट देखाइदिनुहोस्", intro: "परिचय", projects: "प्रोजेक्टहरू", education: "शिक्षा", hometown: "गृहनगर", favorites: "मनपर्ने", games: "खेल", news: "समाचार", contact: "सम्पर्क", gamesTitle: "खेल्दै सिकौं", gamesDesc: "रिशिकेशबारे छोटो क्विज खेल्नुहोस्।", gameTitle: "रिशिकेशलाई चिन्नुहुन्छ?", scoreLabel: "स्कोर", quizStart: "क्विज सुरु गर्नुहोस्", quizNext: "अर्को प्रश्न", newsDesc: "विश्वभरिका मुख्य समाचारहरू।", contactTitle: "सम्पर्क र पोर्टफोलियो", contactDesc: "तलका लिङ्कमार्फत सम्पर्क गर्नुहोस् वा सन्देश पठाउनुहोस्।", sendMessageTitle: "सन्देश पठाउनुहोस्", name: "नाम", email: "इमेल ठेगाना", yourMessage: "तपाईंको सन्देश", sendButton: "सन्देश पठाउनुहोस्", chatPlaceholder: "सन्देश वा कमाण्ड टाइप गर्नुहोस्...", typing: "सोच्दै...", listening: "सुनिरहेको...", newsLoading: "समाचार लोड हुँदैछ…", newsUnavailable: "समाचार लोड गर्न सकिएन।", newsEmpty: "अहिले हेडलाइन छैन।", newsConnection: "समाचार लोड भएन। इन्टरनेट जाँच्नुहोस्।" },
+  es: { languageLabel: "Idioma", subtitle: "Estudiante de Informática | Aspirante a ingeniero de IA", tourStart: "Muéstrame este sitio", intro: "Introducción", projects: "Proyectos", education: "Educación", hometown: "Ciudad natal", favorites: "Favoritos", games: "Juegos", news: "Noticias", contact: "Contacto", gamesTitle: "Jugar y aprender", gamesDesc: "Pon a prueba lo que sabes sobre Rishikesh.", gameTitle: "¿Conoces a Rishikesh?", scoreLabel: "Puntuación", quizStart: "Iniciar quiz", quizNext: "Siguiente pregunta", newsDesc: "Titulares principales del mundo.", contactTitle: "Contacto y Portafolio", contactDesc: "Contáctame por los enlaces o envía un mensaje.", sendMessageTitle: "Enviar un mensaje", name: "Nombre", email: "Correo electrónico", yourMessage: "Tu mensaje", sendButton: "Enviar mensaje", chatPlaceholder: "Escribe un mensaje o comando...", typing: "Pensando...", listening: "Escuchando...", newsLoading: "Cargando noticias…", newsUnavailable: "No se pudieron cargar las noticias.", newsEmpty: "No hay titulares por ahora.", newsConnection: "No se pudieron cargar. Revisa tu conexión." },
+  fr: { languageLabel: "Langue", subtitle: "Etudiant en informatique | Aspirant ingenieur IA", tourStart: "Faire la visite du site", intro: "Intro", projects: "Projets", education: "Etudes", hometown: "Ville natale", favorites: "Favoris", games: "Jeux", news: "Actualites", contact: "Contact", gamesTitle: "Jouer & apprendre", gamesDesc: "Testez vos connaissances sur Rishikesh.", gameTitle: "Connaissez-vous Rishikesh ?", scoreLabel: "Score", quizStart: "Demarrer le quiz", quizNext: "Question suivante", newsDesc: "Les grands titres du monde.", contactTitle: "Contact & Portfolio", contactDesc: "Contactez-moi via les liens ou envoyez un message.", sendMessageTitle: "Envoyer un message", name: "Nom", email: "Adresse e-mail", yourMessage: "Votre message", sendButton: "Envoyer", chatPlaceholder: "Tapez un message ou une commande...", typing: "Reflexion...", listening: "Ecoute...", newsLoading: "Chargement des actualites…", newsUnavailable: "Impossible de charger les actualites.", newsEmpty: "Aucun titre pour le moment.", newsConnection: "Chargement impossible. Verifiez votre connexion." },
+  de: { languageLabel: "Sprache", subtitle: "Informatikstudent | Angehender AI Engineer", tourStart: "Fuehre mich durch die Seite", intro: "Intro", projects: "Projekte", education: "Ausbildung", hometown: "Heimatstadt", favorites: "Favoriten", games: "Spiele", news: "Nachrichten", contact: "Kontakt", gamesTitle: "Spielen & Lernen", gamesDesc: "Teste dein Wissen ueber Rishikesh.", gameTitle: "Kennst du Rishikesh?", scoreLabel: "Punktzahl", quizStart: "Quiz starten", quizNext: "Naechste Frage", newsDesc: "Top-Schlagzeilen aus aller Welt.", contactTitle: "Kontakt & Portfolio", contactDesc: "Kontaktiere mich ueber die Links oder sende eine Nachricht.", sendMessageTitle: "Nachricht senden", name: "Name", email: "E-Mail-Adresse", yourMessage: "Deine Nachricht", sendButton: "Nachricht senden", chatPlaceholder: "Nachricht oder Befehl eingeben...", typing: "Denke nach...", listening: "Hoere zu...", newsLoading: "Nachrichten werden geladen…", newsUnavailable: "Nachrichten konnten nicht geladen werden.", newsEmpty: "Aktuell keine Schlagzeilen.", newsConnection: "Konnte nicht laden. Verbindung pruefen." },
+  pt: { languageLabel: "Idioma", subtitle: "Estudante de Ciencia da Computacao | Aspirante a engenheiro de IA", tourStart: "Guie-me por este site", intro: "Introducao", projects: "Projetos", education: "Educacao", hometown: "Cidade natal", favorites: "Favoritos", games: "Jogos", news: "Noticias", contact: "Contato", gamesTitle: "Jogar e aprender", gamesDesc: "Teste o que voce sabe sobre Rishikesh.", gameTitle: "Conhece o Rishikesh?", scoreLabel: "Pontuacao", quizStart: "Iniciar quiz", quizNext: "Proxima pergunta", newsDesc: "Principais manchetes do mundo.", contactTitle: "Contato e Portfolio", contactDesc: "Entre em contato pelos links ou envie uma mensagem.", sendMessageTitle: "Enviar mensagem", name: "Nome", email: "Endereco de e-mail", yourMessage: "Sua mensagem", sendButton: "Enviar mensagem", chatPlaceholder: "Digite uma mensagem ou comando...", typing: "Pensando...", listening: "Ouvindo...", newsLoading: "Carregando noticias…", newsUnavailable: "Nao foi possivel carregar noticias.", newsEmpty: "Sem manchetes no momento.", newsConnection: "Falha ao carregar. Verifique a conexao." },
+  zh: { languageLabel: "语言", subtitle: "计算机科学学生 | 立志成为 AI 工程师", tourStart: "带我浏览这个网站", intro: "简介", projects: "项目", education: "教育", hometown: "家乡", favorites: "喜好", games: "游戏", news: "新闻", contact: "联系", gamesTitle: "边玩边学", gamesDesc: "通过小测验了解你对 Rishikesh 的认识。", gameTitle: "你了解 Rishikesh 吗？", scoreLabel: "得分", quizStart: "开始测验", quizNext: "下一题", newsDesc: "来自世界各地的头条新闻。", contactTitle: "联系与作品集", contactDesc: "你可以通过以下链接联系我，或直接留言。", sendMessageTitle: "发送消息", name: "姓名", email: "邮箱地址", yourMessage: "你的消息", sendButton: "发送消息", chatPlaceholder: "输入消息或指令...", typing: "思考中...", listening: "正在聆听...", newsLoading: "正在加载新闻…", newsUnavailable: "暂时无法加载新闻。", newsEmpty: "目前没有新闻。", newsConnection: "加载失败，请检查网络连接。" }
 };
 
 const I18N_EXTENDED = {
@@ -363,11 +363,12 @@ const I18N_EXTENDED = {
     projectsTitle: "Featured Projects",
     projectsDesc: "Here are some of the projects I've been working on:",
     viewCode: "View Code",
-    projectComplianceDesc: "LLM middleware that scans prompts and outputs against FINRA-style and HIPAA-style rules using regex plus Ollama semantic embeddings, enforces pass/flag/redact/block actions, and logs events with Neo4j disclaimers and SQLite audit trails.",
-    projectQuickLoanDesc: "A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.",
-    projectBudgetDesc: "A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.",
-    projectPortfolioDesc: "Personal portfolio site with a Gemini-powered AI chat assistant, voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.",
-    universityTitle: "University",
+    projectComplianceDesc: "LLM guardrails middleware that enforces HIPAA- and FINRA-style rules on generative AI traffic with regex plus Ollama semantic embeddings, Neo4j disclaimer injection/redaction, SQLite audit logs, and a Rust/PyO3 rule engine.",
+    projectQuickLoanDesc: "A full-stack loan application system designed to streamline the borrowing process, with a modern React frontend and a FastAPI backend backed by SQLAlchemy.",
+    projectBudgetDesc: "Undergraduate FinTech research app (Python, FastAPI, Streamlit) that uses a deterministic rule engine and Isolation Forest anomaly detection to flag spending triggers and turn statistical outliers into actionable coaching insights.",
+    projectPortfolioDesc: "Production portfolio on Vercel Serverless with a Groq-backed (Llama 3.3 70B) chatbot, browser speech commands, audio/video call UI, live weather and news, quiz game, and Supabase-backed chat logs and analytics.",
+    wpuTitle: "Current University",
+    universityTitle: "Previous University",
     highSchoolTitle: "High School",
     hometownTimeLabel: "Kathmandu Time:",
     hometownWeatherLabel: "Weather:",
@@ -398,15 +399,16 @@ const I18N_EXTENDED = {
     tourExit: "Exit"
   },
   es: {
-    introLead: "Hola a todos, mi nombre es Rishikesh Bastakoti. Soy de Nepal y actualmente vivo en Estados Unidos, donde estudio Informatica en Caldwell University. Estoy en segundo ano y quiero construir una carrera como desarrollador de software.",
+    introLead: "Hola, soy Rishikesh Bastakoti, estudiante de Informatica en William Paterson University, originalmente de Nepal y actualmente en Newark, Nueva Jersey. Me enfoco en ingenieria de aplicaciones de IA: crear software practico y orientado a produccion sobre modelos de IA ya entrenados, combinando LLMs con backends, APIs, bases de datos, RAG, integracion de herramientas e ingenieria de software solida. Mi meta es construir sistemas de IA seguros, escalables y realmente utiles en el mundo real, no solo demos.",
     projectsTitle: "Proyectos Destacados",
     projectsDesc: "Estos son algunos de los proyectos en los que he estado trabajando:",
     viewCode: "Ver codigo",
     projectComplianceDesc: "Middleware de LLM que escanea prompts y respuestas con reglas estilo FINRA/HIPAA, embeddings semanticos de Ollama y acciones de cumplimiento con Neo4j y SQLite.",
-    projectQuickLoanDesc: "Un sistema de prestamos full-stack disenado para agilizar el proceso de solicitud y aprobacion.",
+    projectQuickLoanDesc: "Sistema full-stack de prestamos con frontend React y backend FastAPI con SQLAlchemy.",
     projectBudgetDesc: "Una herramienta de finanzas personales en Python para registrar gastos y visualizar habitos de consumo.",
     projectPortfolioDesc: "Portafolio personal con asistente de IA, comandos de voz, llamadas, clima y noticias en vivo, quiz y analiticas en Supabase.",
-    universityTitle: "Universidad",
+    wpuTitle: "Universidad actual",
+    universityTitle: "Universidad anterior",
     highSchoolTitle: "Escuela secundaria",
     hometownTimeLabel: "Hora de Katmandu:",
     hometownWeatherLabel: "Clima:",
@@ -437,15 +439,16 @@ const I18N_EXTENDED = {
     tourExit: "Salir"
   },
   ne: {
-    introLead: "नमस्ते सबैलाई, मेरो नाम रिशिकेश बास्ताकोटी हो। म नेपालबाट हुँ र हाल अमेरिकामा बस्दै कम्प्युटर साइन्स पढिरहेको छु। म दोस्रो वर्षमा छु र सफ्टवेयर डेभलपर बन्ने लक्ष्य राखेको छु।",
+    introLead: "नमस्ते, म रिशिकेश बास्ताकोटी हुँ—William Paterson University मा कम्प्युटर साइन्स विद्यार्थी, मूल रूपमा नेपालबाट र हाल न्यूवार्क, न्यू जर्सीमा। म AI एप्लिकेसन इन्जिनियरिङमा केन्द्रित छु: पहिले नै प्रशिक्षित AI मोडलमाथि व्यावहारिक र प्रोडक्सन-मुखी सफ्टवेयर बनाउने, LLM लाई ब्याकएन्ड, API, डाटाबेस, RAG, टुल इन्टिग्रेसन र भरपर्दो सफ्टवेयर इन्जिनियरिङसँग जोडेर। मेरो लक्ष्य सुरक्षित, स्केलेबल र वास्तविक संसारमा साँच्चै उपयोगी AI प्रणाली बनाउनु हो—डेमो मात्र होइन।",
     projectsTitle: "विशेष प्रोजेक्टहरू",
     projectsDesc: "मैले काम गरिरहेका केही प्रोजेक्टहरू यहाँ छन्:",
     viewCode: "कोड हेर्नुहोस्",
     projectComplianceDesc: "LLM मध्यस्थ तह जसले FINRA/HIPAA शैलीका नियम, Ollama semantic embedding, Neo4j disclaimer र SQLite audit log मार्फत prompt/output compliance जाँच गर्छ।",
-    projectQuickLoanDesc: "ऋण प्रक्रिया सजिलो बनाउने फुल-स्ट्याक लोन प्रणाली। आधुनिक फ्रन्टएन्ड र बलियो ब्याकएन्डमा आधारित।",
+    projectQuickLoanDesc: "React र FastAPI/SQLAlchemy मा बनेको फुल-स्ट्याक लोन एप जसले ऋण प्रक्रिया सजिलो बनाउँछ।",
     projectBudgetDesc: "Python मा बनेको व्यक्तिगत वित्त उपकरण जसले खर्च ट्र्याक, बजेट सेट र खर्च विश्लेषण गर्न मद्दत गर्छ।",
     projectPortfolioDesc: "AI सहायक, भ्वाइस कमाण्ड, कल, मौसम/समाचार, क्विज र Supabase एनालिटिक्स भएको व्यक्तिगत पोर्टफोलियो साइट।",
-    universityTitle: "विश्वविद्यालय",
+    wpuTitle: "हालको विश्वविद्यालय",
+    universityTitle: "अघिल्लो विश्वविद्यालय",
     highSchoolTitle: "उच्च माध्यमिक विद्यालय",
     hometownTimeLabel: "काठमाडौं समय:",
     hometownWeatherLabel: "मौसम:",
@@ -476,15 +479,16 @@ const I18N_EXTENDED = {
     tourExit: "बाहिरिने"
   },
   fr: {
-    introLead: "Bonjour a tous, je m'appelle Rishikesh Bastakoti. Je viens du Nepal et je vis actuellement aux Etats-Unis, ou je poursuis une licence en informatique a Caldwell University. Je suis en deuxieme annee et je souhaite construire une carriere de developpeur logiciel.",
+    introLead: "Bonjour, je suis Rishikesh Bastakoti, etudiant en informatique a William Paterson University, originaire du Nepal et base a Newark, New Jersey. Je me concentre sur l'ingenierie d'applications IA: concevoir des logiciels pratiques et orientes production au-dessus de modeles IA deja entraines, en combinant LLM, backends, APIs, bases de donnees, RAG, integration d'outils et ingenierie logicielle solide. Mon objectif: des systemes d'IA securises, scalables et vraiment utiles dans le monde reel—pas seulement des demos.",
     projectsTitle: "Projets en vedette",
     projectsDesc: "Voici quelques projets sur lesquels j'ai travaille :",
     viewCode: "Voir le code",
     projectComplianceDesc: "Couche middleware LLM qui analyse prompts et reponses selon des regles FINRA/HIPAA, embeddings Ollama, actions de conformite, Neo4j et journal SQLite.",
-    projectQuickLoanDesc: "Une application de pret full-stack concue pour simplifier le processus d'emprunt.",
+    projectQuickLoanDesc: "Application de pret full-stack avec React, FastAPI et SQLAlchemy.",
     projectBudgetDesc: "Un outil de finances personnelles en Python pour suivre les depenses et visualiser les habitudes.",
     projectPortfolioDesc: "Portfolio personnel avec assistant IA, commandes vocales, appels audio/video, meteo et actualites en direct.",
-    universityTitle: "Universite",
+    wpuTitle: "Universite actuelle",
+    universityTitle: "Universite precedente",
     highSchoolTitle: "Lycee",
     hometownTimeLabel: "Heure de Kathmandu :",
     hometownWeatherLabel: "Meteo :",
@@ -515,15 +519,16 @@ const I18N_EXTENDED = {
     tourExit: "Quitter"
   },
   de: {
-    introLead: "Hallo zusammen, ich heisse Rishikesh Bastakoti. Ich komme aus Nepal und lebe derzeit in den USA, wo ich an der Caldwell University Informatik studiere. Ich bin im zweiten Studienjahr und moechte Softwareentwickler werden.",
+    introLead: "Hallo, ich bin Rishikesh Bastakoti, Informatikstudent an der William Paterson University, ursprünglich aus Nepal und derzeit in Newark, New Jersey. Ich konzentriere mich auf AI Application Engineering: praxisnahe, produktionsreife Software auf bereits trainierten KI-Modellen—mit LLMs, Backends, APIs, Datenbanken, RAG, Tool-Integration und solider Softwaretechnik. Mein Ziel sind sichere, skalierbare und im Alltag wirklich nuetzliche KI-Systeme—keine reinen Demos.",
     projectsTitle: "Ausgewaehlte Projekte",
     projectsDesc: "Hier sind einige Projekte, an denen ich gearbeitet habe:",
     viewCode: "Code ansehen",
     projectComplianceDesc: "LLM-Middleware mit FINRA/HIPAA-Regeln, Ollama-Embeddings, Compliance-Aktionen sowie Neo4j-Disclaimer und SQLite-Audit-Log.",
-    projectQuickLoanDesc: "Ein Full-Stack-Kreditsystem, das den Ausleihprozess vereinfacht.",
+    projectQuickLoanDesc: "Full-Stack-Kreditanwendung mit React, FastAPI und SQLAlchemy.",
     projectBudgetDesc: "Ein Python-Finanztool, um Ausgaben zu verfolgen und Budgets zu planen.",
     projectPortfolioDesc: "Persoenliche Portfolio-Seite mit KI-Chat, Sprachbefehlen, Audio/Video-Anrufen, Live-Wetter und News.",
-    universityTitle: "Universitaet",
+    wpuTitle: "Aktuelle Universitaet",
+    universityTitle: "Vorherige Universitaet",
     highSchoolTitle: "Oberschule",
     hometownTimeLabel: "Kathmandu-Zeit:",
     hometownWeatherLabel: "Wetter:",
@@ -554,15 +559,16 @@ const I18N_EXTENDED = {
     tourExit: "Beenden"
   },
   pt: {
-    introLead: "Ola, pessoal. Meu nome e Rishikesh Bastakoti. Sou do Nepal e atualmente moro nos Estados Unidos, onde curso Ciencia da Computacao na Caldwell University. Estou no segundo ano e quero construir minha carreira como desenvolvedor de software.",
+    introLead: "Ola, eu sou Rishikesh Bastakoti, estudante de Ciencia da Computacao na William Paterson University, originalmente do Nepal e atualmente em Newark, Nova Jersey. Foco em engenharia de aplicacoes de IA: criar software pratico e orientado a producao sobre modelos de IA ja treinados, combinando LLMs com backends, APIs, bancos de dados, RAG, integracao de ferramentas e engenharia de software solida. Meu objetivo e construir sistemas de IA seguros, escalaveis e genuinamente uteis no mundo real—nao apenas demos.",
     projectsTitle: "Projetos em destaque",
     projectsDesc: "Aqui estao alguns projetos em que tenho trabalhado:",
     viewCode: "Ver codigo",
     projectComplianceDesc: "Middleware de LLM com regras estilo FINRA/HIPAA, embeddings semanticos do Ollama, acoes de conformidade, Neo4j e auditoria em SQLite.",
-    projectQuickLoanDesc: "Um sistema full-stack de emprestimos para simplificar o processo de credito.",
+    projectQuickLoanDesc: "Sistema full-stack de emprestimos com React, FastAPI e SQLAlchemy.",
     projectBudgetDesc: "Uma ferramenta de financas pessoais em Python para acompanhar gastos e metas.",
     projectPortfolioDesc: "Site de portfolio com assistente de IA, comandos de voz, chamadas, clima e noticias ao vivo.",
-    universityTitle: "Universidade",
+    wpuTitle: "Universidade atual",
+    universityTitle: "Universidade anterior",
     highSchoolTitle: "Ensino medio",
     hometownTimeLabel: "Horario de Katmandu:",
     hometownWeatherLabel: "Clima:",
@@ -593,15 +599,16 @@ const I18N_EXTENDED = {
     tourExit: "Sair"
   },
   zh: {
-    introLead: "大家好，我叫 Rishikesh Bastakoti。我来自尼泊尔，目前在美国就读 Caldwell University 计算机科学本科二年级，并希望成为软件开发工程师。",
+    introLead: "你好，我是 Rishikesh Bastakoti，William Paterson University 计算机科学学生，来自尼泊尔，现居新泽西州纽瓦克。我专注于 AI 应用工程：在已训练的 AI 模型之上构建实用、面向生产的软件，将大语言模型与后端系统、API、数据库、RAG、工具集成和可靠的软件工程结合。我的目标是打造安全、可扩展、在真实场景中真正有用的 AI 系统——而不只是演示。",
     projectsTitle: "精选项目",
     projectsDesc: "以下是我正在进行的一些项目：",
     viewCode: "查看代码",
     projectComplianceDesc: "LLM 中间件，使用 FINRA/HIPAA 风格规则、Ollama 语义嵌入、合规动作，以及 Neo4j 免责声明和 SQLite 审计日志。",
-    projectQuickLoanDesc: "一个全栈贷款申请系统，用于简化借贷流程，包含现代前端和稳定后端。",
+    projectQuickLoanDesc: "全栈贷款应用，使用 React、FastAPI 与 SQLAlchemy 简化借贷流程。",
     projectBudgetDesc: "使用 Python 开发的个人理财工具，帮助用户记录支出并制定预算。",
     projectPortfolioDesc: "个人作品集网站，包含 AI 聊天助手、语音命令、音视频通话、实时天气与新闻等功能。",
-    universityTitle: "大学",
+    wpuTitle: "当前大学",
+    universityTitle: "以前的大学",
     highSchoolTitle: "高中",
     hometownTimeLabel: "加德满都时间：",
     hometownWeatherLabel: "天气：",
@@ -668,14 +675,14 @@ function applyTranslations() {
     ["#tab-games", "games"],
     ["#tab-news", "news"],
     ["#tab-contact", "contact"],
-    ["#games h3", "gamesTitle"],
-    ["#games > p", "gamesDesc"],
+    ["#games-title", "gamesTitle"],
+    ["#games-desc", "gamesDesc"],
     [".game-title", "gameTitle"],
     ["#quiz-start", "quizStart"],
     ["#quiz-next", "quizNext"],
-    ["#news > p", "newsDesc"],
-    ["#contact > h3", "contactTitle"],
-    ["#contact > p", "contactDesc"],
+    ["#news-desc", "newsDesc"],
+    ["#contact-title", "contactTitle"],
+    ["#contact-desc", "contactDesc"],
     [".form-container h3", "sendMessageTitle"],
     ["#language-label", "languageLabel"],
     ["#typing-indicator", "typing"],
@@ -686,6 +693,7 @@ function applyTranslations() {
     ["#project-quickloan-desc", "projectQuickLoanDesc"],
     ["#project-budget-desc", "projectBudgetDesc"],
     ["#project-portfolio-desc", "projectPortfolioDesc"],
+    ["#education-wpu-title", "wpuTitle"],
     ["#education-university-title", "universityTitle"],
     ["#education-highschool-title", "highSchoolTitle"],
     ["#hometown-time-label", "hometownTimeLabel"],
@@ -1403,11 +1411,11 @@ audio.addEventListener('ended', () => {
 // Quiz game logic (questions, scoring, Supabase logging)
 const QUIZ_QUESTIONS = [
   { q: "Where is Rishikesh from?", options: ["India", "Nepal", "USA", "UK"], correct: 1 },
-  { q: "Which university does he attend?", options: ["MIT", "Caldwell University", "Stanford", "NYU"], correct: 1 },
+  { q: "Which university does he attend now?", options: ["MIT", "William Paterson University", "Stanford", "NYU"], correct: 1 },
   { q: "What is the QuickLoan App built with?", options: ["Vue + Django", "React + FastAPI", "Angular + Node", "Svelte + Flask"], correct: 1 },
   { q: "What does AI Compliance Firewall scan?", options: ["Network packets", "LLM prompts and outputs", "Email attachments", "Image metadata"], correct: 1 },
   { q: "Which city does he love to visit?", options: ["Kathmandu", "Pokhara", "Lumbini", "Chitwan"], correct: 1 },
-  { q: "What does BudgetTracker use?", options: ["React", "Python + File I/O", "Java", "C#"], correct: 1 },
+  { q: "What does the Behavior-Aware Budget Tracker use?", options: ["React only", "Python + FastAPI + Streamlit", "Java", "C#"], correct: 1 },
   { q: "Which runtime powers AI Compliance Firewall's LLM layer?", options: ["OpenAI API", "Ollama", "Gemini", "Claude API"], correct: 1 },
   { q: "What is his major?", options: ["Electrical Engineering", "Computer Science", "Data Science", "Mathematics"], correct: 1 },
   { q: "What features does the AI-Powered Portfolio include?", options: ["E-commerce checkout", "Voice commands and AI chat", "Blockchain wallet", "3D game engine"], correct: 1 },
@@ -1522,7 +1530,7 @@ const VoiceAssistant = (function() {
 
   const THEMES = PORTFOLIO_ACCENT_THEMES;
 
-  const ABOUT_RISHI_VOICE = "Rishikesh is a Computer Science student at Caldwell University, class of 2028, from Kathmandu. He's built AI Compliance Firewall, QuickLoan, BudgetTracker, and this portfolio site. Favorite song: Timi Ra Maa by Dixita Karki.";
+  const ABOUT_RISHI_VOICE = "Rishikesh Bastakoti is a Computer Science student at William Paterson University, originally from Nepal and based in Newark, New Jersey. He focuses on AI application engineering—building practical, production-ready software on top of trained AI models with LLMs, backends, APIs, databases, and RAG. Favorite song: Timi Ra Maa by Dixita Karki.";
 
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
 

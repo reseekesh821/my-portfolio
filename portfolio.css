@@ -1031,10 +1031,15 @@ h1 {
   text-decoration: none;
   transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
-.code-btn:hover {
+a.code-btn:hover {
   background: var(--text-main);
   color: var(--bg-body);
   border-color: var(--text-main);
+}
+span.code-btn {
+  cursor: default;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
 }
 
 .project-card h4 {

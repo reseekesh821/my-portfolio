@@ -66,9 +66,9 @@ function looksLikeUnwantedBioDump(reply, userMessage) {
   const factSignals =
     (/\bcompliance firewall\b/i.test(r) ? 1 : 0) +
     (/\bquickloan\b/i.test(r) ? 1 : 0) +
-    (/\bbudgettracker\b/i.test(r) ? 1 : 0) +
+    (/\bbudget\s*tracker\b/i.test(r) ? 1 : 0) +
     (/\binterstellar\b/i.test(r) ? 1 : 0) +
-    (/\bcaldwell university\b/i.test(r) ? 1 : 0) +
+    (/\b(william paterson|caldwell university)\b/i.test(r) ? 1 : 0) +
     (/\bgpa\b/i.test(r) ? 1 : 0);
   return factSignals >= 3 || r.split(/\s+/).length > 55;
 }

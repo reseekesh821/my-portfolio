@@ -129,7 +129,7 @@
     </div>
 
     <h1>Rishikesh <span class="name-accent">Bastakoti</span></h1>
-    <p class="subtitle">Computer Science Student | Aspiring Software Developer</p>
+    <p class="subtitle">Computer Science Student | Aspiring AI Engineer</p>
     <button type="button" id="tour-start-btn" class="tour-start-btn">Walk me through this site</button>
 
     <a class="hero-scroll-cue" href="#intro" aria-label="Scroll to intro">
@@ -142,7 +142,7 @@
     <div class="section-inner">
       <div class="section-label"><span class="num">01</span><span class="line"></span><span>Intro</span></div>
       <p class="intro-lead" id="intro-lead">
-        Hello everyone, my name is Rishikesh Bastakoti. I am originally from Nepal and currently living in the United States, where I am pursuing my undergraduate degree in Computer Science at Caldwell University. I am in my sophomore year and aspire to build a career as a software developer. So far, I have completed several projects using Python, HTML, CSS, and JavaScript, and I am continuously expanding my skills in full-stack development.
+        Hi, I'm Rishikesh Bastakoti, a Computer Science student at William Paterson University, originally from Nepal and currently based in Newark, New Jersey. I'm focused on AI application engineering—building practical, production-oriented software on top of already-trained AI models by combining LLMs with backend systems, APIs, databases, RAG, tool integration, and solid software engineering. My goal is to create AI systems that are secure, scalable, and genuinely useful in the real world—not just demos.
       </p>
     </div>
   </section>
@@ -158,6 +158,27 @@
         <div class="project-card">
           <div class="card-top">
             <div class="icon-box">
+              <iconify-icon icon="lucide:chart-pie" class="icon icon--box"></iconify-icon>
+            </div>
+            <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" rel="noopener noreferrer" class="code-btn">
+              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
+            </a>
+          </div>
+          <div class="card-content">
+            <h4>Behavior-Aware Budget Tracker</h4>
+            <p id="project-budget-desc">Undergraduate FinTech research app (Python, FastAPI, Streamlit) that uses a deterministic rule engine and Isolation Forest anomaly detection to flag spending triggers and turn statistical outliers into actionable coaching insights.</p>
+            <div class="tech-stack">
+              <span>Python</span>
+              <span>FastAPI</span>
+              <span>Streamlit</span>
+              <span>Isolation Forest</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="card-top">
+            <div class="icon-box">
               <iconify-icon icon="lucide:shield" class="icon icon--box"></iconify-icon>
             </div>
             <a href="https://github.com/reseekesh821/AIComplianceFirewall" target="_blank" rel="noopener noreferrer" class="code-btn">
@@ -166,52 +187,13 @@
           </div>
           <div class="card-content">
             <h4>AI Compliance Firewall</h4>
-            <p id="project-compliance-desc">LLM middleware that scans prompts and outputs against FINRA-style and HIPAA-style rules using regex plus Ollama semantic embeddings, enforces pass/flag/redact/block actions, and logs events with Neo4j disclaimers and SQLite audit trails.</p>
+            <p id="project-compliance-desc">LLM guardrails middleware that enforces HIPAA- and FINRA-style rules on generative AI traffic with regex plus Ollama semantic embeddings, Neo4j disclaimer injection/redaction, SQLite audit logs, and a Rust/PyO3 rule engine.</p>
             <div class="tech-stack">
               <span>FastAPI</span>
+              <span>FastHTML</span>
               <span>Ollama</span>
               <span>Neo4j</span>
               <span>Rust / PyO3</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="project-card">
-          <div class="card-top">
-            <div class="icon-box">
-              <iconify-icon icon="lucide:folder-open" class="icon icon--box"></iconify-icon>
-            </div>
-            <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" rel="noopener noreferrer" class="code-btn">
-              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
-            </a>
-          </div>
-          <div class="card-content">
-            <h4>QuickLoan App</h4>
-            <p id="project-quickloan-desc">A full-stack loan application system designed to streamline the borrowing process. Built with a modern frontend and robust backend.</p>
-            <div class="tech-stack">
-              <span>React</span>
-              <span>Python (FastAPI)</span>
-              <span>SQLAlchemy</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="project-card">
-          <div class="card-top">
-            <div class="icon-box">
-              <iconify-icon icon="lucide:chart-pie" class="icon icon--box"></iconify-icon>
-            </div>
-            <a href="https://github.com/reseekesh821/BudgetTracker" target="_blank" rel="noopener noreferrer" class="code-btn">
-              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
-            </a>
-          </div>
-          <div class="card-content">
-            <h4>BudgetTracker</h4>
-            <p id="project-budget-desc">A personal finance tool written in Python to help users track expenses, set budgets, and visualize spending habits.</p>
-            <div class="tech-stack">
-              <span>Python</span>
-              <span>Data Structures</span>
-              <span>File I/O</span>
             </div>
           </div>
         </div>
@@ -227,11 +209,32 @@
           </div>
           <div class="card-content">
             <h4>AI-Powered Portfolio</h4>
-            <p id="project-portfolio-desc">Personal portfolio site with a Gemini-powered AI chat assistant, voice commands, audio/video call UI, live weather and news, quiz game, and Supabase analytics—serverless APIs on Vercel.</p>
+            <p id="project-portfolio-desc">Production portfolio on Vercel Serverless with a Groq-backed (Llama 3.3 70B) chatbot, browser speech commands, audio/video call UI, live weather and news, quiz game, and Supabase-backed chat logs and analytics.</p>
             <div class="tech-stack">
               <span>HTML / CSS / JS</span>
+              <span>Groq / Llama 3.3</span>
               <span>Supabase</span>
               <span>Vercel</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="card-top">
+            <div class="icon-box">
+              <iconify-icon icon="lucide:folder-open" class="icon icon--box"></iconify-icon>
+            </div>
+            <a href="https://github.com/reseekesh821/QuickLoan-App" target="_blank" rel="noopener noreferrer" class="code-btn">
+              <span class="view-code-text">View Code</span> <iconify-icon icon="mdi:github" class="icon" aria-hidden="true"></iconify-icon>
+            </a>
+          </div>
+          <div class="card-content">
+            <h4>QuickLoan App</h4>
+            <p id="project-quickloan-desc">A full-stack loan application system designed to streamline the borrowing process, with a modern React frontend and a FastAPI backend backed by SQLAlchemy.</p>
+            <div class="tech-stack">
+              <span>React</span>
+              <span>Python (FastAPI)</span>
+              <span>SQLAlchemy</span>
             </div>
           </div>
         </div>
@@ -245,16 +248,22 @@
       <div class="section-label"><span class="num">03</span><span class="line"></span><span>Education</span></div>
       <div class="edu-grid">
         <div class="info-block">
-          <h3 id="education-university-title"><iconify-icon icon="lucide:building-2" class="icon"></iconify-icon> University</h3>
+          <h3 id="education-wpu-title"><iconify-icon icon="lucide:building-2" class="icon"></iconify-icon> Current University</h3>
+          <p><strong>William Paterson University of New Jersey</strong><br>
+          Wayne, NJ, USA<br>
+          <span>Aug 2026 – Dec 2028 · B.S. Computer Science</span></p>
+        </div>
+        <div class="info-block">
+          <h3 id="education-university-title"><iconify-icon icon="lucide:building" class="icon"></iconify-icon> Previous University</h3>
           <p><strong>Caldwell University</strong><br>
           Caldwell, NJ, USA<br>
-          <span>2024 - 2028 (Bachelor's in CS)</span></p>
+          <span>Aug 2024 – May 2026 · GPA 3.90/4.0</span></p>
         </div>
         <div class="info-block">
           <h3 id="education-highschool-title"><iconify-icon icon="lucide:school" class="icon"></iconify-icon> High School</h3>
           <p><strong>National School of Sciences</strong><br>
           Kathmandu, Nepal<br>
-          <span>2021 - 2023 (High School Diploma)</span></p>
+          <span>2021 – 2023 · High School Diploma</span></p>
         </div>
       </div>
     </div>
@@ -362,8 +371,8 @@
   <section id="games" class="tab-content section section--games" role="region" aria-labelledby="tab-games" tabindex="0">
     <div class="section-inner">
       <div class="section-label"><span class="num">06</span><span class="line"></span><span>Games</span></div>
-      <h3><iconify-icon icon="lucide:gamepad-2" class="icon"></iconify-icon> Play &amp; Learn</h3>
-      <p>Test what you know about Rishikesh with a quick quiz.</p>
+      <h3 id="games-title"><iconify-icon icon="lucide:gamepad-2" class="icon"></iconify-icon> Play &amp; Learn</h3>
+      <p id="games-desc">Test what you know about Rishikesh with a quick quiz.</p>
       <div class="game-card">
         <div class="game-header">
           <span class="game-title">Know Rishikesh?</span>
@@ -385,7 +394,7 @@
     <div class="section-inner">
       <div class="section-label"><span class="num">07</span><span class="line"></span><span>News</span></div>
       <h3 id="news-title"><iconify-icon icon="lucide:newspaper" class="icon"></iconify-icon> News</h3>
-      <p>Top headlines from around the world.</p>
+      <p id="news-desc">Top headlines from around the world.</p>
       <div id="news-list" class="news-list" aria-live="polite"></div>
     </div>
   </section>
@@ -394,11 +403,11 @@
   <section id="contact" class="tab-content section section--contact" role="region" aria-labelledby="tab-contact" tabindex="0">
     <div class="section-inner">
       <div class="section-label"><span class="num">08</span><span class="line"></span><span>Contact</span></div>
-      <h3><iconify-icon icon="lucide:contact" class="icon"></iconify-icon> Contact &amp; Portfolio</h3>
-      <p>Reach out via the links below or drop a message—I will respond as soon as I can.</p>
+      <h3 id="contact-title"><iconify-icon icon="lucide:contact" class="icon"></iconify-icon> Contact &amp; Portfolio</h3>
+      <p id="contact-desc">Reach out via the links below or drop a message—I will respond as soon as I can.</p>
 
       <div class="contact-grid">
-        <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026%20-%20Google%20Docs.pdf" target="_blank" rel="noopener noreferrer" class="social-btn resume-btn">
+        <a href="https://cdn.jsdelivr.net/gh/reseekesh821/music@main/Resume-%20Rishikesh%20Bastakoti-%202026.pdf" target="_blank" rel="noopener noreferrer" class="social-btn resume-btn">
           <div class="btn-icon">
             <iconify-icon icon="lucide:file-text" class="icon"></iconify-icon>
           </div>
@@ -594,6 +603,6 @@
     </div>
   </div>
 </div>
-<script src="portfolio.js?v=34"></script>
+<script src="portfolio.js?v=35"></script>
 </body>
 </html>
