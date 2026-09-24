@@ -1821,8 +1821,7 @@ strong iconify-icon.icon {
 .video-call-frame { width: 100%; flex: 1; position: relative; z-index: 1; overflow: hidden; }
 .video-call-frame .anam-video-stack { position: absolute; inset: 0; background: #000; }
 .video-call-frame .anam-video { position: absolute; inset: 0; width: 100%; height: 100%; }
-.video-call-frame .anam-video-bg { object-fit: cover; filter: blur(22px) saturate(1.1) brightness(0.9); transform: scale(1.25); z-index: 0; }
-.video-call-frame .anam-video-fg { object-fit: contain; z-index: 1; }
+.video-call-frame .anam-video-fg { object-fit: cover; object-position: center center; z-index: 1; }
 .video-call-frame iframe { width: 100% !important; height: 100% !important; border: none; }
 
 .video-call-actions {

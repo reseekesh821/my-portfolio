@@ -3254,14 +3254,10 @@ async function startVideoCall() {
       anamSdk = await import('https://esm.sh/@anam-ai/js-sdk@latest');
     }
 
-    // 3) Render videos:
-    // - background: blurred + cover (fills the frame, no black bars)
-    // - foreground: contain (shows full face, "zoomed out")
+    // 3) Single video fills the frame (cover — no blurred background layer)
     const fgId = 'anam-video-foreground';
-    const bgId = 'anam-video-background';
     videoCallFrame.innerHTML =
       `<div class="anam-video-stack">` +
-        `<video id="${bgId}" class="anam-video anam-video-bg" autoplay playsinline muted></video>` +
         `<video id="${fgId}" class="anam-video anam-video-fg" autoplay playsinline></video>` +
       `</div>`;
 
@@ -3281,26 +3277,6 @@ async function startVideoCall() {
     }
 
     await anamClient.streamToVideoElement(fgId);
-
-    // Mirror the same stream onto the blurred background video.
-    // Some browsers/SDK paths attach srcObject asynchronously, so wait briefly.
-    const fgEl = document.getElementById(fgId);
-    const bgEl = document.getElementById(bgId);
-    if (fgEl && bgEl) {
-      const start = Date.now();
-      while (!fgEl.srcObject && Date.now() - start < 2500) {
-        await new Promise((r) => setTimeout(r, 50));
-      }
-      if (fgEl.srcObject && !bgEl.srcObject) {
-        try {
-          bgEl.srcObject = fgEl.srcObject;
-          // background is muted so autoplay is allowed
-          bgEl.play().catch(() => {});
-        } catch (e) {
-          // Foreground still works even if background can't autoplay
-        }
-      }
-    }
 
     if (videoCallConnecting) videoCallConnecting.classList.add("hidden");
     if (videoCallStatus) videoCallStatus.textContent = "On video call — speak anytime";
