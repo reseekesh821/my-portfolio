@@ -6,9 +6,9 @@ export const PORTFOLIO_FACTS = {
   /** Only share when the user asks about GPA, grades, or academic performance. */
   gpa: "3.90/4.0 at Caldwell University",
   highSchool: "National School of Sciences, Kathmandu",
-  background: "Originally from Kathmandu, Nepal. Currently lives in Newark, New Jersey, USA.",
+  background: "Originally from Kathmandu, Nepal. Currently based in New Jersey, USA.",
   careerGoal:
-    "Aspiring AI application engineer — builds practical, production-oriented software on top of already-trained AI models by combining LLMs with backends, APIs, databases, RAG, tool integration, and reliable software engineering. Aims for systems that are secure, scalable, and useful in real-world environments—beyond simple demos.",
+    "Aspiring AI application engineer — enjoys building practical software using existing AI models along with backend systems, APIs, databases, RAG, and external tools. Goal: AI applications that are useful in the real world, reliable, secure, scalable, and built with strong software engineering principles.",
   skills:
     "Python, JavaScript/TypeScript, Rust (PyO3), SQL, C, FastAPI, Streamlit, FastHTML, Node.js, Vercel Serverless, LangChain, Ollama, Neo4j, PostgreSQL, Supabase, SQLite, Docker, Tailwind CSS, SQLAlchemy, JWT, React",
   projects: [

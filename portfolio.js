@@ -316,7 +316,7 @@ const PORTFOLIO_LANG_STORAGE_KEY = "portfolio-language";
 const RTL_LANGS = new Set([]);
 const I18N = {
   en: {
-    introLead: "Hi, I'm Rishikesh Bastakoti, a Computer Science student at William Paterson University, originally from Nepal and currently based in Newark, New Jersey. I'm focused on AI application engineering—building practical, production-oriented software on top of already-trained AI models by combining LLMs with backend systems, APIs, databases, RAG, tool integration, and solid software engineering. My goal is to create AI systems that are secure, scalable, and genuinely useful in the real world—not just demos.",
+    introLead: "Hi, I am Rishikesh Bastakoti, a Computer Science student at William Paterson University, originally from Nepal and currently based in New Jersey. I am focused on AI application engineering and enjoy building practical software using existing AI models along with backend systems, APIs, databases, RAG, and external tools. My goal is to create AI applications that are useful in the real world, reliable, secure, scalable, and built with strong software engineering principles.",
     languageLabel: "Language",
     subtitle: "Computer Science Student | Aspiring AI Engineer",
     tourStart: "Walk me through this site",
@@ -399,7 +399,7 @@ const I18N_EXTENDED = {
     tourExit: "Exit"
   },
   es: {
-    introLead: "Hola, soy Rishikesh Bastakoti, estudiante de Informatica en William Paterson University, originalmente de Nepal y actualmente en Newark, Nueva Jersey. Me enfoco en ingenieria de aplicaciones de IA: crear software practico y orientado a produccion sobre modelos de IA ya entrenados, combinando LLMs con backends, APIs, bases de datos, RAG, integracion de herramientas e ingenieria de software solida. Mi meta es construir sistemas de IA seguros, escalables y realmente utiles en el mundo real, no solo demos.",
+    introLead: "Hola, soy Rishikesh Bastakoti, estudiante de Informatica en William Paterson University, originalmente de Nepal y actualmente en Nueva Jersey. Me enfoco en ingenieria de aplicaciones de IA y disfruto crear software practico usando modelos de IA existentes junto con backends, APIs, bases de datos, RAG y herramientas externas. Mi meta es crear aplicaciones de IA utiles en el mundo real, fiables, seguras, escalables y con buenos principios de ingenieria de software.",
     projectsTitle: "Proyectos Destacados",
     projectsDesc: "Estos son algunos de los proyectos en los que he estado trabajando:",
     viewCode: "Ver codigo",
@@ -439,7 +439,7 @@ const I18N_EXTENDED = {
     tourExit: "Salir"
   },
   ne: {
-    introLead: "नमस्ते, म रिशिकेश बास्ताकोटी हुँ—William Paterson University मा कम्प्युटर साइन्स विद्यार्थी, मूल रूपमा नेपालबाट र हाल न्यूवार्क, न्यू जर्सीमा। म AI एप्लिकेसन इन्जिनियरिङमा केन्द्रित छु: पहिले नै प्रशिक्षित AI मोडलमाथि व्यावहारिक र प्रोडक्सन-मुखी सफ्टवेयर बनाउने, LLM लाई ब्याकएन्ड, API, डाटाबेस, RAG, टुल इन्टिग्रेसन र भरपर्दो सफ्टवेयर इन्जिनियरिङसँग जोडेर। मेरो लक्ष्य सुरक्षित, स्केलेबल र वास्तविक संसारमा साँच्चै उपयोगी AI प्रणाली बनाउनु हो—डेमो मात्र होइन।",
+    introLead: "नमस्ते, म रिशिकेश बास्ताकोटी हुँ—William Paterson University मा कम्प्युटर साइन्स विद्यार्थी, मूल रूपमा नेपालबाट र हाल न्यू जर्सीमा। म AI एप्लिकेसन इन्जिनियरिङमा केन्द्रित छु र अवस्थित AI मोडलहरूसँग ब्याकएन्ड, API, डाटाबेस, RAG र बाह्य टुलहरू जोडेर व्यावहारिक सफ्टवेयर बनाउन मन पराउँछु। मेरो लक्ष्य वास्तविक संसारमा उपयोगी, भरपर्दो, सुरक्षित, स्केलेबल र बलियो सफ्टवेयर इन्जिनियरिङ सिद्धान्तमा बनेका AI एप्लिकेसनहरू सिर्जना गर्नु हो।",
     projectsTitle: "विशेष प्रोजेक्टहरू",
     projectsDesc: "मैले काम गरिरहेका केही प्रोजेक्टहरू यहाँ छन्:",
     viewCode: "कोड हेर्नुहोस्",
@@ -479,7 +479,7 @@ const I18N_EXTENDED = {
     tourExit: "बाहिरिने"
   },
   fr: {
-    introLead: "Bonjour, je suis Rishikesh Bastakoti, etudiant en informatique a William Paterson University, originaire du Nepal et base a Newark, New Jersey. Je me concentre sur l'ingenierie d'applications IA: concevoir des logiciels pratiques et orientes production au-dessus de modeles IA deja entraines, en combinant LLM, backends, APIs, bases de donnees, RAG, integration d'outils et ingenierie logicielle solide. Mon objectif: des systemes d'IA securises, scalables et vraiment utiles dans le monde reel—pas seulement des demos.",
+    introLead: "Bonjour, je suis Rishikesh Bastakoti, etudiant en informatique a William Paterson University, originaire du Nepal et base dans le New Jersey. Je me concentre sur l'ingenierie d'applications IA et j'aime creer des logiciels pratiques en utilisant des modeles d'IA existants, avec des backends, des APIs, des bases de donnees, du RAG et des outils externes. Mon objectif est de creer des applications d'IA utiles dans le monde reel, fiables, securisees, scalables et baties sur de solides principes d'ingenierie logicielle.",
     projectsTitle: "Projets en vedette",
     projectsDesc: "Voici quelques projets sur lesquels j'ai travaille :",
     viewCode: "Voir le code",
@@ -519,7 +519,7 @@ const I18N_EXTENDED = {
     tourExit: "Quitter"
   },
   de: {
-    introLead: "Hallo, ich bin Rishikesh Bastakoti, Informatikstudent an der William Paterson University, ursprünglich aus Nepal und derzeit in Newark, New Jersey. Ich konzentriere mich auf AI Application Engineering: praxisnahe, produktionsreife Software auf bereits trainierten KI-Modellen—mit LLMs, Backends, APIs, Datenbanken, RAG, Tool-Integration und solider Softwaretechnik. Mein Ziel sind sichere, skalierbare und im Alltag wirklich nuetzliche KI-Systeme—keine reinen Demos.",
+    introLead: "Hallo, ich bin Rishikesh Bastakoti, Informatikstudent an der William Paterson University, urspruenglich aus Nepal und derzeit in New Jersey. Ich konzentriere mich auf AI Application Engineering und entwickle gerne praktische Software mit bestehenden KI-Modellen sowie Backends, APIs, Datenbanken, RAG und externen Tools. Mein Ziel ist es, KI-Anwendungen zu schaffen, die in der realen Welt nuetzlich, zuverlaessig, sicher, skalierbar und nach starken Software-Engineering-Prinzipien gebaut sind.",
     projectsTitle: "Ausgewaehlte Projekte",
     projectsDesc: "Hier sind einige Projekte, an denen ich gearbeitet habe:",
     viewCode: "Code ansehen",
@@ -559,7 +559,7 @@ const I18N_EXTENDED = {
     tourExit: "Beenden"
   },
   pt: {
-    introLead: "Ola, eu sou Rishikesh Bastakoti, estudante de Ciencia da Computacao na William Paterson University, originalmente do Nepal e atualmente em Newark, Nova Jersey. Foco em engenharia de aplicacoes de IA: criar software pratico e orientado a producao sobre modelos de IA ja treinados, combinando LLMs com backends, APIs, bancos de dados, RAG, integracao de ferramentas e engenharia de software solida. Meu objetivo e construir sistemas de IA seguros, escalaveis e genuinamente uteis no mundo real—nao apenas demos.",
+    introLead: "Ola, eu sou Rishikesh Bastakoti, estudante de Ciencia da Computacao na William Paterson University, originalmente do Nepal e atualmente em Nova Jersey. Foco em engenharia de aplicacoes de IA e gosto de criar software pratico usando modelos de IA existentes junto com backends, APIs, bancos de dados, RAG e ferramentas externas. Meu objetivo e criar aplicacoes de IA uteis no mundo real, confiaveis, seguras, escalaveis e construidas com bons principios de engenharia de software.",
     projectsTitle: "Projetos em destaque",
     projectsDesc: "Aqui estao alguns projetos em que tenho trabalhado:",
     viewCode: "Ver codigo",
@@ -599,7 +599,7 @@ const I18N_EXTENDED = {
     tourExit: "Sair"
   },
   zh: {
-    introLead: "你好，我是 Rishikesh Bastakoti，William Paterson University 计算机科学学生，来自尼泊尔，现居新泽西州纽瓦克。我专注于 AI 应用工程：在已训练的 AI 模型之上构建实用、面向生产的软件，将大语言模型与后端系统、API、数据库、RAG、工具集成和可靠的软件工程结合。我的目标是打造安全、可扩展、在真实场景中真正有用的 AI 系统——而不只是演示。",
+    introLead: "你好，我是 Rishikesh Bastakoti，William Paterson University 计算机科学学生，来自尼泊尔，现居新泽西。我专注于 AI 应用工程，喜欢用现有的 AI 模型，结合后端系统、API、数据库、RAG 和外部工具，构建实用软件。我的目标是打造在真实世界中有用、可靠、安全、可扩展，并以扎实软件工程原则构建的 AI 应用。",
     projectsTitle: "精选项目",
     projectsDesc: "以下是我正在进行的一些项目：",
     viewCode: "查看代码",
@@ -1530,7 +1530,7 @@ const VoiceAssistant = (function() {
 
   const THEMES = PORTFOLIO_ACCENT_THEMES;
 
-  const ABOUT_RISHI_VOICE = "Rishikesh Bastakoti is a Computer Science student at William Paterson University, originally from Nepal and based in Newark, New Jersey. He focuses on AI application engineering—building practical, production-ready software on top of trained AI models with LLMs, backends, APIs, databases, and RAG. Favorite song: Timi Ra Maa by Dixita Karki.";
+  const ABOUT_RISHI_VOICE = "Rishikesh Bastakoti is a Computer Science student at William Paterson University, originally from Nepal and based in New Jersey. He focuses on AI application engineering and builds practical software with existing AI models, backends, APIs, databases, RAG, and tools. Favorite song: Timi Ra Maa by Dixita Karki.";
 
   const HELP_PHRASE = "You can ask me: Who is Rishikesh, or tell me about him. Ask what's the weather or time in Kathmandu. Say play music or pause. Say change color to blue, red, green, purple, orange, pink, teal, or yellow. Say start video call or end video call. Or say show projects, games, contact, education, hometown, or favorites.";
 
